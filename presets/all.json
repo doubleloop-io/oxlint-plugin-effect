@@ -1,0 +1,27 @@
+{
+    "jsPlugins": [
+        "../index.ts"
+    ],
+    "rules": {
+        "better-effect/adapter-import-boundary": "warn",
+        "better-effect/boundary-entrypoint-shape": "warn",
+        "better-effect/error-handling-in-effect-fn-handler": "warn",
+        "better-effect/no-asymmetric-match-handlers": "warn",
+        "better-effect/no-bare-error-in-effect": "warn",
+        "better-effect/no-effect-promise": "warn",
+        "better-effect/no-effect-return-type": "warn",
+        "better-effect/no-inline-yield-star": "warn",
+        "better-effect/no-nested-match": "warn",
+        "better-effect/no-parameterless-catch-all": "warn",
+        "better-effect/no-provide-on-definition": "warn",
+        "better-effect/no-transport-types-in-generator": "warn",
+        "better-effect/prefer-effect-fn": "warn",
+        "better-effect/provide-named-layer": "warn",
+        "better-effect/redacted-secret-names": "warn",
+        "better-effect/run-only-at-entry": "warn",
+        "better-effect/service-port-shape-only": "warn",
+        "better-effect/single-style-per-function": "warn",
+        "better-effect/try-object-form": "warn",
+        "better-effect/untraced-recursion": "warn"
+    }
+}

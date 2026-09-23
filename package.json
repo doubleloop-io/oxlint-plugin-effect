@@ -1,0 +1,25 @@
+{
+    "name": "@iacoware/better-effect",
+    "version": "0.0.0",
+    "private": true,
+    "description": "Oxlint rules for Effect 4 code",
+    "type": "module",
+    "exports": {
+        "./presets/all": "./presets/all.ts",
+        "./presets/all.json": "./presets/all.json"
+    },
+    "scripts": {
+        "test": "node --test rules-md.test.ts presets/*.test.ts rules/*.test.ts",
+        "presets:json": "node presets/all-json.ts",
+        "typecheck": "tsc --noEmit",
+        "format": "oxfmt",
+        "format:check": "oxfmt --check"
+    },
+    "devDependencies": {
+        "@oxlint/plugins": "1.82.0",
+        "@types/node": "^24.13.6",
+        "oxfmt": "0.67.0",
+        "oxlint": "1.82.0",
+        "typescript": "^7.0.2"
+    }
+}
