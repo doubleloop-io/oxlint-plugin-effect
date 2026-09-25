@@ -6,8 +6,11 @@ type Yield = ESTree.YieldExpression
 
 const contains = (outer: Range, inner: Range) => outer[0] <= inner[0] && inner[1] <= outer[1]
 
-const isStandalone = (node: Yield) => {
+const isStandalone = (node: ESTree.Node): boolean => {
     const { parent } = node
+    if (!parent) return false
+    if (parent.type === "ConditionalExpression" && parent.test !== node) return isStandalone(parent)
+    if (parent.type === "LogicalExpression" && parent.right === node) return isStandalone(parent)
     if (parent.type === "VariableDeclarator") return true
     if (parent.type === "AssignmentExpression") return parent.parent.type === "ExpressionStatement"
     return parent.type.endsWith("Statement")

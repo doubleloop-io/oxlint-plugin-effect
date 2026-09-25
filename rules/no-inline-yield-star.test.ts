@@ -11,6 +11,11 @@ new RuleTester().run("no-inline-yield-star", noInlineYieldStarRule, {
         "function* g() { for (const row of yield* reader.rows) yield* write(row) }",
         "function* g() { return yield* Effect.forEach(names, Effect.fn('search')(function* (name) { return yield* search(name) })) }",
         "function* g() { return f(yield value) }",
+        "function* g() { return ready ? yield* reader.rows : [] }",
+        "function* g() { return cached ?? (yield* reader.rows) }",
+        "function* g() { const rows = cached || (yield* reader.rows) }",
+        "function* g() { ready && (yield* Effect.logInfo('fatto')) }",
+        "function* g() { return ready ? (cached ?? (yield* reader.rows)) : yield* new NotReady() }",
     ],
     invalid: [
         {
@@ -70,14 +75,19 @@ new RuleTester().run("no-inline-yield-star", noInlineYieldStarRule, {
 }`,
             errors: [{ messageId: "inlineYieldStar" }],
         },
+        {
+            code: "function* g() { return (yield* reader.rows) ?? [] }",
+            output: "function* g() { const rows = yield* reader.rows; return rows ?? [] }",
+            errors: [{ messageId: "inlineYieldStar" }],
+        },
         ...[
-            "function* g() { return cached ?? (yield* reader.rows) }",
-            "function* g() { return ready ? yield* reader.rows : [] }",
             "function* g() { while (!(yield* done)) yield* step() }",
             "function* g() { if (ready) return count(yield* reader.rows) }",
             "function* g() { return count(log(), yield* reader.rows) }",
             "function* g() { const first = yield* head, rest = tail(yield* reader.rows) }",
             "function* g() { return reader?.count(yield* reader.rows) }",
+            "function* g() { return count(ready ? yield* reader.rows : []) }",
+            "function* g() { return (cached ?? (yield* reader.rows)).length }",
         ].map((code) => ({ code, output: null, errors: [{ messageId: "inlineYieldStar" }] })),
     ],
 })

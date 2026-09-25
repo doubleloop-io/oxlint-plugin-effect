@@ -5,7 +5,6 @@ import {
     isEffectFnApplication,
     isFunctionNode,
     memberOf,
-    nearestFunction,
     type FunctionNode,
 } from "../shared/effect-ast.ts"
 
@@ -41,35 +40,23 @@ const isNamedFunction = (fn: FunctionNode) => {
     )
 }
 
-const isOfCall = (node: ESTree.Node | null | undefined, object: ESTree.Node) =>
-    node?.type === "CallExpression" &&
+const isPipeCall = (node: ESTree.CallExpression) =>
     node.callee.type === "MemberExpression" &&
     !node.callee.computed &&
     node.callee.property.type === "Identifier" &&
-    node.callee.property.name === "of" &&
-    node.arguments[0] === object
+    node.callee.property.name === "pipe"
 
-// Port fields stay Effect values: an object is a port shape when it is passed to `Tag.of(…)`
-// or returned to be passed there later, as `openTab` does in GoogleSheet.
-const isPortShape = (object: ESTree.Node) => {
-    const parent = object.parent
-    return (
-        isOfCall(parent, object) ||
-        parent?.type === "ReturnStatement" ||
-        (parent?.type === "ArrowFunctionExpression" && parent.body === object)
-    )
-}
+// A value keeps its span through `Effect.withSpan`: `Effect.fn` would add only a call-site frame
+// that always points at the same line.
+const hasSpan = (node: ESTree.Node | null | undefined): boolean =>
+    node?.type === "CallExpression" &&
+    isPipeCall(node) &&
+    node.callee.type === "MemberExpression" &&
+    (node.arguments.some((argument) => calleeOf(argument, "Effect") === "withSpan") ||
+        hasSpan(node.callee.object))
 
-const isPortField = (property: ESTree.Node) => {
-    const object = property.parent
-    return object?.type === "ObjectExpression" && isPortShape(object)
-}
-
-type NamedValue = {
-    readonly node: ESTree.Node
-    readonly name: string
-    readonly scope: ESTree.Node | undefined
-}
+const isUntracedValue = (node: ESTree.Node | null | undefined) =>
+    isEffectGenChain(node) && !hasSpan(node)
 
 export const preferEffectFnRule = defineRule({
     meta: {
@@ -84,16 +71,12 @@ export const preferEffectFnRule = defineRule({
             missingName:
                 'Give `Effect.fn` a span name: `Effect.fn("name")(function* (...) {...})`.',
             useEffectFnForValue:
-                'Declare `{{name}}` as `Effect.fn("{{name}}")(function* () {...})` and call it; keep `Effect.gen` inline as an argument.',
+                'Give `{{name}}` a span: declare it as `Effect.fn("{{name}}")(function* () {...})` and call it, or append `.pipe(Effect.withSpan("{{name}}"))`.',
             pipeOnEffectFn:
                 "Pass combinators as extra arguments of `Effect.fn(...)(body, ...)` instead of calling `.pipe` on it.",
         },
     },
     createOnce(context) {
-        let namedValues: Array<NamedValue> = []
-        let portFields: Array<{ readonly name: string; readonly scope: ESTree.Node | undefined }> =
-            []
-
         const checkFunction = (fn: FunctionNode) => {
             if (fn.generator || !isNamedFunction(fn)) return
             if (isEffectGenChain(returnedExpression(fn))) {
@@ -102,40 +85,22 @@ export const preferEffectFnRule = defineRule({
         }
 
         return {
-            before() {
-                namedValues = []
-                portFields = []
-            },
             VariableDeclarator(node) {
-                if (node.id.type === "Identifier" && isEffectGenChain(node.init)) {
-                    namedValues.push({ node, name: node.id.name, scope: nearestFunction(node) })
+                if (node.id.type === "Identifier" && isUntracedValue(node.init)) {
+                    context.report({
+                        node,
+                        messageId: "useEffectFnForValue",
+                        data: { name: node.id.name },
+                    })
                 }
             },
             Property(node) {
-                if (node.key.type !== "Identifier" || !isEffectGenChain(node.value)) return
-                if (!isPortField(node)) {
+                if (node.key.type === "Identifier" && isUntracedValue(node.value)) {
                     context.report({
                         node,
                         messageId: "useEffectFnForValue",
                         data: { name: node.key.name },
                     })
-                }
-            },
-            ObjectExpression(node) {
-                if (!isPortShape(node)) return
-                for (const property of node.properties) {
-                    if (property.type === "Property" && property.value.type === "Identifier") {
-                        portFields.push({ name: property.value.name, scope: nearestFunction(node) })
-                    }
-                }
-            },
-            "Program:exit"() {
-                for (const { node, name, scope } of namedValues) {
-                    const isPort = portFields.some(
-                        (field) => field.name === name && field.scope === scope,
-                    )
-                    if (isPort) continue
-                    context.report({ node, messageId: "useEffectFnForValue", data: { name } })
                 }
             },
             ArrowFunctionExpression: checkFunction,

@@ -1,6 +1,8 @@
 import { defineRule, type ESTree } from "@oxlint/plugins"
 
 import { calleeOf } from "../shared/effect-ast.ts"
+import { filePatternsSchema } from "../shared/file-globs.ts"
+import { isTestFile } from "../shared/test-files.ts"
 
 // Argument index of the release step, where a promise that cannot reject is the normal case.
 const releaseSlots = new Map([
@@ -30,16 +32,30 @@ export const noEffectPromiseRule = defineRule({
         type: "suggestion",
         docs: {
             description:
-                "Prefer `Effect.tryPromise` over `Effect.promise` outside resource release.",
+                "Prefer `Effect.tryPromise` over `Effect.promise` outside resource release. Test files are skipped.",
         },
         messages: {
             rejectionAsDefect:
                 "`Effect.promise` turns a rejection into a defect: use `Effect.tryPromise({ try, catch })` unless the promise cannot reject.",
         },
+        schema: [
+            {
+                type: "object",
+                properties: { testFiles: filePatternsSchema },
+                additionalProperties: false,
+            },
+        ],
     },
     createOnce(context) {
+        let inTestFile = false
+
         return {
+            // A rejection during test setup is a broken test, and a defect fails it with the cause.
+            before() {
+                inTestFile = isTestFile(context)
+            },
             CallExpression(node) {
+                if (inTestFile) return
                 if (calleeOf(node, "Effect") === "promise" && !isInsideRelease(node)) {
                     context.report({ node, messageId: "rejectionAsDefect" })
                 }

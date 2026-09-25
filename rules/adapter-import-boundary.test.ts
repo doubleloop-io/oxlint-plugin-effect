@@ -58,6 +58,19 @@ new RuleTester().run("adapter-import-boundary", rule, {
             code: 'import { agentConfig } from "../../config.ts"',
             filename: "src/agent/process/ProcessAgent.ts",
         },
+        {
+            code: 'import { GoogleSheet } from "./google/GoogleSheet.ts"',
+            filename: "src/sheet/GoogleSheet.integration.test.ts",
+        },
+        {
+            code: 'import { GoogleSheet } from "../google/GoogleSheet.ts"',
+            filename: "src/sheet/print/PrintSheet.test.ts",
+        },
+        {
+            code: 'import { GoogleSheet } from "./google/GoogleSheet.ts"',
+            filename: "src/sheet/GoogleSheet.check.ts",
+            options: [{ testFiles: ["**/*.check.ts"] }],
+        },
         // A nested directory that builds no Layer is domain code, whatever its depth.
         {
             code: 'import { formatCells } from "./helpers/formatCells.ts"',
@@ -84,6 +97,13 @@ new RuleTester().run("adapter-import-boundary", rule, {
             code: 'import * as PrintSheetWriter from "../print/PrintSheetWriter.ts"',
             filename: "src/sheet/google/GoogleSheet.ts",
             errors: [{ messageId: "crossAdapter", data: { adapter: "src/sheet/print" } }],
+        },
+        // `testFiles` replaces the defaults, so a `.test.ts` outside the new globs is checked.
+        {
+            code: 'import { GoogleSheet } from "../sheet/google/GoogleSheet.ts"',
+            filename: "src/plan/planRow.test.ts",
+            options: [{ testFiles: ["**/*.check.ts"] }],
+            errors: [{ messageId: "adapterOutsideEntry", data: { adapter: "src/sheet/google" } }],
         },
     ],
 })

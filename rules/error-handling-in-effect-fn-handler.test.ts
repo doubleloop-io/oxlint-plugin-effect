@@ -9,6 +9,15 @@ new RuleTester().run("error-handling-in-effect-fn-handler", errorHandlingInEffec
         "Effect.gen(function* () { const raw = yield* fetchThing.pipe(Effect.orElseSucceed(() => fallback)); return yield* decode(raw).pipe(Effect.mapError(toBadRequest)) })",
         "const main = program.pipe(Effect.catch(report))",
         'Layer.effect(Agent, Effect.gen(function* () { const search = Effect.fn("search")(function* (name) { return yield* run(name) }, Effect.catchTag("PlatformError", toAgentError)); return Agent.of({ search }) }))',
+        {
+            code: 'test("rejects an expired token", () => run(Effect.gen(function* () { const outcome = yield* Effect.result(verify(token)); expect(outcome._tag).toBe("Failure") })))',
+            filename: "src/oidc/token-verifier.test.ts",
+        },
+        {
+            code: "Effect.gen(function* () { const outcome = yield* Effect.result(verify(token)) })",
+            filename: "src/oidc/token-verifier.check.ts",
+            options: [{ testFiles: ["**/*.check.ts"] }],
+        },
     ],
     invalid: [
         {
@@ -22,6 +31,12 @@ new RuleTester().run("error-handling-in-effect-fn-handler", errorHandlingInEffec
         {
             code: "Effect.gen(function* () { return yield* Effect.forEach(names, (name) => search(name).pipe(Effect.exit)) })",
             errors: [{ messageId: "handlerInGenerator", data: { name: "exit" } }],
+        },
+        {
+            code: "Effect.gen(function* () { const outcome = yield* Effect.result(verify(token)) })",
+            filename: "src/oidc/token-verifier.test.ts",
+            options: [{ testFiles: ["**/*.check.ts"] }],
+            errors: [{ messageId: "handlerInGenerator", data: { name: "result" } }],
         },
     ],
 })

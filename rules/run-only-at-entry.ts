@@ -26,7 +26,7 @@ export const runOnlyAtEntryRule = defineRule({
         },
         messages: {
             runOutsideEntry:
-                "`{{name}}` runs an Effect program: only the entry point may do that. Tests use `it.effect`.",
+                "`{{name}}` runs an Effect program: only the entry point may do that. Tests use `it.effect`, or a single test runner listed in `entryFiles`.",
         },
         schema: [
             {

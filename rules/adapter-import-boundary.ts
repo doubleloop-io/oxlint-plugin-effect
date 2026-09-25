@@ -5,6 +5,7 @@ import { defineRule } from "@oxlint/plugins"
 
 import { isEntryFile } from "../shared/entry-files.ts"
 import { filePatternsSchema } from "../shared/file-globs.ts"
+import { isTestFile } from "../shared/test-files.ts"
 
 type Deps = {
     readonly isAdapterDir: (dir: string) => boolean
@@ -72,7 +73,7 @@ export const makeAdapterImportBoundaryRule = (deps: Deps) =>
             type: "problem",
             docs: {
                 description:
-                    "Import adapters only at the entry point, and never from another adapter. Entry files are skipped.",
+                    "Import adapters only at the entry point, and never from another adapter. Entry and test files are skipped.",
             },
             messages: {
                 adapterOutsideEntry:
@@ -83,19 +84,23 @@ export const makeAdapterImportBoundaryRule = (deps: Deps) =>
             schema: [
                 {
                     type: "object",
-                    properties: { entryFiles: filePatternsSchema },
+                    properties: {
+                        entryFiles: filePatternsSchema,
+                        testFiles: filePatternsSchema,
+                    },
                     additionalProperties: false,
                 },
             ],
         },
         create(context) {
             const ownDir = dirname(context.filename)
-            const inEntryFile = isEntryFile(context)
+            // A test composes the Layers it exercises, so it is an entry point too.
+            const composesLayers = isEntryFile(context) || isTestFile(context)
 
             return {
                 ImportDeclaration(node) {
                     const source = node.source.value
-                    if (inEntryFile || !isRelativeImport(source)) return
+                    if (composesLayers || !isRelativeImport(source)) return
 
                     const targetDir = dirname(resolve(ownDir, source))
                     if (targetDir === ownDir || !deps.isAdapterDir(targetDir)) return

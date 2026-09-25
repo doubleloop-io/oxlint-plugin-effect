@@ -38,9 +38,9 @@ The `all` preset enables them all at `warn`. The origin severity is the one each
 When the reason for an exclusion is part of the rule, the rule itself recognizes the files, through an option that **replaces** the defaults (it does not extend them). Globs are matched against the path relative to oxlint's working directory, with `/` on every platform.
 
 - **`entryFiles`**, used by [`run-only-at-entry`](#run-only-at-entry) and [`adapter-import-boundary`](#adapter-import-boundary). Default `**/main.ts`, `**/cli.ts`, `**/bin/**`. `index.ts` is excluded on purpose: it is usually a barrel, and exempting it would let adapters reach the rest of the application through re-exports.
-- **`testFiles`**, used by [`provide-named-layer`](#provide-named-layer) and [`no-provide-on-definition`](#no-provide-on-definition). Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. A helper directory such as `src/testing/` does not count as tests: it is support code.
+- **`testFiles`**, used by [`adapter-import-boundary`](#adapter-import-boundary), [`no-effect-promise`](#no-effect-promise), [`provide-named-layer`](#provide-named-layer), [`no-provide-on-definition`](#no-provide-on-definition) and [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler). Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. A helper directory such as `src/testing/` does not count as tests: it is support code.
 
-The defaults come from a Node CLI. On another layout (Next.js, a monorepo) they must be reconfigured before reading the numbers, and for the two rules sharing the option both must be reconfigured:
+The defaults come from a Node CLI. On another layout (Next.js, a monorepo) they must be reconfigured before reading the numbers, and every rule sharing an option must be reconfigured:
 
 ```ts
 const entryFiles = ["apps/web/src/app/**/route.ts", "apps/web/src/runtime.ts"]
@@ -83,10 +83,10 @@ In v4 tsc already rejects `Effect.Service`, `Context.Tag` and `Context.GenericTa
 
 ### `adapter-import-boundary`
 
-Reports a relative import of an adapter directory from outside that directory: from domain code, or from another adapter. A directory is an adapter when one of its `.ts` files (tests excluded) builds a `Layer` with `Layer.effect`, `succeed`, `sync`, `scoped`, `effectContext`, `unwrap`, `mock` and similar; composition alone (`mergeAll`, `provide`, `merge`) does not count. Entry files are exempt, because that is where adapters are chosen.
+Reports a relative import of an adapter directory from outside that directory: from domain code, or from another adapter. A directory is an adapter when one of its `.ts` files (tests excluded) builds a `Layer` with `Layer.effect`, `succeed`, `sync`, `scoped`, `effectContext`, `unwrap`, `mock` and similar; composition alone (`mergeAll`, `provide`, `merge`) does not count. Entry files are exempt, because that is where adapters are chosen, and so are test files, because a test composes the Layers it exercises.
 
 - **Pattern**: P02 · Adapters in separate Layers, ports without adapter details.
-- **Options**: `entryFiles` (see [File options](#file-options)). **Fix**: none.
+- **Options**: `entryFiles`, `testFiles` (see [File options](#file-options)). **Fix**: none.
 - **Origin severity**: `error`.
 
 **Rule**: every implementation is a `Layer` in its own directory (`google/`, `csv/`, `print/`). The port exposes neither library types nor infrastructure requirements in the `R` channel: dependencies are resolved when the layer is built.
@@ -110,7 +110,7 @@ It is the only rule that reads the filesystem: for each imported directory it op
 
 Reports every reference, not just calls, to `Effect.run*`, `NodeRuntime.runMain`, `BunRuntime.runMain` and `ManagedRuntime.make` outside entry files. Test files get no exemption.
 
-- **Pattern**: P04 · Execution only at the entry point; P22 · Tests with `@effect/vitest` and fakes as Layers.
+- **Pattern**: P04 · Execution only at the entry point; P22 · Tests run Effect in one place, fakes as Layers.
 - **Options**: `entryFiles` (see [File options](#file-options)). **Fix**: none.
 - **Origin severity**: `error`.
 
@@ -129,6 +129,23 @@ NodeRuntime.runMain(run(process.argv.slice(2)).pipe(Effect.provide(NodeServices.
 **Rule (P22)**: effect tests use `it.effect`, or `effect` imported as `test`, and `layer(...)` for shared layers. Fakes are `Layer.succeed(Tag, Tag.of({…}))`. No `Effect.runPromise` in tests, no module mocks.
 
 **Why**: the test runs in Effect's test runtime (with `TestClock`) and replaces services where the code reads them. References: `ai-docs/src/09_testing/10_effect-tests.ts` and `ai-docs/src/09_testing/20_layer-tests.ts`.
+
+**Without `@effect/vitest`** (e.g. a vitest version it does not support yet): a single test runner module is the tests' entry point, listed in `entryFiles`, and each test returns one call to it from a non-async callback, assertions inside the generator. The Layer stays in one place and the test keeps one style ([`single-style-per-function`](#single-style-per-function)); what is lost is the test runtime, `TestClock` included.
+
+```ts
+// src/testing/run.ts, in entryFiles
+export const run = <A, E>(effect: Effect.Effect<A, E, TestServices>) =>
+    Effect.runPromise(effect.pipe(Effect.provide(testLayer)))
+
+// test
+test("rejects a subject bound to another account", () =>
+    run(
+        Effect.gen(function* () {
+            const outcome = yield* Effect.result(bind(subject, other))
+            expect(outcome._tag).toBe("Failure")
+        }),
+    ))
+```
 
 ```ts
 // no
@@ -199,10 +216,10 @@ Effect.tryPromise({
 
 ### `no-effect-promise`
 
-Reports `Effect.promise` outside the release step of `acquireRelease`, `acquireUseRelease` and `addFinalizer`, where a promise that cannot reject is the normal case.
+Reports `Effect.promise` outside the release step of `acquireRelease`, `acquireUseRelease` and `addFinalizer`, where a promise that cannot reject is the normal case. Test files are exempt, because a rejection during setup is a broken test and the defect fails it with the cause.
 
 - **Pattern**: P08 · `tryPromise`/`try` in object form. Rule, rationale and examples in [`try-object-form`](#try-object-form).
-- **Options**: none. **Fix**: none.
+- **Options**: `testFiles` (see [File options](#file-options)). **Fix**: none.
 - **Origin severity**: `warn`: a promise that truly cannot reject, outside a release, is legitimate and must be suppressed by hand.
 
 ### `no-parameterless-catch-all`
@@ -266,7 +283,7 @@ serviceAccount: Config.schema(Schema.Redacted(NonBlank), "GOOGLE_SERVICE_ACCOUNT
 Reports:
 
 - a declared function, a variable or an object member that only returns `Effect.gen(…)`, even with `.pipe`;
-- a variable or an object member whose value is `Effect.gen(…)`, except port fields (see below);
+- a variable or an object member whose value is `Effect.gen(…)` without `Effect.withSpan` in its `.pipe`;
 - `Effect.fn(body)` without a name;
 - `.pipe` on `Effect.fn(…)(…)`.
 
@@ -274,9 +291,9 @@ Reports:
 - **Options**: none. **Fix**: none.
 - **Origin severity**: `warn`.
 
-**Rule**: a function returning an Effect is written `Effect.fn("name")(function* (…) {…}, …combinators)`, not `(…) => Effect.gen(…)`. Extra combinators are passed as arguments, not with `.pipe`. This holds without parameters too: every named declaration (variable or object member) uses `Effect.fn` and gets called; `const x = Effect.gen(…)` does not. `Effect.gen` stays only inline, as an argument (`Layer.effect(Tag, Effect.gen(…))`, `Stream.unwrap`, callbacks, `it.effect`). Port fields are the exception: a value that ends up in `Tag.of({ … })`, or in the object returned to build it, stays an `Effect`, because turning it into a function would change the port's contract. For recursive functions see [`untraced-recursion`](#untraced-recursion).
+**Rule**: a function returning an Effect is written `Effect.fn("name")(function* (…) {…}, …combinators)`, not `(…) => Effect.gen(…)`. Extra combinators are passed as arguments, not with `.pipe`. Without parameters, a named value (variable or object member, port fields included) needs a span: either `Effect.fn("x")(function* () {…})` called as `x()`, or `Effect.gen(…).pipe(Effect.withSpan("x"))` kept as a value; a bare `const x = Effect.gen(…)` is reported. `Effect.gen` without a span stays only inline, as an argument (`Layer.effect(Tag, Effect.gen(…))`, `Stream.unwrap`, callbacks, `it.effect`). For recursive functions see [`untraced-recursion`](#untraced-recursion).
 
-**Why**: named stack traces and spans, without wrappers. `AGENTS.md`: "Avoid creating functions that return an Effect.gen" and "Do not use .pipe with Effect.fn". As for the single form: at runtime `const x = Effect.gen(…)` used as `yield* x` and `Effect.fn("x")(…)` used as `yield* x()` are equivalent (lazy, rerun at every `yield*`); only the call syntax and the span differ. A single form for declarations avoids choosing case by case and keeps a file's functions symmetric (`missingIn(sheet)` next to `missing()`).
+**Why**: named stack traces and spans, without wrappers. `AGENTS.md`: "Avoid creating functions that return an Effect.gen" and "Do not use .pipe with Effect.fn". For values, `Effect.fn` and `withSpan` give the same observability: a span at every run and a frame where the value is defined. The call-site frame `Effect.fn` adds always points at the same line, because the value is called once where it is declared or collected. `withSpan` keeps the value's shape, so a contract that wants an `Effect` (a port field, a migration record) takes it as is.
 
 ```ts
 // no
@@ -305,6 +322,8 @@ Reports an `Effect.fn` assigned to a variable that its own body calls again, eve
 ### `single-style-per-function`
 
 Reports `async`, `await` and `.then(` in a function that builds Effects: an Effect generator, or a function using an `Effect.*` member. `Effect.run*` does not make a function effectful, because it is the legitimate way an async boundary hands over to Effect; where it may appear is decided by [`run-only-at-entry`](#run-only-at-entry).
+
+In a `test`/`it` callback (including `.only`, `.each(…)` and the like) the mix is reported once on the callback, pointing to a test whose body is one Effect: `it.effect`, or one call to the test runner ([P22](#run-only-at-entry)). Lifting each promise with `Effect.tryPromise` would be the wrong fix there.
 
 - **Pattern**: P24 · One style per function.
 - **Options**: none. **Fix**: none.
@@ -339,10 +358,10 @@ const createEvent = Effect.fn("events.create")(function* (request: Request) {
 
 ### `error-handling-in-effect-fn-handler`
 
-Reports, inside a generator passed to `Effect.gen`/`Effect.fn` and also in nested callbacks, calls to `Effect.catch*` (`catch`, `catchAll`, `catchTag`, `catchTags`, `catchIf`, `catchCause`, `catchDefect`, `catchReason`, …), `either`, `result`, `exit`, `match*` and `sandbox`. Pipeables of a nested `Effect.fn` are exempt.
+Reports, inside a generator passed to `Effect.gen`/`Effect.fn` and also in nested callbacks, calls to `Effect.catch*` (`catch`, `catchAll`, `catchTag`, `catchTags`, `catchIf`, `catchCause`, `catchDefect`, `catchReason`, …), `either`, `result`, `exit`, `match*` and `sandbox`. Pipeables of a nested `Effect.fn` are exempt. Test files are skipped.
 
 - **Pattern**: P25 · Success in the generator, errors in the second argument of `Effect.fn`.
-- **Options**: none. **Fix**: none.
+- **Options**: `testFiles` (see [File options](#file-options)). **Fix**: none.
 - **Origin severity**: `warn`.
 
 **Rule**: the generator passed to `Effect.fn` contains only the happy path, read top to bottom. Error handling lives in the second, pipeable argument. `Effect.mapError`, `Effect.orElse` and `Effect.orElseSucceed` stay allowed: they name the error or give an alternative without opening a handling branch. It applies to all effectful functions, not only boundaries.
@@ -367,6 +386,8 @@ const createEvent = Effect.fn("events.create")(
   (effect, request) => effect.pipe(Effect.catchTags({ BadRequest: (e) => refused(400, e.message) })),
 )
 ```
+
+In a test the failure is the outcome under observation: `const outcome = yield* Effect.result(op)` followed by `expect(outcome…)` handles nothing, and a test callback has no second argument to move it to.
 
 It goes together with [`prefer-effect-fn`](#prefer-effect-fn): without it, the rule is bypassed by appending `.pipe(Effect.catch…)` to an `Effect.gen`.
 
@@ -508,10 +529,10 @@ Reports a `yield*` whose result is used inside a larger expression: argument, op
 
 - **Pattern**: P32 · A `yield*` does not sit inside a larger expression.
 - **Options**: none.
-- **Fix**: autofix (`oxlint --fix`) when moving the effect before the statement changes neither when nor how many times it runs. It extracts all nested `yield*`s of the statement into `const`s, innermost first and left to right, and derives the name from the argument's last identifier without a verb prefix (`readSheet()` → `sheet`, `reader.rows` → `rows`), with a numeric suffix if the name is already taken and `value` as fallback. No fix, only the warning, in the branches of `&&`/`||`/`??`/ternaries, with optional chaining, in `while`/`for` conditions, in statements without braces, or when another call is evaluated before the `yield*`.
+- **Fix**: autofix (`oxlint --fix`) when moving the effect before the statement changes neither when nor how many times it runs. It extracts all nested `yield*`s of the statement into `const`s, innermost first and left to right, and derives the name from the argument's last identifier without a verb prefix (`readSheet()` → `sheet`, `reader.rows` → `rows`), with a numeric suffix if the name is already taken and `value` as fallback. No fix, only the warning, in the branches of a ternary or `&&`/`||`/`??` nested in a larger expression, with optional chaining, in `while`/`for` conditions, in statements without braces, or when another call is evaluated before the `yield*`.
 - **Origin severity**: `warn`.
 
-**Rule**: a `yield*` result is bound to a `const` before being used. A `yield*` is allowed only as the whole value of a statement (`yield* x`, `return yield* x`, `if (yield* x)`, `for (… of yield* x)`), of a declaration (`const a = yield* x`) or of an assignment (`a = yield* x`).
+**Rule**: a `yield*` result is bound to a `const` before being used. A `yield*` is allowed only as the whole value of a statement (`yield* x`, `return yield* x`, `if (yield* x)`, `for (… of yield* x)`), of a declaration (`const a = yield* x`) or of an assignment (`a = yield* x`). The same holds for the whole branch of a ternary or the right operand of `&&`/`||`/`??` whose expression is itself in one of those positions (`return ready ? yield* x : []`, `const a = cached ?? (yield* x)`): the branch runs at most once, after the condition, so the order is already the reading order, and binding the result first would run the effect unconditionally.
 
 **Why**: a `yield*` nested in an argument, an operand or a template runs an effect in the middle of an expression; with several `yield*`s in the same expression the order of effects can only be inferred from precedence. One `const` per effect makes the order the reading order and names the intermediate value.
 
