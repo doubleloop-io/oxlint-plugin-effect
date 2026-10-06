@@ -2,10 +2,10 @@ import { fileURLToPath } from "node:url"
 
 import type { OxlintConfig } from "oxlint"
 
-import betterEffectPlugin, { pluginName } from "../index.ts"
+import dlEffectPlugin, { pluginName } from "../index.ts"
 
 const allRules = Object.fromEntries(
-    Object.keys(betterEffectPlugin.rules).map((rule) => [`${pluginName}/${rule}`, "warn"] as const),
+    Object.keys(dlEffectPlugin.rules).map((rule) => [`${pluginName}/${rule}`, "warn"] as const),
 )
 
 // Absolute because an imported config object carries no location of its own: a relative

@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import { readFile } from "node:fs/promises"
 import { test } from "node:test"
 
-import betterEffectPlugin from "./index.ts"
+import dlEffectPlugin from "./index.ts"
 
 const ruleHeading = /^### `([a-z-]+)`$/gmu
 
@@ -12,7 +12,7 @@ const documentedRules = async () => {
 }
 
 test("RULES.md has one section per rule of the plugin", async () => {
-    const pluginRules = Object.keys(betterEffectPlugin.rules).sort()
+    const pluginRules = Object.keys(dlEffectPlugin.rules).sort()
 
     assert.deepEqual(await documentedRules(), pluginRules)
 })

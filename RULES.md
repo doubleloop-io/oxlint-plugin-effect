@@ -1,4 +1,4 @@
-# `better-effect` rules
+# `@doubleloop/oxlint-plugin-effect` rules
 
 Reference for the plugin's 20 rules: what they report, which pattern they enforce and why, options, fixes and the severity they ran with in the origin repo. The `Pxx` identifiers come from the origin catalog.
 
@@ -46,10 +46,10 @@ The defaults come from a Node CLI. On another layout (Next.js, a monorepo) they 
 const entryFiles = ["apps/web/src/app/**/route.ts", "apps/web/src/runtime.ts"]
 
 export default defineConfig({
-    extends: [betterEffectAll],
+    extends: [dlEffectAll],
     rules: {
-        "better-effect/run-only-at-entry": ["warn", { entryFiles }],
-        "better-effect/adapter-import-boundary": ["warn", { entryFiles }],
+        "dl-effect/run-only-at-entry": ["warn", { entryFiles }],
+        "dl-effect/adapter-import-boundary": ["warn", { entryFiles }],
     },
 })
 ```

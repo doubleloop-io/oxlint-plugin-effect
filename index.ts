@@ -21,9 +21,9 @@ import { singleStylePerFunctionRule } from "./rules/single-style-per-function.ts
 import { tryObjectFormRule } from "./rules/try-object-form.ts"
 import { untracedRecursionRule } from "./rules/untraced-recursion.ts"
 
-export const pluginName = "better-effect"
+export const pluginName = "dl-effect"
 
-const betterEffectPlugin = eslintCompatPlugin({
+const dlEffectPlugin = eslintCompatPlugin({
     meta: { name: pluginName },
     rules: {
         "adapter-import-boundary": adapterImportBoundaryRule,
@@ -49,4 +49,4 @@ const betterEffectPlugin = eslintCompatPlugin({
     },
 })
 
-export default betterEffectPlugin
+export default dlEffectPlugin
