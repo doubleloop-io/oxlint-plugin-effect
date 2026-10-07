@@ -11,6 +11,8 @@ new RuleTester().run("no-nested-match", noNestedMatchRule, {
             if (Result.isFailure(parsed)) return usageError(parsed.failure)
             return CliCommand.$match(parsed.success, { Missing: () => printMissing })
         }`,
+        "const run = (argv) => Result.match(parseArgs(argv), { onFailure: usageError, onSuccess: fill })",
+        "const run = Effect.fn('run')(function* (argv) { const parsed = parseArgs(argv); if (Result.isFailure(parsed)) return yield* usageError(parsed.failure); const { only } = parsed.success; if (Option.isNone(only)) return yield* fillAll; return yield* fillOnly(only.value) })",
         "const found = Option.match(only, { onNone: () => all, onSome: Effect.fn('only')(function* (name) { if (known) yield* log; return [name] }) })",
     ],
     invalid: [
@@ -20,6 +22,10 @@ new RuleTester().run("no-nested-match", noNestedMatchRule, {
         },
         {
             code: "const run = Result.match(parsed, { onFailure: usageError, onSuccess: CliCommand.$match({ Missing: () => printMissing }) })",
+            errors: [{ messageId: "nestedBranch" }],
+        },
+        {
+            code: "const run = (argv) => Result.match(parseArgs(argv), { onFailure: usageError, onSuccess: (command) => Option.match(command.only, { onNone: () => fillAll, onSome: fillOnly }) })",
             errors: [{ messageId: "nestedBranch" }],
         },
         {

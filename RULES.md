@@ -502,25 +502,36 @@ Reports a handler of `Option.match`, `Result.match`, `Exit.match`, `Either.match
 - **Options**: none. **Fix**: none.
 - **Origin severity**: `warn`, until proven on a larger codebase.
 
-**Rule**: when a match has an exit case (parse failure, absence) and one that continues, the exit case is a guard clause with an early `return` (`Result.isFailure`, `Option.isNone`), and the rest of the function is the happy path at the top level. A match handler contains neither another match nor a ternary.
+**Rule**: a match handler contains neither another match nor a ternary. Inside `Effect.gen`/`Effect.fn`, the exit case (parse failure, absence) becomes a guard clause with an early `return` (`Result.isFailure`, `Option.isNone`) and the rest of the generator is the happy path. Outside a generator, give the inner choice a name and pass it as the handler (or compose with `flow`), so each match has one level.
 
-**Why**: two nested levels of choice hide which branch is the normal one. `Result.match` stays suitable when both branches are short expressions producing a value.
+**Why**: two nested levels of choice hide which branch is the normal one. `if` guards are the idiom inside generators; outside them, a named handler keeps the code expression-based. `Result.match` stays suitable when both branches are short expressions producing a value.
 
 ```ts
 // no
 const run = (argv: ReadonlyArray<string>) =>
     Result.match(parseArgs(argv), {
         onFailure: usageError,
-        onSuccess: CliCommand.$match({ ... }),
+        onSuccess: (command) =>
+            Option.match(command.only, { onNone: () => fillAll, onSome: fillOnly }),
     })
 
-// yes
-const run = (argv: ReadonlyArray<string>) => {
-    const parsed = parseArgs(argv)
-    if (Result.isFailure(parsed)) return usageError(parsed.failure)
+// yes, outside a generator
+const fill = (command: CliCommand) =>
+    Option.match(command.only, { onNone: () => fillAll, onSome: fillOnly })
 
-    return CliCommand.$match(parsed.success, { ... })
-}
+const run = (argv: ReadonlyArray<string>) =>
+    Result.match(parseArgs(argv), { onFailure: usageError, onSuccess: fill })
+
+// yes, inside a generator
+const run = Effect.fn("run")(function* (argv: ReadonlyArray<string>) {
+    const parsed = parseArgs(argv)
+    if (Result.isFailure(parsed)) return yield* usageError(parsed.failure)
+
+    const { only } = parsed.success
+    if (Option.isNone(only)) return yield* fillAll
+
+    return yield* fillOnly(only.value)
+})
 ```
 
 ### `no-inline-yield-star`

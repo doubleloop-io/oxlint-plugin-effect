@@ -23,11 +23,11 @@ export const noNestedMatchRule = defineRule({
         type: "suggestion",
         docs: {
             description:
-                "Flatten a match whose handler branches again: guard the exit case first, then the happy path.",
+                "Flatten a match whose handler branches again: a guard clause inside generators, a named handler outside.",
         },
         messages: {
             nestedBranch:
-                "This handler branches again inside a match. Return early on the exit case (`if (Result.isFailure(parsed)) return ...`) and keep the remaining branches at the top level.",
+                "This handler branches again inside a match. Inside a generator, return early on the exit case (`if (Result.isFailure(parsed)) return yield* ...`); outside, name the inner choice and pass it as the handler.",
         },
     },
     createOnce(context) {
