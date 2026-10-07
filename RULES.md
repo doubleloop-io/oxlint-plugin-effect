@@ -1,31 +1,33 @@
 # `@doubleloop/oxlint-plugin-effect` rules
 
-Reference for the plugin's 20 rules: what they report, which pattern they enforce and why, options, fixes and the severity they ran with in the origin repo. The `Pxx` identifiers come from the origin catalog.
+The plugin's 20 rules. The `Pxx` identifiers come from the origin catalog.
 
-| Rule                                                                          | Pattern  | Origin severity |
-| ----------------------------------------------------------------------------- | -------- | --------------- |
-| [`service-port-shape-only`](#service-port-shape-only)                         | P01      | `error`         |
-| [`adapter-import-boundary`](#adapter-import-boundary)                         | P02      | `error`         |
-| [`run-only-at-entry`](#run-only-at-entry)                                     | P04, P22 | `error`         |
-| [`no-bare-error-in-effect`](#no-bare-error-in-effect)                         | P05      | `error`         |
-| [`try-object-form`](#try-object-form)                                         | P08      | `error`         |
-| [`no-effect-promise`](#no-effect-promise)                                     | P08      | `warn`          |
-| [`no-parameterless-catch-all`](#no-parameterless-catch-all)                   | P09      | `error`         |
-| [`redacted-secret-names`](#redacted-secret-names)                             | P13      | `warn`          |
-| [`prefer-effect-fn`](#prefer-effect-fn)                                       | P17      | `warn`          |
-| [`untraced-recursion`](#untraced-recursion)                                   | P17      | `warn`          |
-| [`single-style-per-function`](#single-style-per-function)                     | P24      | `error`         |
-| [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler) | P25      | `warn`          |
-| [`no-transport-types-in-generator`](#no-transport-types-in-generator)         | P26      | `error`         |
-| [`boundary-entrypoint-shape`](#boundary-entrypoint-shape)                     | P27      | `warn`          |
-| [`provide-named-layer`](#provide-named-layer)                                 | P28      | `error`         |
-| [`no-provide-on-definition`](#no-provide-on-definition)                       | P28      | `error`         |
-| [`no-nested-match`](#no-nested-match)                                         | P30      | `warn`          |
-| [`no-inline-yield-star`](#no-inline-yield-star)                               | P32      | `warn`          |
-| [`no-effect-return-type`](#no-effect-return-type)                             | P33      | `warn`          |
-| [`no-asymmetric-match-handlers`](#no-asymmetric-match-handlers)               | P34      | `warn`          |
+## Rules index
 
-The `all` preset enables them all at `warn`. The origin severity is the one each rule was kept at zero noise with on an Effect 4 codebase: a data point about its stability, not a recommendation.
+| Rule                                                                          | Pattern  | Severity |
+| ----------------------------------------------------------------------------- | -------- | -------- |
+| [`service-port-shape-only`](#service-port-shape-only)                         | P01      | `error`  |
+| [`adapter-import-boundary`](#adapter-import-boundary)                         | P02      | `error`  |
+| [`run-only-at-entry`](#run-only-at-entry)                                     | P04, P22 | `error`  |
+| [`no-bare-error-in-effect`](#no-bare-error-in-effect)                         | P05      | `error`  |
+| [`try-object-form`](#try-object-form)                                         | P08      | `error`  |
+| [`no-effect-promise`](#no-effect-promise)                                     | P08      | `warn`   |
+| [`no-parameterless-catch-all`](#no-parameterless-catch-all)                   | P09      | `error`  |
+| [`redacted-secret-names`](#redacted-secret-names)                             | P13      | `warn`   |
+| [`prefer-effect-fn`](#prefer-effect-fn)                                       | P17      | `warn`   |
+| [`untraced-recursion`](#untraced-recursion)                                   | P17      | `warn`   |
+| [`single-style-per-function`](#single-style-per-function)                     | P24      | `error`  |
+| [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler) | P25      | `warn`   |
+| [`no-transport-types-in-generator`](#no-transport-types-in-generator)         | P26      | `error`  |
+| [`boundary-entrypoint-shape`](#boundary-entrypoint-shape)                     | P27      | `warn`   |
+| [`provide-named-layer`](#provide-named-layer)                                 | P28      | `error`  |
+| [`no-provide-on-definition`](#no-provide-on-definition)                       | P28      | `error`  |
+| [`no-nested-match`](#no-nested-match)                                         | P30      | `warn`   |
+| [`no-inline-yield-star`](#no-inline-yield-star)                               | P32      | `warn`   |
+| [`no-effect-return-type`](#no-effect-return-type)                             | P33      | `warn`   |
+| [`no-asymmetric-match-handlers`](#no-asymmetric-match-handlers)               | P34      | `warn`   |
+
+The `all` preset enables them all at `warn`. Severity is the one each rule was kept at zero noise with on an Effect 4 codebase: a data point about its stability, not a recommendation.
 
 ## Common limits
 
@@ -58,18 +60,12 @@ export default defineConfig({
 
 ### `service-port-shape-only`
 
-Reports a `Context.Service` port that carries an implementation: the second argument of `Context.Service<…>()(id, opts)`, a `static layer` or `static Default` member on the class, and the `Effect.Service`, `Context.Tag`, `Context.GenericTag` forms.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P01 · Port as a shape-only `Context.Service`.
-- **Options**: none. **Fix**: none.
-- **Origin severity**: `error`.
-
-**Rule**: a port is `class X extends Context.Service<X, Shape>()("pkg/path/X") {}`, without a `make` option, without `static layer`; no `Effect.Service`.
-
-**Why**: `make` and the static layer tie the port to a default implementation; the port must stay a contract. It is a convention, not an idiom: `node_modules/effect/AGENTS.md` shows exactly `static readonly layer` on the service.
+**Intent**: a port is a shape-only `Context.Service`, with no implementation attached.
 
 ```ts
-// no (v3: Effect.Service<Agent>()("Agent", { effect: ... }))
+// no
 class Agent extends Context.Service<Agent, Shape>()("app/Agent", { make: makeAgent }) {}
 
 // yes
@@ -79,133 +75,111 @@ export class Agent extends Context.Service<
 >()("app/agent/Agent") {}
 ```
 
-In v4 tsc already rejects `Effect.Service`, `Context.Tag` and `Context.GenericTag`: that part of the rule serves v3 code. With the `effecttsgo` presets enabled there is no duplication: `service-not-as-class` reports only a `Context.Service` assigned to a variable, a form this rule does not see, and is silent on the five this one covers; `outdated-api` overlaps only on `Effect.Service`.
+**Trigger**: the second argument of `Context.Service<…>()(id, opts)`; a `static layer` or `static Default` member on the class; the v3 forms `Effect.Service`, `Context.Tag`, `Context.GenericTag`.
+
+**Exemptions and blind spots**: a `Context.Service` assigned to a variable is not seen: see `service-not-as-class` (effecttsgo).
+
+**Why**: `make` and a static layer tie the port to a default implementation, while the port must stay a contract any adapter can satisfy. It is a convention, not Effect's idiom: Effect's own docs put `static readonly layer` on the service.
+
+- **Pattern**: P01 · **Options**: none · **Fix**: none · **Severity**: `error`
 
 ### `adapter-import-boundary`
 
-Reports a relative import of an adapter directory from outside that directory: from domain code, or from another adapter. A directory is an adapter when one of its `.ts` files (tests excluded) builds a `Layer` with `Layer.effect`, `succeed`, `sync`, `scoped`, `effectContext`, `unwrap`, `mock` and similar; composition alone (`mergeAll`, `provide`, `merge`) does not count. Entry files are exempt, because that is where adapters are chosen, and so are test files, because a test composes the Layers it exercises.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P02 · Adapters in separate Layers, ports without adapter details.
-- **Options**: `entryFiles`, `testFiles` (see [File options](#file-options)). **Fix**: none.
-- **Origin severity**: `error`.
-
-**Rule**: every implementation is a `Layer` in its own directory (`google/`, `csv/`, `print/`). The port exposes neither library types nor infrastructure requirements in the `R` channel: dependencies are resolved when the layer is built.
-
-**Why**: the adapter can be replaced without touching consumers, and service methods keep `R = never`.
+**Intent**: domain code and other adapters do not import an adapter; only entry files choose it.
 
 ```ts
-// no: the port drags HttpClient into consumers
-readonly get: (url: string) => Effect.Effect<Todo, ApiError, HttpClient.HttpClient>
+// no: in src/orders/place-order.ts
+import { GoogleCalendar } from "../calendar/google/GoogleCalendar.ts"
 
-// yes: the dependency enters when the layer is built
-export const layer = Layer.effect(Agent, Effect.gen(function* () {
-  const spawner = yield* ChildProcessSpawner.ChildProcessSpawner
-  return Agent.of({ search: (name) => run(spawner, name) })
-}))
+// yes: depend on the port, main.ts provides GoogleCalendar.layer
+import { Calendar } from "../calendar/Calendar.ts"
 ```
 
-It is the only rule that reads the filesystem: for each imported directory it opens the files and looks for a `Layer` being built. On a layout different from the one it was born for (one directory per adapter) its behavior should be observed before trusting the numbers. Infrastructure requirements in the port's `R` channel stay out of reach, since they require types (the language service's `leakingRequirements` diagnostic).
+**Trigger**: a relative import of a file in another directory that is an adapter: one of its `.ts` files (tests excluded) builds a `Layer` with `Layer.effect`, `succeed`, `sync`, `scoped`, `effectContext`, `unwrap`, `mock` and similar. Composition alone (`mergeAll`, `provide`, `merge`) does not make an adapter. It is the only rule that reads the filesystem.
+
+**Exemptions and blind spots**: entry files, where adapters are chosen, and test files, which compose the Layers they exercise. Non-relative imports (path aliases such as `@/calendar/google`) and directory imports through an `index.ts` (`"../google"`) slip through. On a layout other than one directory per adapter, observe its behavior before trusting the numbers. Infrastructure requirements in the port's `R` channel need types: see `leaking-requirements` (effecttsgo).
+
+**Why**: the adapter can be replaced without touching its consumers.
+
+- **Pattern**: P02 · **Options**: `entryFiles`, `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `error`
 
 ### `run-only-at-entry`
 
-Reports every reference, not just calls, to `Effect.run*`, `NodeRuntime.runMain`, `BunRuntime.runMain` and `ManagedRuntime.make` outside entry files. Test files get no exemption.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P04 · Execution only at the entry point; P22 · Tests run Effect in one place, fakes as Layers.
-- **Options**: `entryFiles` (see [File options](#file-options)). **Fix**: none.
-- **Origin severity**: `error`.
-
-**Rule (P04)**: a single `NodeRuntime.runMain` (or `ManagedRuntime.make` when integrating a framework) in the entry point, where the Layers are also composed. No `Effect.runPromise`/`runSync` elsewhere.
-
-**Why**: logger, layers and defect handling are configured in a single place (`AGENTS.md`, sections "Running Effect programs" and "Integrating Effect").
+**Intent**: Effects run only at the entry point, and tests run them through the test runtime.
 
 ```ts
 // no
 export const check = () => Effect.runPromise(pingDb(url))
 
-// yes
-NodeRuntime.runMain(run(process.argv.slice(2)).pipe(Effect.provide(NodeServices.layer)))
-```
-
-**Rule (P22)**: effect tests use `it.effect`, or `effect` imported as `test`, and `layer(...)` for shared layers. Fakes are `Layer.succeed(Tag, Tag.of({…}))`. No `Effect.runPromise` in tests, no module mocks.
-
-**Why**: the test runs in Effect's test runtime (with `TestClock`) and replaces services where the code reads them. References: `ai-docs/src/09_testing/10_effect-tests.ts` and `ai-docs/src/09_testing/20_layer-tests.ts`.
-
-**Without `@effect/vitest`** (e.g. a vitest version it does not support yet): a single test runner module is the tests' entry point, listed in `entryFiles`, and each test returns one call to it from a non-async callback, assertions inside the generator. The Layer stays in one place and the test keeps one style ([`single-style-per-function`](#single-style-per-function)); what is lost is the test runtime, `TestClock` included.
-
-```ts
-// src/testing/run.ts, in entryFiles
-export const run = <A, E>(effect: Effect.Effect<A, E, TestServices>) =>
-    Effect.runPromise(effect.pipe(Effect.provide(testLayer)))
-
-// test
-test("rejects a subject bound to another account", () =>
-    run(
-        Effect.gen(function* () {
-            const outcome = yield* Effect.result(bind(subject, other))
-            expect(outcome._tag).toBe("Failure")
-        }),
-    ))
-```
-
-```ts
-// no
 test("…", async () => {
     await Effect.runPromise(authorize({ role: "Manager" }))
 })
 
-// yes
-const sheetWith = (...rows: ReadonlyArray<Row>) =>
-    Layer.succeed(SheetReader, SheetReader.of({ rows: Effect.succeed([header, ...rows]) }))
+// yes: in main.ts
+NodeRuntime.runMain(
+    run(process.argv.slice(2)).pipe(Effect.provide(NodeServices.layer)) satisfies Effect.Effect<
+        void,
+        never
+    >,
+)
+
+// yes: in a test, fakes as Layers
+it.effect("…", () => authorize({ role: "Manager" }).pipe(Effect.provide(sheetWith(row))))
 ```
 
-A module-level `ManagedRuntime` in a test is the typical case the rule catches: it skips the test runtime and is often never released.
+**Trigger**: every reference, not just calls, to `Effect.run*`, `NodeRuntime.runMain`, `BunRuntime.runMain` and `ManagedRuntime.make` outside entry files.
+
+**Exemptions and blind spots**: test files are not exempt; a module-level `ManagedRuntime` in a test is the typical catch. Without `@effect/vitest`, a single test runner module that provides the test Layer goes in `entryFiles`, and each test returns one call to it; the test runtime, `TestClock` included, is lost.
+
+**Why**: logger, Layers and defect handling are configured in one place. In tests, the test runtime brings `TestClock` and fakes replace services where the code reads them.
+
+- **Pattern**: P04, P22 · **Options**: `entryFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `error`
 
 ## Errors
 
 ### `no-bare-error-in-effect`
 
-Reports a `throw` directly inside a generator passed to `Effect.gen`/`Effect.fn`, and `Effect.fail` with a literal or a template as argument.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P05 · Tagged expected errors, never a bare `Error`.
-- **Options**: none. **Fix**: none.
-- **Origin severity**: `error`.
-
-**Rule**: every expected failure is a `Schema.TaggedError` or `Data.TaggedError` class. Never `Effect.fail(new Error(…))` or `Effect.fail("string")`, never `class X extends Error` with a manual `_tag`, never `throw` inside an Effect generator.
-
-**Why**: the typed error channel only works with discriminating tags. A `throw` in the generator becomes a defect.
+**Intent**: an expected failure is a tagged error, never a thrown or primitive value.
 
 ```ts
 // no
-class TabNotFound extends Error {
-    readonly _tag = "TabNotFound"
-}
-Effect.fail(new Error("tab not found"))
+Effect.gen(function* () {
+    if (tab === undefined) throw new Error("tab not found")
+})
+Effect.fail("tab not found")
 
 // yes
 export class SheetTabNotFoundError extends Schema.TaggedError<SheetTabNotFoundError>()(
     "SheetTabNotFoundError",
     { spreadsheetId: Schema.String, message: Schema.String },
 ) {}
+
+Effect.fail(new SheetTabNotFoundError({ spreadsheetId, message: "tab not found" }))
 ```
 
-The rule covers only the two forms the `effecttsgo` presets do not see: the `throw` in the generator and failing with a primitive value. `Effect.fail(new Error(…))` and `extends Error` are reported by `global-error-in-effect-failure` and `extends-native-error`; without those presets they stay uncovered.
+**Trigger**: a `throw` directly inside a generator passed to `Effect.gen`/`Effect.fn`; `Effect.fail` with a literal or a template.
+
+**Exemptions and blind spots**: a `throw` inside a nested callback. `Effect.fail(new Error(…))` and `class X extends Error`: see `global-error-in-effect-failure` and `extends-native-error` (effecttsgo).
+
+**Why**: the typed error channel discriminates only on tags. A `throw` in the generator becomes a defect, outside the error channel.
+
+- **Pattern**: P05 · **Options**: none · **Fix**: none · **Severity**: `error`
 
 ### `try-object-form`
 
-Reports `Effect.try` and `Effect.tryPromise` whose argument is not an object.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P08 · `tryPromise`/`try` in object form.
-- **Options**: none. **Fix**: none.
-- **Origin severity**: `error`.
-
-**Rule**: `Effect.tryPromise({ try, catch })` and `Effect.try({ try, catch })`, with `catch` producing a tagged adapter error. `Effect.promise` only for promises that cannot reject, for example releasing a resource.
-
-**Why**: the thunk form types the error as `Cause.UnknownError` (JSDoc of `Effect.tryPromise` in v4; `UnknownException` in v3). `Effect.promise` turns a rejection into a defect.
+**Intent**: `Effect.try` and `Effect.tryPromise` take `{ try, catch }`, with `catch` producing a tagged error.
 
 ```ts
 // no
 Effect.tryPromise(() => api.spreadsheets.get({ spreadsheetId }))
-Effect.promise(() => client.connect())
 
 // yes
 Effect.tryPromise({
@@ -214,34 +188,44 @@ Effect.tryPromise({
 })
 ```
 
+**Trigger**: `Effect.try` and `Effect.tryPromise` whose argument is not an object literal.
+
+**Exemptions and blind spots**: an options object held in a variable is reported too.
+
+**Why**: the thunk form types the error as `Cause.UnknownError` (`UnknownException` in v3), which no caller can handle by tag.
+
+- **Pattern**: P08 · **Options**: none · **Fix**: none · **Severity**: `error`
+
 ### `no-effect-promise`
 
-Reports `Effect.promise` outside the release step of `acquireRelease`, `acquireUseRelease` and `addFinalizer`, where a promise that cannot reject is the normal case. Test files are exempt, because a rejection during setup is a broken test and the defect fails it with the cause.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P08 · `tryPromise`/`try` in object form. Rule, rationale and examples in [`try-object-form`](#try-object-form).
-- **Options**: `testFiles` (see [File options](#file-options)). **Fix**: none.
-- **Origin severity**: `warn`: a promise that truly cannot reject, outside a release, is legitimate and must be suppressed by hand.
-
-### `no-parameterless-catch-all`
-
-Reports `Effect.catch`, `catchAll`, `catchCause` and `catchEager` with a parameterless handler, i.e. one that ignores what it catches.
-
-- **Pattern**: P09 · Targeted catches, no catch-all that discriminates or swallows.
-- **Options**: none. **Fix**: none.
-- **Origin severity**: `error`.
-
-**Rule**:
-
-- recovering from or translating specific errors uses `catchTag`, `catchTag([...])`, `catchTags` or `mapError`;
-- `Effect.catch` (v3 `catchAll`) is only for the boundary or for converting everything into an output value;
-- never compare `_tag` inside a catch-all;
-- never `catch(() => fallback)` when `orElseSucceed` expresses the intent.
-
-**Why**: a catch-all that discriminates by hand does not notice new errors; one that ignores its parameter also swallows those added later.
+**Intent**: a promise that can reject is lifted with [`Effect.tryPromise`](#try-object-form), not `Effect.promise`.
 
 ```ts
 // no
-Effect.catch((e) => (e._tag === "AgentTimeout" ? Effect.succeed(skip) : Effect.fail(e)))
+Effect.promise(() => client.connect())
+
+// yes
+Effect.tryPromise({ try: () => client.connect(), catch: toConnectionError })
+```
+
+**Trigger**: `Effect.promise` outside the release step of `acquireRelease`, `acquireUseRelease` and `addFinalizer`.
+
+**Exemptions and blind spots**: the release step, where a promise that cannot reject is the normal case. Test files, where a rejection during setup is a broken test and the defect fails it with the cause. Elsewhere, a promise that truly cannot reject must be suppressed by hand.
+
+**Why**: `Effect.promise` turns a rejection into a defect.
+
+- **Pattern**: P08 · **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `warn`
+
+### `no-parameterless-catch-all`
+
+<sup>[↑ rules index](#rules-index)</sup>
+
+**Intent**: errors are caught by tag; a catch-all never ignores what it catches.
+
+```ts
+// no
 Effect.catch(() => Effect.succeed(fallback))
 
 // yes
@@ -250,21 +234,21 @@ Effect.catchTag(["ParseError", "ReservedPortError"], () => Effect.succeed(3000))
 Effect.orElseSucceed(() => fallback)
 ```
 
-The rule covers only the swallowing catch-all. Manual discrimination on `_tag` inside a catch-all is out of scope; the transformations towards `catchTag`/`mapError` are proposed by the `effecttsgo` presets (`catch-all-to-map-error`, `catch-all-tag-dispatch-to-catch-tag`, `catch-to-ignore`).
+**Trigger**: `Effect.catch`, `catchAll`, `catchCause` and `catchEager` with a parameterless handler.
+
+**Exemptions and blind spots**: a catch-all that discriminates on `_tag` by hand: see `catch-all-to-map-error`, `catch-all-tag-dispatch-to-catch-tag` and `catch-to-ignore` (effecttsgo).
+
+**Why**: a catch-all that ignores its parameter also swallows the errors added later, which `catchTag` would leave visible in the type.
+
+- **Pattern**: P09 · **Options**: none · **Fix**: none · **Severity**: `error`
 
 ## Config
 
 ### `redacted-secret-names`
 
-Reports a literal name read with `Config.*` that ends with `KEY`, `SECRET`, `TOKEN`, `PASSWORD`, `CREDENTIAL`, `CREDENTIALS` or `_JSON`, when it does not go through `Config.redacted` or `Config.schema(Schema.Redacted…(…), name)`. It is a naming heuristic: `_JSON` is there because a service account key often travels as inline JSON.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P13 · Config via `Config`, secrets via `Config.redacted`.
-- **Options**: none. **Fix**: none.
-- **Origin severity**: `warn`, because it is a heuristic.
-
-**Rule**: environment variables are read only with the `Config` module, in a single file; secrets go in `Config.redacted` (or `Config.schema(Schema.Redacted(…), name)`), and `Redacted.value` is called only where the secret is passed to the library.
-
-**Why**: config errors are typed and the secret does not end up in logs and `toString`. The v4 JSDoc says `Config.redacted` is a shortcut for `Config.schema(Schema.Redacted(Schema.String), name)`.
+**Intent**: a secret read from config is `Redacted`.
 
 ```ts
 // no
@@ -274,80 +258,90 @@ serviceAccount: Config.schema(NonBlank, "GOOGLE_SERVICE_ACCOUNT_JSON")
 serviceAccount: Config.schema(Schema.Redacted(NonBlank), "GOOGLE_SERVICE_ACCOUNT_JSON")
 ```
 
-`process.env` read outside `Config` is not covered here: `process-env` and `process-env-in-effect` from the `effecttsgo` presets report it.
+**Trigger**: a literal name read with `Config.*` that ends with `KEY`, `SECRET`, `TOKEN`, `PASSWORD`, `CREDENTIAL`, `CREDENTIALS` or `_JSON` (service account keys often travel as inline JSON), when it does not go through `Config.redacted` or `Config.schema(Schema.Redacted…(…), name)`.
+
+**Exemptions and blind spots**: a naming heuristic: secrets with other names slip through, non-secrets with these suffixes must be suppressed. `process.env` read outside `Config`: see `process-env` and `process-env-in-effect` (effecttsgo).
+
+**Why**: a `Redacted` value does not end up in logs or `toString`.
+
+- **Pattern**: P13 · **Options**: none · **Fix**: none · **Severity**: `warn`
 
 ## Effectful functions
 
 ### `prefer-effect-fn`
 
-Reports:
+<sup>[↑ rules index](#rules-index)</sup>
+
+**Intent**: an effectful function is `Effect.fn("name")`, and a named effect value has a span.
+
+```ts
+// no
+const outcomeFor = (name: string) => Effect.gen(function* () { … }).pipe(Effect.catch(toFailed))
+const refresh = Effect.gen(function* () { … })
+
+// yes: extra combinators as arguments, not .pipe
+const outcomeFor = Effect.fn("outcomeFor")(function* (name: string) { … }, Effect.catch(toFailed))
+const refresh = Effect.gen(function* () { … }).pipe(Effect.withSpan("refresh"))
+```
+
+**Trigger**:
 
 - a declared function, a variable or an object member that only returns `Effect.gen(…)`, even with `.pipe`;
 - a variable or an object member whose value is `Effect.gen(…)` without `Effect.withSpan` in its `.pipe`;
 - `Effect.fn(body)` without a name;
 - `.pipe` on `Effect.fn(…)(…)`.
 
-- **Pattern**: P17 · `Effect.fn("name")` for effectful functions.
-- **Options**: none. **Fix**: none.
-- **Origin severity**: `warn`.
+**Exemptions and blind spots**: `Effect.gen` inline as an argument (`Layer.effect(Tag, Effect.gen(…))`, `Stream.unwrap`, callbacks, `it.effect`). Recursive functions: see [`untraced-recursion`](#untraced-recursion).
 
-**Rule**: a function returning an Effect is written `Effect.fn("name")(function* (…) {…}, …combinators)`, not `(…) => Effect.gen(…)`. Extra combinators are passed as arguments, not with `.pipe`. Without parameters, a named value (variable or object member, port fields included) needs a span: either `Effect.fn("x")(function* () {…})` called as `x()`, or `Effect.gen(…).pipe(Effect.withSpan("x"))` kept as a value; a bare `const x = Effect.gen(…)` is reported. `Effect.gen` without a span stays only inline, as an argument (`Layer.effect(Tag, Effect.gen(…))`, `Stream.unwrap`, callbacks, `it.effect`). For recursive functions see [`untraced-recursion`](#untraced-recursion).
+**Why**: named stack traces and spans without wrapper functions. Combinators passed as arguments run inside the function's span and receive its arguments: `(effect, name) => effect.pipe(…)`.
 
-**Why**: named stack traces and spans, without wrappers. `AGENTS.md`: "Avoid creating functions that return an Effect.gen" and "Do not use .pipe with Effect.fn". For values, `Effect.fn` and `withSpan` give the same observability: a span at every run and a frame where the value is defined. The call-site frame `Effect.fn` adds always points at the same line, because the value is called once where it is declared or collected. `withSpan` keeps the value's shape, so a contract that wants an `Effect` (a port field, a migration record) takes it as is.
-
-```ts
-// no
-const outcomeFor = (name: string) => Effect.gen(function* () { … }).pipe(Effect.catch(toFailed))
-
-// yes
-const outcomeFor = Effect.fn("outcomeFor")(function* (name: string) { … }, Effect.catch(toFailed))
-```
-
-Combinators passed as arguments also receive the function's arguments: `(effect, name) => effect.pipe(Effect.catch…)`. Where a combinator is the only thing distinguishing two functions, for example the provided Layer, it is applied in the dispatch to a shared `Effect.fn`, not to an `Effect.gen`.
-
-With the `effecttsgo` presets enabled it stays useful: on the origin codebase `effect-fn-opportunity` saw none of the spots this rule reported.
+- **Pattern**: P17 · **Options**: none · **Fix**: none · **Severity**: `warn`
 
 ### `untraced-recursion`
 
-Reports an `Effect.fn` assigned to a variable that its own body calls again, even by passing it as a callback. It does not see mutual recursion or recursion in pipeables.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P17 · `Effect.fn("name")` for effectful functions. General rule, rationale and examples in [`prefer-effect-fn`](#prefer-effect-fn).
-- **Options**: none. **Fix**: none.
-- **Origin severity**: `warn`.
+**Intent**: a recursive effectful function uses `Effect.fnUntraced`; the entry point that starts the recursion is traced.
 
-**Rule**: a recursive function uses `Effect.fnUntraced`; trace the entry point that starts the recursion.
+```ts
+// no
+const walk = Effect.fn("walk")(function* (node: Node) {
+    for (const child of node.children) yield* walk(child)
+})
 
-**Why**: with `Effect.fn` every level would open a span nested in the previous one. It is the only `fnUntraced` case recognizable from syntax; hot paths and trivial wrappers stay the author's choice.
+// yes
+const walk = Effect.fnUntraced(function* (node: Node) {
+    for (const child of node.children) yield* walk(child)
+})
+export const scan = Effect.fn("scan")(function* (root: Node) {
+    return yield* walk(root)
+})
+```
+
+**Trigger**: an `Effect.fn` assigned to a variable that its own body calls again, even by passing it as a callback.
+
+**Exemptions and blind spots**: mutual recursion, recursion in pipeables.
+
+**Why**: with `Effect.fn` every level opens a span nested in the previous one.
+
+- **Pattern**: P17 · **Options**: none · **Fix**: none · **Severity**: `warn`
 
 ### `single-style-per-function`
 
-Reports `async`, `await` and `.then(` in a function that builds Effects: an Effect generator, or a function using an `Effect.*` member. `Effect.run*` does not make a function effectful, because it is the legitimate way an async boundary hands over to Effect; where it may appear is decided by [`run-only-at-entry`](#run-only-at-entry).
+<sup>[↑ rules index](#rules-index)</sup>
 
-In a `test`/`it` callback (including `.only`, `.each(…)` and the like) the mix is reported once on the callback, pointing to a test whose body is one Effect: `it.effect`, or one call to the test runner ([P22](#run-only-at-entry)). Lifting each promise with `Effect.tryPromise` would be the wrong fix there.
-
-- **Pattern**: P24 · One style per function.
-- **Options**: none. **Fix**: none.
-- **Origin severity**: `error`.
-
-**Rule**: a function is either entirely Effect or not Effect at all. Inside a function containing `yield*` or Effect constructors there is no `async`, `await`, `.then` or `Effect.run*`. Promises are lifted with `Effect.tryPromise` ([`try-object-form`](#try-object-form)).
-
-**Why**: the mix is the worst of both, because errors travel on two different channels, exceptions and Effect, and neither sees them all.
+**Intent**: a function is entirely Effect or not Effect at all.
 
 ```ts
 // no
 export const POST = async (request: Request) => {
-    const credential = await readSession()
-    const submission = submittedEvent(await request.formData())
-    if (submission._tag === "Left") return new Response(submission.left, { status: 400 })
-    const created = await Effect.runPromise(
-        Effect.either(apiCreateEvent(credential, submission.right)),
-    )
+    const form = await request.formData()
+    const created = await Effect.runPromise(Effect.either(createEvent(form)))
     // …
 }
 
-// yes
+// yes: promises lifted with Effect.tryPromise
 const createEvent = Effect.fn("events.create")(function* (request: Request) {
-    const credential = yield* sessionCredential
     const form = yield* Effect.tryPromise({
         try: () => request.formData(),
         catch: () => new BadRequest({ message: "invalid form data" }),
@@ -356,155 +350,161 @@ const createEvent = Effect.fn("events.create")(function* (request: Request) {
 })
 ```
 
+**Trigger**: `async`, `await` and `.then(` in a function that builds Effects: an Effect generator, or a function using an `Effect.*` member. In a `test`/`it` callback (`.only`, `.each(…)` and the like included) the mix is reported once, on the callback.
+
+**Exemptions and blind spots**: `Effect.run*` alone does not make a function effectful: it is how an async boundary hands over to Effect, and where it may appear is decided by [`run-only-at-entry`](#run-only-at-entry). In tests the fix is a body that is one Effect (`it.effect`, or one call to the test runner), not a `tryPromise` per promise.
+
+**Why**: errors travel on two channels, exceptions and Effect, and neither sees them all.
+
+- **Pattern**: P24 · **Options**: none · **Fix**: none · **Severity**: `error`
+
 ### `error-handling-in-effect-fn-handler`
 
-Reports, inside a generator passed to `Effect.gen`/`Effect.fn` and also in nested callbacks, calls to `Effect.catch*` (`catch`, `catchAll`, `catchTag`, `catchTags`, `catchIf`, `catchCause`, `catchDefect`, `catchReason`, …), `either`, `result`, `exit`, `match*` and `sandbox`. Pipeables of a nested `Effect.fn` are exempt. Test files are skipped.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P25 · Success in the generator, errors in the second argument of `Effect.fn`.
-- **Options**: `testFiles` (see [File options](#file-options)). **Fix**: none.
-- **Origin severity**: `warn`.
-
-**Rule**: the generator passed to `Effect.fn` contains only the happy path, read top to bottom. Error handling lives in the second, pipeable argument. `Effect.mapError`, `Effect.orElse` and `Effect.orElseSucceed` stay allowed: they name the error or give an alternative without opening a handling branch. It applies to all effectful functions, not only boundaries.
-
-**Why**: it separates success logic from error translation, and makes translation a single exhaustive point instead of catches scattered along the flow. A failure is named where it originates (`mapError`) and handled where the response is decided.
+**Intent**: the generator holds only the happy path; error handling lives in the second argument of `Effect.fn`.
 
 ```ts
 // no
 function* () {
-  const x = yield* fetchThing.pipe(Effect.catchTag("NotFound", () => Effect.succeed(fallback)))
+    const x = yield* fetchThing.pipe(Effect.catchTag("NotFound", () => Effect.succeed(fallback)))
 }
 
-// yes: inline alternative, no handling branch
+// yes: naming the error or giving an alternative is not handling
 function* () {
-  const x = yield* fetchThing.pipe(Effect.orElseSucceed(() => fallback))
-  const y = yield* decode(raw).pipe(Effect.mapError((error) => new BadRequest({ message: error.message })))
+    const x = yield* fetchThing.pipe(Effect.orElseSucceed(() => fallback))
+    const y = yield* decode(raw).pipe(Effect.mapError((error) => new BadRequest({ message: error.message })))
 }
 
-// yes: translation lives entirely in the second argument, which also receives the original arguments
+// yes: translation in the second argument, which also receives the original arguments
 const createEvent = Effect.fn("events.create")(
-  function* (request: Request) { /* success only */ },
-  (effect, request) => effect.pipe(Effect.catchTags({ BadRequest: (e) => refused(400, e.message) })),
+    function* (request: Request) { /* success only */ },
+    (effect, request) => effect.pipe(Effect.catchTags({ BadRequest: (e) => refused(400, e.message) })),
 )
 ```
 
-In a test the failure is the outcome under observation: `const outcome = yield* Effect.result(op)` followed by `expect(outcome…)` handles nothing, and a test callback has no second argument to move it to.
+**Trigger**: inside a generator passed to `Effect.gen`/`Effect.fn`, nested callbacks included, calls to `Effect.catch*` (`catch`, `catchAll`, `catchTag`, `catchTags`, `catchIf`, `catchCause`, `catchDefect`, `catchReason`, …), `either`, `result`, `exit`, `match*` and `sandbox`.
 
-It goes together with [`prefer-effect-fn`](#prefer-effect-fn): without it, the rule is bypassed by appending `.pipe(Effect.catch…)` to an `Effect.gen`.
+**Exemptions and blind spots**: pipeables of a nested `Effect.fn`. Test files, where the failure is the outcome under observation (`yield* Effect.result(op)` then `expect`). A `.pipe(Effect.catch…)` appended to an `Effect.gen` escapes; [`prefer-effect-fn`](#prefer-effect-fn) closes that gap.
+
+**Why**: translation becomes a single exhaustive point instead of catches scattered along the flow.
+
+- **Pattern**: P25 · **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `warn`
 
 ### `no-transport-types-in-generator`
 
-Reports `new T(…)`, `T.method(…)` and `T(…)` inside an Effect generator, nested callbacks included, when `T` is a transport type. Pipeables of `Effect.fn` are exempt: that is where the conversion must live.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P26 · No transport types in the generator.
-- **Options**: `transportTypes`, a list of names replacing the default `["Response", "NextResponse"]`. It varies from project to project: add your own transport DTOs. **Fix**: none.
-- **Origin severity**: `error`.
-
-**Rule**: the generator returns a domain value. Conversion to `Response` (or `NextResponse`, or a transport DTO) happens in the second argument of `Effect.fn`, with `Effect.map` for success and `Effect.catchTags` for errors.
-
-**Why**: an early `return new Response(...)` on the happy path is almost always an error branch disguised as success, and escapes exhaustive translation. With all conversion in the second argument, success and error become symmetric and the generator stays readable as a linear sequence.
+**Intent**: the generator returns a domain value; conversion to a transport type happens in the second argument of `Effect.fn`.
 
 ```ts
 // no: an error branch inside the happy path
 function* (request: Request) {
-  const credential = yield* sessionCredential
-  if (credential === undefined) return Response.redirect(new URL("/login", origin), 303)
-  // …
+    const credential = yield* sessionCredential
+    if (credential === undefined) return Response.redirect(new URL("/login", origin), 303)
+    // …
 }
 
 // yes
 const createEvent = Effect.fn("events.create")(
-  function* (request: Request) {
-    const credential = yield* sessionCredential   // fails with Unauthenticated
-    const fields = yield* form(request)
-    const submission = yield* submittedEvent(fields)
-    return yield* apiCreateEvent(credential, submission)
-  },
-  (effect, request) =>
-    effect.pipe(
-      Effect.map((created) => Response.redirect(new URL(`/events/${created.id}`, requestOrigin(request)), 303)),
-      Effect.catchTags({ Unauthenticated: () => endSession.pipe(Effect.as(toLogin(request))) }),
-    ),
+    function* (request: Request) {
+        const credential = yield* sessionCredential // fails with Unauthenticated
+        const submission = yield* form(request)
+        return yield* apiCreateEvent(credential, submission)
+    },
+    (effect, request) =>
+        effect.pipe(
+            Effect.map((created) => Response.redirect(eventUrl(request, created), 303)),
+            Effect.catchTags({ Unauthenticated: () => Effect.succeed(toLogin(request)) }),
+        ),
 )
 ```
 
-`return yield* new Unauthenticated(...)` stays allowed: it is a declared failure. Not covered is the semantic case of an early `return` of a domain value that actually signals an error: it is indistinguishable from a legitimate success.
+**Trigger**: `new T(…)`, `T.method(…)` and `T(…)` inside an Effect generator, nested callbacks included, when `T` is a transport type.
+
+**Exemptions and blind spots**: pipeables of `Effect.fn`, where the conversion must live. `return yield* new Unauthenticated(…)` is a declared failure. An early `return` of a domain value that actually signals an error is indistinguishable from a success.
+
+**Why**: an early `return new Response(…)` on the happy path is an error branch disguised as success, and escapes exhaustive translation.
+
+- **Pattern**: P26 · **Options**: `transportTypes`, replaces the default `["Response", "NextResponse"]`; add your own transport DTOs · **Fix**: none · **Severity**: `error`
 
 ### `boundary-entrypoint-shape`
 
-Reports `Effect.runPromise`, `runSync`, `runFork`, `runCallback` and `NodeRuntime.runMain`/`BunRuntime.runMain` whose argument is neither `… satisfies Effect.Effect<A, never>` nor a parameter declared with that type. The `*Exit` variants are exempt: they return failures as values.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P27 · Entry point with the error channel closed to `never`.
-- **Options**: none. **Fix**: none.
-- **Origin severity**: `warn`.
-
-**Rule**: the entry point only runs the handler, with the error channel fixed to `never` before running it, via `satisfies Effect.Effect<A, never>` or a typed helper.
-
-**Why**: `Effect.runPromise` accepts any error channel and turns what is left into a rejected promise, i.e. a generic 500. Fixing `never` moves the check to `tsc`: a new, untranslated error does not compile. `Effect.Effect<A, never>` also fixes `R = never`, so it forces providing all required Layers.
+**Intent**: the entry point runs an Effect whose error channel is closed to `never`.
 
 ```ts
 // no
 export const POST = (request: Request) => Effect.runPromise(createEvent(request))
 
-// yes
+// yes: in an entry file
 export const POST = (request: Request) =>
     Effect.runPromise(createEvent(request) satisfies Effect.Effect<Response, never>)
 
-// equivalent, easier to check with lint
+// yes: a typed helper
 const runBoundary = (effect: Effect.Effect<Response, never, never>) => Effect.runPromise(effect)
 ```
 
-The rule checks the shape; `tsc` gives the guarantee. The typical anti-example: a `catchTags` that leaves out decoding, config or `UnknownError` errors, and those failures escape as the framework's 500s.
+**Trigger**: `Effect.runPromise`, `runSync`, `runFork`, `runCallback` and `NodeRuntime.runMain`/`BunRuntime.runMain` whose argument is neither `… satisfies Effect.Effect<A, never>` nor a parameter declared with that type.
+
+**Exemptions and blind spots**: the `*Exit` variants, which return failures as values. The rule checks the shape; `tsc` gives the guarantee.
+
+**Why**: `Effect.runPromise` turns any error left over into a rejected promise, a generic 500. With `never`, a new untranslated error does not compile, and `R = never` forces all Layers to be provided.
+
+- **Pattern**: P27 · **Options**: none · **Fix**: none · **Severity**: `warn`
 
 ## Wiring and code shape
 
 ### `provide-named-layer`
 
-Reports an `Effect.provide` argument composed inline: `Layer.*(…)`, a ternary, an `&&`/`||`, a `match`/`$match`. Skips test files.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P28 · Separate wiring: named layers, `provide` only in the dispatch.
-- **Options**: `testFiles` (see [File options](#file-options)). **Fix**: none.
-- **Origin severity**: `error`.
-
-**Rule**: programs (`Effect.gen`, `Effect.fn`) do not `provide`. An application's Layers are named values (`fillLayer`, `planLayer(sheetCsv)`), declared once in the entry point. `Effect.provide` appears only in the entry point, where the dispatch associates each program with its Layer, and always receives a name, never an inline composition.
-
-**Why**: a program that provides its own Layers can no longer be wired to different adapters by its caller. An inline Layer cannot be reused and hides which adapters a branch chooses. A single `provide` at the top remains the ideal, but is not always possible: Layers are built when you provide them, so a single Layer with all services would build adapters the command does not use. When branches require different Layers you need one `provide` per branch, all in the same place.
+**Intent**: `Effect.provide` receives a named Layer, never an inline composition.
 
 ```ts
 // no
-const printMissing = Effect.gen(function* () { ... }).pipe(
-    Effect.provide(Layer.mergeAll(FileRaceList.layer, GoogleSheet.readerLayer)),
-)
+printMissing.pipe(Effect.provide(Layer.mergeAll(FileRaceList.layer, GoogleSheet.readerLayer)))
 
-// yes
+// yes: the Layer is named in the entry point, provided in the dispatch
 const missingLayer = Layer.mergeAll(FileRaceList.layer, GoogleSheet.readerLayer)
-const printMissing = Effect.gen(function* () { ... })
-// in the dispatch
 Missing: () => printMissing.pipe(Effect.provide(missingLayer)),
 ```
 
-In tests `it.effect(…, () => Effect.gen(…).pipe(Effect.provide(fakes)))` is the idiomatic form, with different fakes per test: that is why both P28 rules skip tests on their own.
+**Trigger**: an `Effect.provide` argument composed inline: `Layer.*(…)`, a ternary, an `&&`/`||`, a `match`/`$match`.
 
-With the `effecttsgo` presets enabled, `strict-effect-provide` covers the **position** (a Layer `provide` outside the entry point), using types; the P28 rules cover the **shape**. The overlap with [`no-provide-on-definition`](#no-provide-on-definition) is partial: on the three forms of `provide` applied to a definition both fire, but `strict-effect-provide` also reports `provide` on a named program, which the local rule allows, and ignores providing a `Context`, which the local rule reports. `strict-effect-provide` has no options: the entry point and tests must be exempted with `overrides`.
+**Exemptions and blind spots**: test files, where different fakes per test are idiomatic. Where `provide` sits (outside the entry point) needs types: see `strict-effect-provide` (effecttsgo).
+
+**Why**: an inline Layer cannot be reused and hides which adapters a branch chooses. When branches need different Layers, there is one `provide` per branch, all in the dispatch: a single Layer with every service would build adapters the command does not use.
+
+- **Pattern**: P28 · **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `error`
 
 ### `no-provide-on-definition`
 
-Reports `Effect.provide` applied to `Effect.gen(…)` or to `Effect.fn(…)(…)`, in all three forms: with `.pipe`, as an `Effect.fn` pipeable, data-first. Skips test files.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P28 · Separate wiring. Rule, rationale and examples in [`provide-named-layer`](#provide-named-layer).
-- **Options**: `testFiles` (see [File options](#file-options)). **Fix**: none.
-- **Origin severity**: `error`.
+**Intent**: a program does not provide its own Layers; its caller does.
+
+```ts
+// no
+const printMissing = Effect.gen(function* () { … }).pipe(Effect.provide(missingLayer))
+
+// yes: see provide-named-layer
+```
+
+**Trigger**: `Effect.provide` applied to `Effect.gen(…)` or to `Effect.fn(…)(…)`, in all three forms: with `.pipe`, as an `Effect.fn` pipeable, data-first.
+
+**Exemptions and blind spots**: test files. `provide` on a named program is allowed; `strict-effect-provide` (effecttsgo) reports it too.
+
+**Why**: a program that provides its own Layers can no longer be wired to different adapters by its caller.
+
+- **Pattern**: P28 · **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `error`
 
 ### `no-nested-match`
 
-Reports a handler of `Option.match`, `Result.match`, `Exit.match`, `Either.match`, `$match` or `Match.valueTags` that is itself a data-last match, or that returns a match or a ternary. It does not see `if` inside handlers, `Match.value`/`Match.type` chains, or matches nested deeper than the returned value.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P30 · Guard clauses instead of nested matches.
-- **Options**: none. **Fix**: none.
-- **Origin severity**: `warn`, until proven on a larger codebase.
-
-**Rule**: a match handler contains neither another match nor a ternary. Inside `Effect.gen`/`Effect.fn`, the exit case (parse failure, absence) becomes a guard clause with an early `return` (`Result.isFailure`, `Option.isNone`) and the rest of the generator is the happy path. Outside a generator, give the inner choice a name and pass it as the handler (or compose with `flow`), so each match has one level.
-
-**Why**: two nested levels of choice hide which branch is the normal one. `if` guards are the idiom inside generators; outside them, a named handler keeps the code expression-based. `Result.match` stays suitable when both branches are short expressions producing a value.
+**Intent**: a match handler contains neither another match nor a ternary.
 
 ```ts
 // no
@@ -515,14 +515,14 @@ const run = (argv: ReadonlyArray<string>) =>
             Option.match(command.only, { onNone: () => fillAll, onSome: fillOnly }),
     })
 
-// yes, outside a generator
+// yes, outside a generator: a named handler
 const fill = (command: CliCommand) =>
     Option.match(command.only, { onNone: () => fillAll, onSome: fillOnly })
 
 const run = (argv: ReadonlyArray<string>) =>
     Result.match(parseArgs(argv), { onFailure: usageError, onSuccess: fill })
 
-// yes, inside a generator
+// yes, inside a generator: guard clauses
 const run = Effect.fn("run")(function* (argv: ReadonlyArray<string>) {
     const parsed = parseArgs(argv)
     if (Result.isFailure(parsed)) return yield* usageError(parsed.failure)
@@ -534,43 +534,42 @@ const run = Effect.fn("run")(function* (argv: ReadonlyArray<string>) {
 })
 ```
 
+**Trigger**: a handler of `Option.match`, `Result.match`, `Exit.match`, `Either.match`, `$match` or `Match.valueTags` that is itself a data-last match, or that returns a match or a ternary.
+
+**Exemptions and blind spots**: `if` inside handlers, `Match.value`/`Match.type` chains, matches nested deeper than the returned value.
+
+**Why**: two nested levels of choice hide which branch is the normal one.
+
+- **Pattern**: P30 · **Options**: none · **Fix**: none · **Severity**: `warn`
+
 ### `no-inline-yield-star`
 
-Reports a `yield*` whose result is used inside a larger expression: argument, operand, member, property, template.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P32 · A `yield*` does not sit inside a larger expression.
-- **Options**: none.
-- **Fix**: autofix (`oxlint --fix`) when moving the effect before the statement changes neither when nor how many times it runs. It extracts all nested `yield*`s of the statement into `const`s, innermost first and left to right, and derives the name from the argument's last identifier without a verb prefix (`readSheet()` → `sheet`, `reader.rows` → `rows`), with a numeric suffix if the name is already taken and `value` as fallback. No fix, only the warning, in the branches of a ternary or `&&`/`||`/`??` nested in a larger expression, with optional chaining, in `while`/`for` conditions, in statements without braces, or when another call is evaluated before the `yield*`.
-- **Origin severity**: `warn`.
-
-**Rule**: a `yield*` result is bound to a `const` before being used. A `yield*` is allowed only as the whole value of a statement (`yield* x`, `return yield* x`, `if (yield* x)`, `for (… of yield* x)`), of a declaration (`const a = yield* x`) or of an assignment (`a = yield* x`). The same holds for the whole branch of a ternary or the right operand of `&&`/`||`/`??` whose expression is itself in one of those positions (`return ready ? yield* x : []`, `const a = cached ?? (yield* x)`): the branch runs at most once, after the condition, so the order is already the reading order, and binding the result first would run the effect unconditionally.
-
-**Why**: a `yield*` nested in an argument, an operand or a template runs an effect in the middle of an expression; with several `yield*`s in the same expression the order of effects can only be inferred from precedence. One `const` per effect makes the order the reading order and names the intermediate value.
+**Intent**: a `yield*` result is bound to a `const` before being used.
 
 ```ts
 // no
-const missing = Effect.fn("missing")(function* () {
-    return yield* missingIn(yield* readSheet())
-})
+return yield * missingIn(yield * readSheet())
 
 // yes
-const missing = Effect.fn("missing")(function* () {
-    const sheet = yield* readSheet()
-    return yield* missingIn(sheet)
-})
+const sheet = yield * readSheet()
+return yield * missingIn(sheet)
 ```
+
+**Trigger**: a `yield*` whose result is used inside a larger expression: argument, operand, member, property, template.
+
+**Exemptions and blind spots**: a `yield*` that is the whole value of a statement (`yield* x`, `return yield* x`, `if (yield* x)`, `for (… of yield* x)`), a declaration or an assignment. Also the whole branch of a ternary, or the right operand of `&&`/`||`/`??`, in one of those positions (`const a = cached ?? (yield* x)`): binding first would run the effect unconditionally. The autofix extracts every nested `yield*` into `const`s, innermost first, named after the argument's last identifier without a verb prefix (`readSheet()` → `sheet`). There is no autofix when moving the effect could change when or how often it runs: branches of a ternary or `&&`/`||`/`??` inside a larger expression, optional chaining, `while`/`for` conditions, statements without braces, another call evaluated before the `yield*`.
+
+**Why**: with several `yield*`s in one expression the order of effects can only be inferred from precedence. One `const` per effect makes the order the reading order and names the intermediate value.
+
+- **Pattern**: P32 · **Options**: none · **Fix**: autofix · **Severity**: `warn`
 
 ### `no-effect-return-type`
 
-Reports `Effect.Effect`, `Stream.Stream` or `Layer.Layer` in an annotated return type, even nested (`Option.Option<Effect.Effect<…>>`, a function returning an `Effect`). Exempt are recursion and returns of different shapes that need unifying, recognized without types from the shape of the `return`s: different callee or class, different node types. An `import type { Effect }` used as `Effect<…>` slips through.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P33 · No `Effect`, `Stream` or `Layer` in the annotated return type.
-- **Options**: none. **Fix**: suggestion that removes the annotation, not an autofix.
-- **Origin severity**: `warn`.
-
-**Rule**: a return type may be annotated, and a named type (`Insertion`, `Result.Result<A, E>`, `Option.Option<A>`) stays as a contract. `Effect.Effect`, `Stream.Stream` and `Layer.Layer` are not annotated. Exceptions: multiple return branches to unify into a single type (`Effect.succeed` and `Effect.fail`) and recursion, where TypeScript requires the annotation.
-
-**Why**: the error and requirement channels collect what comes from everything the function calls. An error or a service added deep down changes every caller's annotation, while inference keeps them aligned on its own. A named type rarely changes and states the intent.
+**Intent**: `Effect`, `Stream` and `Layer` return types are inferred, not annotated.
 
 ```ts
 // no
@@ -579,27 +578,29 @@ Reports `Effect.Effect`, `Stream.Stream` or `Layer.Layer` in an annotated return
 // yes
 (effect, name) =>
 
-// yes: a named type stays
+// yes: a named type stays as a contract
 export const insertionAt = (section: Section, start: DayOfYear): Insertion => {
 ```
 
+**Trigger**: `Effect.Effect`, `Stream.Stream` or `Layer.Layer` in an annotated return type, even nested (`Option.Option<Effect.Effect<…>>`, a function returning an `Effect`).
+
+**Exemptions and blind spots**: recursion, and returns of different shapes that need unifying (`Effect.succeed` and `Effect.fail`), recognized from the shape of the `return`s. An `import type { Effect }` used as `Effect<…>` slips through.
+
+**Why**: the error and requirement channels collect what comes from everything the function calls; an error or a service added deep down would change every caller's annotation.
+
+- **Pattern**: P33 · **Options**: none · **Fix**: suggestion that removes the annotation · **Severity**: `warn`
+
 ### `no-asymmetric-match-handlers`
 
-Reports, on the same matches as [`no-nested-match`](#no-nested-match), a handler with an inline body next to one that delegates to a function. A handler delegates if it is a reference, a call, or a function returning only a call; it is inline if it has multiple statements, is a generator, or builds an `Effect.fn`/`Effect.gen`. Returned literals, templates, arrays and objects are values and count on neither side.
+<sup>[↑ rules index](#rules-index)</sup>
 
-- **Pattern**: P34 · Match handlers at the same level of abstraction.
-- **Options**: none. **Fix**: none, because extraction must choose name and captured parameters; if the handler is an `Effect.fn("name")` the message suggests that name.
-- **Origin severity**: `warn`.
-
-**Rule**: if one match handler delegates to a named function, the others do too. A handler with its own body next to one that calls a function is extracted into a named function.
-
-**Why**: a branch saying _what_ next to one showing _how_ forces the reader to switch level halfway through the choice, and hides that the branches are equivalent alternatives.
+**Intent**: if one match handler delegates to a named function, the others do too.
 
 ```ts
 // no
 Option.match(only, {
     onNone: () => missingIn(sheet),
-    onSome: Effect.fn("onlyCandidate")(function* (name: string) { ... }),
+    onSome: Effect.fn("onlyCandidate")(function* (name: string) { … }),
 })
 
 // yes
@@ -608,3 +609,11 @@ Option.match(only, {
     onSome: (name) => onlyCandidate(sheet, name),
 })
 ```
+
+**Trigger**: on the same matches as [`no-nested-match`](#no-nested-match), a handler with an inline body next to one that delegates. A handler delegates if it is a reference, a call, or a function returning only a call; it is inline if it has multiple statements, is a generator, or builds an `Effect.fn`/`Effect.gen`.
+
+**Exemptions and blind spots**: returned literals, templates, arrays and objects are values and count on neither side.
+
+**Why**: a branch saying _what_ next to one showing _how_ forces the reader to switch level halfway through the choice.
+
+- **Pattern**: P34 · **Options**: none · **Fix**: none · **Severity**: `warn`

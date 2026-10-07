@@ -1,20 +1,10 @@
 # @doubleloop/oxlint-plugin-effect
 
-An oxlint plugin that enforces a catalog of patterns for Effect 4 code. It currently ships **20 rules**; what each one reports and why is in [`RULES.md`](RULES.md).
+An oxlint plugin that enforces a catalog of patterns for Effect 4 code.
 
-| Topic                   | Count | Rules                                                                                                                                                                                                                                                                                                                       |
-| ----------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Error channel           | 5     | [`no-bare-error-in-effect`](RULES.md#no-bare-error-in-effect), [`try-object-form`](RULES.md#try-object-form), [`no-effect-promise`](RULES.md#no-effect-promise), [`no-parameterless-catch-all`](RULES.md#no-parameterless-catch-all), [`error-handling-in-effect-fn-handler`](RULES.md#error-handling-in-effect-fn-handler) |
-| Services & Layers       | 3     | [`service-port-shape-only`](RULES.md#service-port-shape-only), [`provide-named-layer`](RULES.md#provide-named-layer), [`no-provide-on-definition`](RULES.md#no-provide-on-definition)                                                                                                                                       |
-| Runtime & entrypoint    | 2     | [`run-only-at-entry`](RULES.md#run-only-at-entry), [`boundary-entrypoint-shape`](RULES.md#boundary-entrypoint-shape)                                                                                                                                                                                                        |
-| Design & boundaries     | 2     | [`adapter-import-boundary`](RULES.md#adapter-import-boundary), [`no-transport-types-in-generator`](RULES.md#no-transport-types-in-generator)                                                                                                                                                                                |
-| Effectful functions     | 3     | [`prefer-effect-fn`](RULES.md#prefer-effect-fn), [`untraced-recursion`](RULES.md#untraced-recursion), [`single-style-per-function`](RULES.md#single-style-per-function)                                                                                                                                                     |
-| Code shape              | 4     | [`no-nested-match`](RULES.md#no-nested-match), [`no-inline-yield-star`](RULES.md#no-inline-yield-star), [`no-effect-return-type`](RULES.md#no-effect-return-type), [`no-asymmetric-match-handlers`](RULES.md#no-asymmetric-match-handlers)                                                                                  |
-| Config & secrets        | 1     | [`redacted-secret-names`](RULES.md#redacted-secret-names)                                                                                                                                                                                                                                                                   |
-| Schema                  | 0     |                                                                                                                                                                                                                                                                                                                             |
-| Concurrency & resources | 0     |                                                                                                                                                                                                                                                                                                                             |
-| Testing                 | 0     |                                                                                                                                                                                                                                                                                                                             |
-| Globals & platform      | 0     |                                                                                                                                                                                                                                                                                                                             |
+## Install `@effect/tsgo` first
+
+[`@effect/tsgo`](https://github.com/Effect-TS/tsgo) is the official Effect language service on top of the TypeScript Go compiler; its `effecttsgo` oxlint presets ship more than 100 type-aware rules. This plugin is meant to be used alongside them: its rules target what those presets do not check. Set it up with its [Oxlint Setup guide](https://github.com/Effect-TS/tsgo/blob/main/docs/README.md) and put its `extends` **before** this plugin's preset, which does not include it.
 
 ## Installation
 
@@ -32,22 +22,45 @@ The link's realpath lies outside `node_modules`, so Node runs the plugin's `.ts`
 
 The `all` preset enables every rule at `warn`, to measure their noise without blocking. A `recommended` preset with reasoned severities will come from measurements on consumers.
 
+Both examples extend the `recommended` preset of `@effect/tsgo` first, then `all`.
+
 With `.oxlintrc.json`:
 
 ```json
-{ "extends": ["./node_modules/@doubleloop/oxlint-plugin-effect/presets/all.json"] }
+{
+    "$schema": "./node_modules/@effect/tsgo/oxlint-schema.json",
+    "extends": [
+        "./node_modules/@effect/tsgo/oxlint-presets/recommended.json",
+        "./node_modules/@doubleloop/oxlint-plugin-effect/presets/all.json"
+    ]
+}
 ```
 
 With `oxlint.config.ts`, where `extends` accepts objects, not paths:
 
 ```ts
 import dlEffectAll from "@doubleloop/oxlint-plugin-effect/presets/all"
+import { recommended as effectTsgoRecommended } from "@effect/tsgo/oxlint-presets"
 import { defineConfig } from "oxlint"
 
-export default defineConfig({ extends: [dlEffectAll] })
+export default defineConfig({ extends: [effectTsgoRecommended, dlEffectAll] })
 ```
 
-### Default configuration
+## Rules
+
+What each rule reports and why is in [`RULES.md`](RULES.md).
+
+| Topic                | Rules                                                                                                                                                                                                                                                                                                                       |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Error channel        | [`no-bare-error-in-effect`](RULES.md#no-bare-error-in-effect), [`try-object-form`](RULES.md#try-object-form), [`no-effect-promise`](RULES.md#no-effect-promise), [`no-parameterless-catch-all`](RULES.md#no-parameterless-catch-all), [`error-handling-in-effect-fn-handler`](RULES.md#error-handling-in-effect-fn-handler) |
+| Services & Layers    | [`service-port-shape-only`](RULES.md#service-port-shape-only), [`provide-named-layer`](RULES.md#provide-named-layer), [`no-provide-on-definition`](RULES.md#no-provide-on-definition)                                                                                                                                       |
+| Runtime & entrypoint | [`run-only-at-entry`](RULES.md#run-only-at-entry), [`boundary-entrypoint-shape`](RULES.md#boundary-entrypoint-shape)                                                                                                                                                                                                        |
+| Design & boundaries  | [`adapter-import-boundary`](RULES.md#adapter-import-boundary), [`no-transport-types-in-generator`](RULES.md#no-transport-types-in-generator)                                                                                                                                                                                |
+| Effectful functions  | [`prefer-effect-fn`](RULES.md#prefer-effect-fn), [`untraced-recursion`](RULES.md#untraced-recursion), [`single-style-per-function`](RULES.md#single-style-per-function)                                                                                                                                                     |
+| Code shape           | [`no-nested-match`](RULES.md#no-nested-match), [`no-inline-yield-star`](RULES.md#no-inline-yield-star), [`no-effect-return-type`](RULES.md#no-effect-return-type), [`no-asymmetric-match-handlers`](RULES.md#no-asymmetric-match-handlers)                                                                                  |
+| Config & secrets     | [`redacted-secret-names`](RULES.md#redacted-secret-names)                                                                                                                                                                                                                                                                   |
+
+## Default configuration
 
 `all` is equivalent to the config below, with every option spelled out at its default. File options **replace** the defaults instead of extending them, and every rule sharing an option must get the same value: see [File options](RULES.md#file-options).
 
@@ -104,17 +117,6 @@ export default defineConfig({
 ```
 
 To change one option, extend `all` and override only the rules that use it.
-
-## Relationship to `effecttsgo`
-
-These rules are additional to those of [`@effect/tsgo`](https://github.com/Effect-TS/tsgo) (the `effecttsgo` oxlint presets), which use types to cover much of what a syntactic rule cannot see; they target what those presets do not check, and several sections of [`RULES.md`](RULES.md) say where the two families overlap. The `all` preset does not include them: to add them, follow the [Oxlint Setup guide](https://github.com/Effect-TS/tsgo/blob/main/docs/README.md) of `@effect/tsgo`, and put its `extends` **before** `all`.
-
-## Suggested usage
-
-1. **Start small**: enable `all` on a single package or role, not on the whole monorepo. Noise is read one piece at a time.
-2. **Reconfigure the layout before reading the numbers**: the defaults of `entryFiles`, `testFiles` and `transportTypes` come from a Node CLI and produce false positives on other layouts. How to do it is in [File options](RULES.md#file-options) and [`no-transport-types-in-generator`](RULES.md#no-transport-types-in-generator).
-3. **Turn off structural noise, don't tune it**: a rule that fires everywhere because of the layout (typically [`adapter-import-boundary`](RULES.md#adapter-import-boundary), which reads the filesystem) gets turned off and reported, instead of being chased with ad hoc options.
-4. **Raise to `error` only what held up**: the rules that proved stable on your own code. The severity each one ran with in the origin repo is in [`RULES.md`](RULES.md) and is a hint, not a recommendation.
 
 ## Development
 

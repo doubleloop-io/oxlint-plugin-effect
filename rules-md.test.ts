@@ -4,7 +4,7 @@ import { test } from "node:test"
 
 import dlEffectPlugin from "./index.ts"
 
-const ruleHeading = /^### `([a-z-]+)`$/gmu
+const ruleHeading = /^### `([a-z-]+)`\n\n<sup>\[↑ rules index\]\(#rules-index\)<\/sup>$/gmu
 
 const documentedRules = async () => {
     const rulesMd = await readFile(new URL("RULES.md", import.meta.url), "utf8")
