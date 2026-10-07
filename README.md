@@ -50,15 +50,20 @@ export default defineConfig({ extends: [effectTsgoRecommended, dlEffectAll] })
 
 What each rule reports and why is in [`RULES.md`](RULES.md).
 
-| Topic                | Rules                                                                                                                                                                                                                                                                                                                       |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Error channel        | [`no-bare-error-in-effect`](RULES.md#no-bare-error-in-effect), [`try-object-form`](RULES.md#try-object-form), [`no-effect-promise`](RULES.md#no-effect-promise), [`no-parameterless-catch-all`](RULES.md#no-parameterless-catch-all), [`error-handling-in-effect-fn-handler`](RULES.md#error-handling-in-effect-fn-handler) |
-| Services & Layers    | [`service-port-shape-only`](RULES.md#service-port-shape-only), [`provide-named-layer`](RULES.md#provide-named-layer), [`no-provide-on-definition`](RULES.md#no-provide-on-definition)                                                                                                                                       |
-| Runtime & entrypoint | [`run-only-at-entry`](RULES.md#run-only-at-entry), [`boundary-entrypoint-shape`](RULES.md#boundary-entrypoint-shape)                                                                                                                                                                                                        |
-| Design & boundaries  | [`adapter-import-boundary`](RULES.md#adapter-import-boundary), [`no-transport-types-in-generator`](RULES.md#no-transport-types-in-generator)                                                                                                                                                                                |
-| Effectful functions  | [`prefer-effect-fn`](RULES.md#prefer-effect-fn), [`untraced-recursion`](RULES.md#untraced-recursion), [`single-style-per-function`](RULES.md#single-style-per-function)                                                                                                                                                     |
-| Code shape           | [`no-nested-match`](RULES.md#no-nested-match), [`no-inline-yield-star`](RULES.md#no-inline-yield-star), [`no-effect-return-type`](RULES.md#no-effect-return-type), [`no-asymmetric-match-handlers`](RULES.md#no-asymmetric-match-handlers)                                                                                  |
-| Config & secrets     | [`redacted-secret-names`](RULES.md#redacted-secret-names)                                                                                                                                                                                                                                                                   |
+| Topic                | Rules                                                                                                                                                                                                                                                                                                                                                                                                                |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Error channel        | [`no-bare-error-in-effect`](RULES.md#no-bare-error-in-effect), [`try-object-form`](RULES.md#try-object-form), [`no-effect-promise`](RULES.md#no-effect-promise), [`no-parameterless-catch-all`](RULES.md#no-parameterless-catch-all), [`error-handling-in-effect-fn-handler`](RULES.md#error-handling-in-effect-fn-handler), [`anti-slop-no-manual-effect-error-tag`](RULES.md#anti-slop-no-manual-effect-error-tag) |
+| Tagged values        | [`anti-slop-no-manual-tag-comparison`](RULES.md#anti-slop-no-manual-tag-comparison), [`anti-slop-no-manual-tagged-construction`](RULES.md#anti-slop-no-manual-tagged-construction)                                                                                                                                                                                                                                   |
+| Services & Layers    | [`service-port-shape-only`](RULES.md#service-port-shape-only), [`provide-named-layer`](RULES.md#provide-named-layer), [`no-provide-on-definition`](RULES.md#no-provide-on-definition), [`anti-slop-no-service-constructor-imports`](RULES.md#anti-slop-no-service-constructor-imports)                                                                                                                               |
+| Runtime & entrypoint | [`run-only-at-entry`](RULES.md#run-only-at-entry), [`boundary-entrypoint-shape`](RULES.md#boundary-entrypoint-shape)                                                                                                                                                                                                                                                                                                 |
+| Design & boundaries  | [`adapter-import-boundary`](RULES.md#adapter-import-boundary), [`no-transport-types-in-generator`](RULES.md#no-transport-types-in-generator)                                                                                                                                                                                                                                                                         |
+| Effectful functions  | [`prefer-effect-fn`](RULES.md#prefer-effect-fn), [`untraced-recursion`](RULES.md#untraced-recursion), [`single-style-per-function`](RULES.md#single-style-per-function)                                                                                                                                                                                                                                              |
+| Code shape           | [`no-nested-match`](RULES.md#no-nested-match), [`no-inline-yield-star`](RULES.md#no-inline-yield-star), [`no-effect-return-type`](RULES.md#no-effect-return-type), [`no-asymmetric-match-handlers`](RULES.md#no-asymmetric-match-handlers), [`anti-slop-prefer-effect-match`](RULES.md#anti-slop-prefer-effect-match)                                                                                                |
+| Config & secrets     | [`redacted-secret-names`](RULES.md#redacted-secret-names)                                                                                                                                                                                                                                                                                                                                                            |
+
+### Absorbed from anti-slop
+
+The `anti-slop-*` rules are the five Effect rules of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop) (plugin `anti-slop-effect`, commit [`c44ef22`](https://github.com/dmmulroy/anti-slop/tree/c44ef22ca116d0ba62a3ff663a0bd13a3f3fa40b/src/effect)), ported into this plugin; its generic TypeScript rules stay out. Detection logic and messages are unchanged; [`anti-slop-no-service-constructor-imports`](RULES.md#anti-slop-no-service-constructor-imports) recognizes test files through the shared [`testFiles`](RULES.md#file-options) option instead of its own `*.test.*`/`*.spec.*` check. Do not enable the `anti-slop-effect` plugin alongside this one: every finding would be reported twice. The original code is MIT-licensed: see [`LICENSE.anti-slop`](LICENSE.anti-slop).
 
 ## Default configuration
 
@@ -91,10 +96,15 @@ export default defineConfig({
         "dl-effect/no-effect-promise": ["warn", { testFiles }],
         "dl-effect/no-parameterless-catch-all": "warn",
         "dl-effect/error-handling-in-effect-fn-handler": ["warn", { testFiles }],
+        "dl-effect/anti-slop-no-manual-effect-error-tag": "warn",
+        // Tagged values
+        "dl-effect/anti-slop-no-manual-tag-comparison": "warn",
+        "dl-effect/anti-slop-no-manual-tagged-construction": "warn",
         // Services & Layers
         "dl-effect/service-port-shape-only": "warn",
         "dl-effect/provide-named-layer": ["warn", { testFiles }],
         "dl-effect/no-provide-on-definition": ["warn", { testFiles }],
+        "dl-effect/anti-slop-no-service-constructor-imports": ["warn", { testFiles }],
         // Runtime & entrypoint
         "dl-effect/run-only-at-entry": ["warn", { entryFiles }],
         "dl-effect/boundary-entrypoint-shape": "warn",
@@ -110,6 +120,7 @@ export default defineConfig({
         "dl-effect/no-inline-yield-star": "warn",
         "dl-effect/no-effect-return-type": "warn",
         "dl-effect/no-asymmetric-match-handlers": "warn",
+        "dl-effect/anti-slop-prefer-effect-match": "warn",
         // Config & secrets
         "dl-effect/redacted-secret-names": "warn",
     },

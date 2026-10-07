@@ -14,6 +14,8 @@ new RuleTester().run("no-nested-match", noNestedMatchRule, {
         "const run = (argv) => Result.match(parseArgs(argv), { onFailure: usageError, onSuccess: fill })",
         "const run = Effect.fn('run')(function* (argv) { const parsed = parseArgs(argv); if (Result.isFailure(parsed)) return yield* usageError(parsed.failure); const { only } = parsed.success; if (Option.isNone(only)) return yield* fillAll; return yield* fillOnly(only.value) })",
         "const found = Option.match(only, { onNone: () => all, onSome: Effect.fn('only')(function* (name) { if (known) yield* log; return [name] }) })",
+        "const labelOf = (kind) => Match.value(kind).pipe(Match.when('a', () => 'A'), Match.orElse(() => 'other')); const label = Option.match(kind, { onNone: () => 'none', onSome: labelOf })",
+        "const label = Option.match(kind, { onNone: () => 'none', onSome: (k) => pipe(k, String.toUpperCase) })",
     ],
     invalid: [
         {
@@ -34,6 +36,22 @@ new RuleTester().run("no-nested-match", noNestedMatchRule, {
         },
         {
             code: "const lines = Match.valueTags(action, { Create: (a) => a.header ? [a.header] : [], Use: () => [] })",
+            errors: [{ messageId: "nestedBranch" }],
+        },
+        {
+            code: "const label = Option.match(kind, { onNone: () => 'none', onSome: (k) => Match.value(k).pipe(Match.when('a', () => 'A'), Match.orElse(() => 'other')) })",
+            errors: [{ messageId: "nestedBranch" }],
+        },
+        {
+            code: "const label = Option.match(kind, { onNone: () => 'none', onSome: Match.type().pipe(Match.when('a', () => 'A'), Match.orElse(() => 'other')) })",
+            errors: [{ messageId: "nestedBranch" }],
+        },
+        {
+            code: "const label = Option.match(kind, { onNone: () => 'none', onSome: (k) => pipe(Match.value(k), Match.when('a', () => 'A'), Match.orElse(() => 'other')) })",
+            errors: [{ messageId: "nestedBranch" }],
+        },
+        {
+            code: "const label = Option.match(kind, { onNone: () => 'none', onSome: pipe(Match.type(), Match.when('a', () => 'A'), Match.orElse(() => 'other')) })",
             errors: [{ messageId: "nestedBranch" }],
         },
     ],

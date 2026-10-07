@@ -1,7 +1,7 @@
 import { defineRule, type ESTree } from "@oxlint/plugins"
 
 import { isFunctionNode, type FunctionNode } from "../shared/effect-ast.ts"
-import { handlersOf, isMatchCall } from "../shared/match-ast.ts"
+import { handlersOf, isMatchCall, isMatchChain } from "../shared/match-ast.ts"
 
 const returnedExpressions = (fn: FunctionNode): ReadonlyArray<ESTree.Node> => {
     if (fn.body?.type !== "BlockStatement") return fn.body ? [fn.body] : []
@@ -11,10 +11,13 @@ const returnedExpressions = (fn: FunctionNode): ReadonlyArray<ESTree.Node> => {
 }
 
 const nestedBranches = (handler: ESTree.Node): ReadonlyArray<ESTree.Node> => {
-    if (isMatchCall(handler)) return [handler]
+    if (isMatchCall(handler) || isMatchChain(handler)) return [handler]
     if (!isFunctionNode(handler)) return []
     return returnedExpressions(handler).filter(
-        (expression) => isMatchCall(expression) || expression.type === "ConditionalExpression",
+        (expression) =>
+            isMatchCall(expression) ||
+            isMatchChain(expression) ||
+            expression.type === "ConditionalExpression",
     )
 }
 

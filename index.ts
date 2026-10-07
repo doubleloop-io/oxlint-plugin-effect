@@ -1,6 +1,11 @@
 import { eslintCompatPlugin } from "@oxlint/plugins"
 
 import { adapterImportBoundaryRule } from "./rules/adapter-import-boundary.ts"
+import { antiSlopNoManualEffectErrorTagRule } from "./rules/anti-slop-no-manual-effect-error-tag.ts"
+import { antiSlopNoManualTagComparisonRule } from "./rules/anti-slop-no-manual-tag-comparison.ts"
+import { antiSlopNoManualTaggedConstructionRule } from "./rules/anti-slop-no-manual-tagged-construction.ts"
+import { antiSlopNoServiceConstructorImportsRule } from "./rules/anti-slop-no-service-constructor-imports.ts"
+import { antiSlopPreferEffectMatchRule } from "./rules/anti-slop-prefer-effect-match.ts"
 import { boundaryEntrypointShapeRule } from "./rules/boundary-entrypoint-shape.ts"
 import { errorHandlingInEffectFnHandlerRule } from "./rules/error-handling-in-effect-fn-handler.ts"
 import { noAsymmetricMatchHandlersRule } from "./rules/no-asymmetric-match-handlers.ts"
@@ -26,6 +31,11 @@ export const pluginName = "dl-effect"
 const dlEffectPlugin = eslintCompatPlugin({
     meta: { name: pluginName },
     rules: {
+        "anti-slop-no-manual-effect-error-tag": antiSlopNoManualEffectErrorTagRule,
+        "anti-slop-no-manual-tag-comparison": antiSlopNoManualTagComparisonRule,
+        "anti-slop-no-manual-tagged-construction": antiSlopNoManualTaggedConstructionRule,
+        "anti-slop-no-service-constructor-imports": antiSlopNoServiceConstructorImportsRule,
+        "anti-slop-prefer-effect-match": antiSlopPreferEffectMatchRule,
         "adapter-import-boundary": adapterImportBoundaryRule,
         "boundary-entrypoint-shape": boundaryEntrypointShapeRule,
         "error-handling-in-effect-fn-handler": errorHandlingInEffectFnHandlerRule,

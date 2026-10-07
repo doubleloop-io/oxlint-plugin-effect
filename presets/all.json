@@ -3,6 +3,11 @@
         "../index.ts"
     ],
     "rules": {
+        "dl-effect/anti-slop-no-manual-effect-error-tag": "warn",
+        "dl-effect/anti-slop-no-manual-tag-comparison": "warn",
+        "dl-effect/anti-slop-no-manual-tagged-construction": "warn",
+        "dl-effect/anti-slop-no-service-constructor-imports": "warn",
+        "dl-effect/anti-slop-prefer-effect-match": "warn",
         "dl-effect/adapter-import-boundary": "warn",
         "dl-effect/boundary-entrypoint-shape": "warn",
         "dl-effect/error-handling-in-effect-fn-handler": "warn",

@@ -1,33 +1,38 @@
 # `@doubleloop/oxlint-plugin-effect` rules
 
-The plugin's 20 rules. The `Pxx` identifiers come from the origin catalog.
+The plugin's 25 rules. The `Pxx` identifiers come from the origin catalog.
 
 ## Rules index
 
-| Rule                                                                          | Pattern  | Severity |
-| ----------------------------------------------------------------------------- | -------- | -------- |
-| [`service-port-shape-only`](#service-port-shape-only)                         | P01      | `error`  |
-| [`adapter-import-boundary`](#adapter-import-boundary)                         | P02      | `error`  |
-| [`run-only-at-entry`](#run-only-at-entry)                                     | P04, P22 | `error`  |
-| [`no-bare-error-in-effect`](#no-bare-error-in-effect)                         | P05      | `error`  |
-| [`try-object-form`](#try-object-form)                                         | P08      | `error`  |
-| [`no-effect-promise`](#no-effect-promise)                                     | P08      | `warn`   |
-| [`no-parameterless-catch-all`](#no-parameterless-catch-all)                   | P09      | `error`  |
-| [`redacted-secret-names`](#redacted-secret-names)                             | P13      | `warn`   |
-| [`prefer-effect-fn`](#prefer-effect-fn)                                       | P17      | `warn`   |
-| [`untraced-recursion`](#untraced-recursion)                                   | P17      | `warn`   |
-| [`single-style-per-function`](#single-style-per-function)                     | P24      | `error`  |
-| [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler) | P25      | `warn`   |
-| [`no-transport-types-in-generator`](#no-transport-types-in-generator)         | P26      | `error`  |
-| [`boundary-entrypoint-shape`](#boundary-entrypoint-shape)                     | P27      | `warn`   |
-| [`provide-named-layer`](#provide-named-layer)                                 | P28      | `error`  |
-| [`no-provide-on-definition`](#no-provide-on-definition)                       | P28      | `error`  |
-| [`no-nested-match`](#no-nested-match)                                         | P30      | `warn`   |
-| [`no-inline-yield-star`](#no-inline-yield-star)                               | P32      | `warn`   |
-| [`no-effect-return-type`](#no-effect-return-type)                             | P33      | `warn`   |
-| [`no-asymmetric-match-handlers`](#no-asymmetric-match-handlers)               | P34      | `warn`   |
+| Rule                                                                                    | Pattern  | Severity |
+| --------------------------------------------------------------------------------------- | -------- | -------- |
+| [`service-port-shape-only`](#service-port-shape-only)                                   | P01      | `error`  |
+| [`adapter-import-boundary`](#adapter-import-boundary)                                   | P02      | `error`  |
+| [`run-only-at-entry`](#run-only-at-entry)                                               | P04, P22 | `error`  |
+| [`no-bare-error-in-effect`](#no-bare-error-in-effect)                                   | P05      | `error`  |
+| [`try-object-form`](#try-object-form)                                                   | P08      | `error`  |
+| [`no-effect-promise`](#no-effect-promise)                                               | P08      | `warn`   |
+| [`no-parameterless-catch-all`](#no-parameterless-catch-all)                             | P09      | `error`  |
+| [`redacted-secret-names`](#redacted-secret-names)                                       | P13      | `warn`   |
+| [`prefer-effect-fn`](#prefer-effect-fn)                                                 | P17      | `warn`   |
+| [`untraced-recursion`](#untraced-recursion)                                             | P17      | `warn`   |
+| [`single-style-per-function`](#single-style-per-function)                               | P24      | `error`  |
+| [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler)           | P25      | `warn`   |
+| [`no-transport-types-in-generator`](#no-transport-types-in-generator)                   | P26      | `error`  |
+| [`boundary-entrypoint-shape`](#boundary-entrypoint-shape)                               | P27      | `warn`   |
+| [`provide-named-layer`](#provide-named-layer)                                           | P28      | `error`  |
+| [`no-provide-on-definition`](#no-provide-on-definition)                                 | P28      | `error`  |
+| [`no-nested-match`](#no-nested-match)                                                   | P30      | `warn`   |
+| [`no-inline-yield-star`](#no-inline-yield-star)                                         | P32      | `warn`   |
+| [`no-effect-return-type`](#no-effect-return-type)                                       | P33      | `warn`   |
+| [`no-asymmetric-match-handlers`](#no-asymmetric-match-handlers)                         | P34      | `warn`   |
+| [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports) | —        | —        |
+| [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag)         | —        | —        |
+| [`anti-slop-no-manual-tag-comparison`](#anti-slop-no-manual-tag-comparison)             | —        | —        |
+| [`anti-slop-no-manual-tagged-construction`](#anti-slop-no-manual-tagged-construction)   | —        | —        |
+| [`anti-slop-prefer-effect-match`](#anti-slop-prefer-effect-match)                       | —        | —        |
 
-The `all` preset enables them all at `warn`. Severity is the one each rule was kept at zero noise with on an Effect 4 codebase: a data point about its stability, not a recommendation.
+The `all` preset enables them all at `warn`. Severity is the one each rule was kept at zero noise with on an Effect 4 codebase: a data point about its stability, not a recommendation. `—` means not yet measured.
 
 ## Common limits
 
@@ -40,7 +45,7 @@ The `all` preset enables them all at `warn`. Severity is the one each rule was k
 When the reason for an exclusion is part of the rule, the rule itself recognizes the files, through an option that **replaces** the defaults (it does not extend them). Globs are matched against the path relative to oxlint's working directory, with `/` on every platform.
 
 - **`entryFiles`**, used by [`run-only-at-entry`](#run-only-at-entry) and [`adapter-import-boundary`](#adapter-import-boundary). Default `**/main.ts`, `**/cli.ts`, `**/bin/**`. `index.ts` is excluded on purpose: it is usually a barrel, and exempting it would let adapters reach the rest of the application through re-exports.
-- **`testFiles`**, used by [`adapter-import-boundary`](#adapter-import-boundary), [`no-effect-promise`](#no-effect-promise), [`provide-named-layer`](#provide-named-layer), [`no-provide-on-definition`](#no-provide-on-definition) and [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler). Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. A helper directory such as `src/testing/` does not count as tests: it is support code.
+- **`testFiles`**, used by [`adapter-import-boundary`](#adapter-import-boundary), [`no-effect-promise`](#no-effect-promise), [`provide-named-layer`](#provide-named-layer), [`no-provide-on-definition`](#no-provide-on-definition), [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler) and [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports). Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. A helper directory such as `src/testing/` does not count as tests: it is support code.
 
 The defaults come from a Node CLI. On another layout (Next.js, a monorepo) they must be reconfigured before reading the numbers, and every rule sharing an option must be reconfigured:
 
@@ -104,6 +109,29 @@ import { Calendar } from "../calendar/Calendar.ts"
 **Why**: the adapter can be replaced without touching its consumers.
 
 - **Pattern**: P02 · **Options**: `entryFiles`, `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `error`
+
+### `anti-slop-no-service-constructor-imports`
+
+<sup>[↑ rules index](#rules-index)</sup>
+
+**Intent**: runtime code obtains a service from its Layer, never by calling its `make…` constructor.
+
+```ts
+// no: in src/runtime.ts
+import { makeIssueService } from "./issue-service.ts"
+
+// yes
+import { IssueService } from "./issue-service.ts"
+const issues = yield * IssueService
+```
+
+**Trigger**: a named import of `make` followed by an uppercase letter (`makeIssueService`, also when renamed) from a relative module.
+
+**Exemptions and blind spots**: test files, which build services from their constructors to inject fakes. Non-relative imports (packages, path aliases), namespace and default imports, and constructors with another prefix slip through. The same import can also fire [`adapter-import-boundary`](#adapter-import-boundary).
+
+**Why**: calling the constructor wires its dependencies by hand, and its requirements stop propagating to the composition root.
+
+- **Pattern**: — · **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: —
 
 ### `run-only-at-entry`
 
@@ -236,11 +264,84 @@ Effect.orElseSucceed(() => fallback)
 
 **Trigger**: `Effect.catch`, `catchAll`, `catchCause` and `catchEager` with a parameterless handler.
 
-**Exemptions and blind spots**: a catch-all that discriminates on `_tag` by hand: see `catch-all-to-map-error`, `catch-all-tag-dispatch-to-catch-tag` and `catch-to-ignore` (effecttsgo).
+**Exemptions and blind spots**: a catch-all that discriminates on `_tag` by hand: see [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag), and `catch-all-to-map-error`, `catch-all-tag-dispatch-to-catch-tag` and `catch-to-ignore` (effecttsgo).
 
 **Why**: a catch-all that ignores its parameter also swallows the errors added later, which `catchTag` would leave visible in the type.
 
 - **Pattern**: P09 · **Options**: none · **Fix**: none · **Severity**: `error`
+
+### `anti-slop-no-manual-effect-error-tag`
+
+<sup>[↑ rules index](#rules-index)</sup>
+
+**Intent**: a catch handler does not discriminate errors by `_tag`; `catchTag` and `catchReason` do.
+
+```ts
+// no
+program.pipe(Effect.catch((error) => (error._tag === "NotFound" ? recover : Effect.fail(error))))
+
+// yes
+program.pipe(Effect.catchTag("NotFound", () => recover))
+```
+
+**Trigger**: an equality comparison between `_tag` (or `reason._tag`) and a string literal, or a `switch` on `_tag`, whose nearest enclosing function is a handler passed to `Effect.catch`, `catchAll` or `catchIf`. On `reason._tag` the message proposes `Effect.catchReason(s)`.
+
+**Exemptions and blind spots**: handlers of other combinators (`catchTag`, `catchCause`, `mapError`), and `_tag` checks in a function nested inside the handler. Outside these handlers the same checks belong to [`anti-slop-no-manual-tag-comparison`](#anti-slop-no-manual-tag-comparison): the two never fire on the same node.
+
+**Why**: a hand-written dispatch keeps the caught errors in the type even when handled, and silently misses tags added later.
+
+- **Pattern**: — · **Options**: none · **Fix**: none · **Severity**: —
+
+## Tagged values
+
+### `anti-slop-no-manual-tag-comparison`
+
+<sup>[↑ rules index](#rules-index)</sup>
+
+**Intent**: branching on a tagged value goes through `Match` or `Predicate.isTagged`, never through `_tag` by hand.
+
+```ts
+// no
+switch (event._tag) {
+    case "Created":
+        return onCreated(event)
+    case "Deleted":
+        return onDeleted(event)
+}
+
+// yes
+Match.value(event).pipe(Match.tagsExhaustive({ Created: onCreated, Deleted: onDeleted }))
+```
+
+**Trigger**: an equality comparison between `_tag` (also `["_tag"]`) and a string literal, or a `switch` on `_tag`, outside the handlers covered by [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag).
+
+**Exemptions and blind spots**: comparisons against a variable rather than a literal, and discriminants with another name (`kind`, `type`). Guard clauses such as `if (x._tag === "A") return …` fire too: use `Predicate.isTagged`.
+
+**Why**: `Match.tagsExhaustive` and `$match` fail to compile when a variant is added; a `switch` on `_tag` does not.
+
+- **Pattern**: — · **Options**: none · **Fix**: none · **Severity**: —
+
+### `anti-slop-no-manual-tagged-construction`
+
+<sup>[↑ rules index](#rules-index)</sup>
+
+**Intent**: a tagged value is built by its constructor, never as an object literal with `_tag`.
+
+```ts
+// no
+const error = { _tag: "NotFound", id }
+
+// yes
+const error = new NotFound({ id })
+```
+
+**Trigger**: an object literal with a `_tag` property (also `"_tag"` or `["_tag"]`) whose value is a string literal.
+
+**Exemptions and blind spots**: the patterns passed to `Match.when` and `Match.not`, and `_tag` values that are not literals. See `schema-struct-with-tag` (effecttsgo) for `Schema.Struct` with a `_tag` field.
+
+**Why**: a literal skips the constructor, so it carries none of the class's prototype, equality or validation, and drifts silently when the type changes.
+
+- **Pattern**: — · **Options**: none · **Fix**: none · **Severity**: —
 
 ## Config
 
@@ -534,9 +635,9 @@ const run = Effect.fn("run")(function* (argv: ReadonlyArray<string>) {
 })
 ```
 
-**Trigger**: a handler of `Option.match`, `Result.match`, `Exit.match`, `Either.match`, `$match` or `Match.valueTags` that is itself a data-last match, or that returns a match or a ternary.
+**Trigger**: a handler of `Option.match`, `Result.match`, `Exit.match`, `Either.match`, `$match` or `Match.valueTags` that is itself a data-last match (also `Match.type().pipe(…)` and `pipe(Match.type(), …)`), or that returns a match, a `Match.value(…).pipe(…)` or `pipe(Match.value(…), …)` chain or a ternary.
 
-**Exemptions and blind spots**: `if` inside handlers, `Match.value`/`Match.type` chains, matches nested deeper than the returned value.
+**Exemptions and blind spots**: `if` inside handlers, and whatever they return from inside an `if` or another nested block; the handlers of an outer `Match.value`/`Match.type` chain; matches nested deeper than the returned value, or assigned to a variable before being returned.
 
 **Why**: two nested levels of choice hide which branch is the normal one.
 
@@ -617,3 +718,29 @@ Option.match(only, {
 **Why**: a branch saying _what_ next to one showing _how_ forces the reader to switch level halfway through the choice.
 
 - **Pattern**: P34 · **Options**: none · **Fix**: none · **Severity**: `warn`
+
+### `anti-slop-prefer-effect-match`
+
+<sup>[↑ rules index](#rules-index)</sup>
+
+**Intent**: a choice among several literal values of the same expression is a `Match`, not a chain of ternaries.
+
+```ts
+// no
+const label = kind === "a" ? "A" : kind === "b" ? "B" : "Other"
+
+// yes
+const label = Match.value(kind).pipe(
+    Match.when("a", () => "A"),
+    Match.when("b", () => "B"),
+    Match.orElse(() => "Other"),
+)
+```
+
+**Trigger**: a ternary chain of at least two levels where every condition compares the same expression, by source text, with a literal (`==`, `===`, `!=`, `!==`).
+
+**Exemptions and blind spots**: a single ternary, chains comparing different expressions, and the same expression written differently (`a.b` vs `a["b"]`). A chain returned by a match handler also fires [`no-nested-match`](#no-nested-match): extract the handler first, since a `Match.value` left inside it fires `no-nested-match` again.
+
+**Why**: a ternary chain hides which value is the fallback and cannot be made exhaustive.
+
+- **Pattern**: — · **Options**: none · **Fix**: none · **Severity**: —
