@@ -3,6 +3,7 @@
     "version": "0.0.0",
     "private": true,
     "description": "Oxlint rules for Effect 4 code",
+    "license": "MIT",
     "type": "module",
     "exports": {
         "./presets/all": "./presets/all.ts",
