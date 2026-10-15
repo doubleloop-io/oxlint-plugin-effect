@@ -59,7 +59,7 @@ What each rule reports and why is in [`RULES.md`](RULES.md).
 | Design & boundaries  | [`adapter-import-boundary`](RULES.md#adapter-import-boundary), [`no-transport-types-in-generator`](RULES.md#no-transport-types-in-generator)                                                                                                                                                                                                                                                                         |
 | Effectful functions  | [`prefer-effect-fn`](RULES.md#prefer-effect-fn), [`untraced-recursion`](RULES.md#untraced-recursion), [`single-style-per-function`](RULES.md#single-style-per-function)                                                                                                                                                                                                                                              |
 | Code shape           | [`no-nested-match`](RULES.md#no-nested-match), [`no-inline-yield-star`](RULES.md#no-inline-yield-star), [`no-effect-return-type`](RULES.md#no-effect-return-type), [`no-asymmetric-match-handlers`](RULES.md#no-asymmetric-match-handlers), [`anti-slop-prefer-effect-match`](RULES.md#anti-slop-prefer-effect-match)                                                                                                |
-| Schema               | [`exported-schema-identifier`](RULES.md#exported-schema-identifier)                                                                                                                                                                                                                                                                                                                                                  |
+| Schema               | [`exported-schema-identifier`](RULES.md#exported-schema-identifier), [`no-inline-schema-codec`](RULES.md#no-inline-schema-codec)                                                                                                                                                                                                                                                                                     |
 | Config & secrets     | [`redacted-secret-names`](RULES.md#redacted-secret-names)                                                                                                                                                                                                                                                                                                                                                            |
 
 ### Absorbed from anti-slop
@@ -129,6 +129,7 @@ export default defineConfig({
         "dl-effect/anti-slop-prefer-effect-match": "warn",
         // Schema
         "dl-effect/exported-schema-identifier": "warn",
+        "dl-effect/no-inline-schema-codec": "warn",
         // Config & secrets
         "dl-effect/redacted-secret-names": "warn",
     },

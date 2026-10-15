@@ -11,6 +11,7 @@ import { noAsymmetricMatchHandlersRule } from "./rules/no-asymmetric-match-handl
 import { noBareErrorInEffectRule } from "./rules/no-bare-error-in-effect.ts"
 import { noEffectPromiseRule } from "./rules/no-effect-promise.ts"
 import { noEffectReturnTypeRule } from "./rules/no-effect-return-type.ts"
+import { noInlineSchemaCodecRule } from "./rules/no-inline-schema-codec.ts"
 import { noInlineYieldStarRule } from "./rules/no-inline-yield-star.ts"
 import { noManualDiscriminantComparisonRule } from "./rules/no-manual-discriminant-comparison.ts"
 import { noManualDiscriminantConstructionRule } from "./rules/no-manual-discriminant-construction.ts"
@@ -44,6 +45,7 @@ const dlEffectPlugin = eslintCompatPlugin({
         "no-bare-error-in-effect": noBareErrorInEffectRule,
         "no-effect-promise": noEffectPromiseRule,
         "no-effect-return-type": noEffectReturnTypeRule,
+        "no-inline-schema-codec": noInlineSchemaCodecRule,
         "no-inline-yield-star": noInlineYieldStarRule,
         "no-manual-discriminant-comparison": noManualDiscriminantComparisonRule,
         "no-manual-discriminant-construction": noManualDiscriminantConstructionRule,
