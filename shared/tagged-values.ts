@@ -62,3 +62,37 @@ export const isMatchPatternObject = (node: ESTree.ObjectExpression) => {
     const method = calleeOf(call, "Match")
     return method === "when" || method === "not"
 }
+
+// The fields that discriminate a closed union: `_tag` for Effect's tagged values, plus whatever
+// the codebase uses (`type`, `kind`). Shared by the rules on comparison and construction.
+const defaultDiscriminants = ["_tag"]
+
+export const discriminantsSchema = {
+    type: "array",
+    items: { type: "string" },
+    uniqueItems: true,
+} as const
+
+export const configuredDiscriminants = (options: ReadonlyArray<unknown>) => {
+    const [first] = options
+    if (typeof first !== "object" || first === null || !("discriminants" in first)) {
+        return new Set(defaultDiscriminants)
+    }
+    const names = first.discriminants
+    return new Set(Array.isArray(names) ? names.filter((name) => typeof name === "string") : [])
+}
+
+export const discriminantOf = (
+    node: ESTree.Node | null | undefined,
+    discriminants: ReadonlySet<string>,
+) => {
+    if (node?.type !== "MemberExpression") return undefined
+    const name = node.computed
+        ? isStringLiteral(node.property)
+            ? node.property.value
+            : undefined
+        : node.property.type === "Identifier"
+          ? node.property.name
+          : undefined
+    return name !== undefined && discriminants.has(name) ? name : undefined
+}

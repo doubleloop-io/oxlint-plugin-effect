@@ -4,7 +4,6 @@
     ],
     "rules": {
         "dl-effect/anti-slop-no-manual-effect-error-tag": "warn",
-        "dl-effect/anti-slop-no-manual-tag-comparison": "warn",
         "dl-effect/anti-slop-no-manual-tagged-construction": "warn",
         "dl-effect/anti-slop-no-service-constructor-imports": "warn",
         "dl-effect/anti-slop-prefer-effect-match": "warn",
@@ -17,6 +16,7 @@
         "dl-effect/no-effect-promise": "warn",
         "dl-effect/no-effect-return-type": "warn",
         "dl-effect/no-inline-yield-star": "warn",
+        "dl-effect/no-manual-discriminant-comparison": "warn",
         "dl-effect/no-nested-match": "warn",
         "dl-effect/no-parameterless-catch-all": "warn",
         "dl-effect/no-provide-on-definition": "warn",

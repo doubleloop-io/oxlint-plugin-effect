@@ -27,9 +27,9 @@ The plugin's 26 rules. The `Pxx` identifiers come from the origin catalog.
 | [`no-effect-return-type`](#no-effect-return-type)                                       | P33      | `warn`   |
 | [`no-asymmetric-match-handlers`](#no-asymmetric-match-handlers)                         | P34      | `warn`   |
 | [`exported-schema-identifier`](#exported-schema-identifier)                             | P35      | —        |
+| [`no-manual-discriminant-comparison`](#no-manual-discriminant-comparison)               | P36      | —        |
 | [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports) | —        | —        |
 | [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag)         | —        | —        |
-| [`anti-slop-no-manual-tag-comparison`](#anti-slop-no-manual-tag-comparison)             | —        | —        |
 | [`anti-slop-no-manual-tagged-construction`](#anti-slop-no-manual-tagged-construction)   | —        | —        |
 | [`anti-slop-prefer-effect-match`](#anti-slop-prefer-effect-match)                       | —        | —        |
 
@@ -287,7 +287,7 @@ program.pipe(Effect.catchTag("NotFound", () => recover))
 
 **Trigger**: an equality comparison between `_tag` (or `reason._tag`) and a string literal, or a `switch` on `_tag`, whose nearest enclosing function is a handler passed to `Effect.catch`, `catchAll` or `catchIf`. On `reason._tag` the message proposes `Effect.catchReason(s)`.
 
-**Exemptions and blind spots**: handlers of other combinators (`catchTag`, `catchCause`, `mapError`), and `_tag` checks in a function nested inside the handler. Outside these handlers the same checks belong to [`anti-slop-no-manual-tag-comparison`](#anti-slop-no-manual-tag-comparison): the two never fire on the same node.
+**Exemptions and blind spots**: handlers of other combinators (`catchTag`, `catchCause`, `mapError`), and `_tag` checks in a function nested inside the handler. Outside these handlers the same checks belong to [`no-manual-discriminant-comparison`](#no-manual-discriminant-comparison): the two never fire on the same node.
 
 **Why**: a hand-written dispatch keeps the caught errors in the type even when handled, and silently misses tags added later.
 
@@ -295,11 +295,11 @@ program.pipe(Effect.catchTag("NotFound", () => recover))
 
 ## Tagged values
 
-### `anti-slop-no-manual-tag-comparison`
+### `no-manual-discriminant-comparison`
 
 <sup>[↑ rules index](#rules-index)</sup>
 
-**Intent**: branching on a tagged value goes through `Match` or `Predicate.isTagged`, never through `_tag` by hand.
+**Intent**: branching on a union's discriminant goes through an exhaustive match, never through comparisons or `switch`.
 
 ```ts
 // no
@@ -312,15 +312,20 @@ switch (event._tag) {
 
 // yes
 Match.value(event).pipe(Match.tagsExhaustive({ Created: onCreated, Deleted: onDeleted }))
+
+// yes, with `discriminants: ["_tag", "type"]`
+Match.value(payment).pipe(
+    Match.discriminatorsExhaustive("type")({ card: fromCard, transfer: fromTransfer }),
+)
 ```
 
-**Trigger**: an equality comparison between `_tag` (also `["_tag"]`) and a string literal, or a `switch` on `_tag`, outside the handlers covered by [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag).
+**Trigger**: an equality comparison between a discriminant (also `["type"]`) and a string literal, or a `switch` on a discriminant. The discriminants are the names in `discriminants`.
 
-**Exemptions and blind spots**: comparisons against a variable rather than a literal, and discriminants with another name (`kind`, `type`). Guard clauses such as `if (x._tag === "A") return …` fire too: use `Predicate.isTagged`.
+**Exemptions and blind spots**: comparisons against a variable rather than a literal. On `_tag`, the handlers covered by [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag): the two never fire on the same node. Guard clauses such as `if (x.type === "a") return …` fire too; on `_tag` use `Predicate.isTagged`. An exhaustive ts-pattern match is an equally valid remedy. A name added to `discriminants` also fires on objects outside closed unions (DOM events, external payloads): the list is a choice of the codebase.
 
-**Why**: `Match.tagsExhaustive` and `$match` fail to compile when a variant is added; a `switch` on `_tag` does not.
+**Why**: `Match.tagsExhaustive`, `Match.discriminatorsExhaustive` and `$match` fail to compile when a variant is added; a comparison or a `switch` does not.
 
-- **Pattern**: — · **Options**: none · **Fix**: none · **Severity**: —
+- **Pattern**: P36 · **Options**: `discriminants`, replaces the default `["_tag"]`; add the fields your unions discriminate on (`type`, `kind`) · **Fix**: none · **Severity**: —
 
 ### `anti-slop-no-manual-tagged-construction`
 
