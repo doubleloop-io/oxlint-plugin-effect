@@ -1,6 +1,6 @@
 # `@doubleloop/oxlint-plugin-effect` rules
 
-The plugin's 26 rules. The `Pxx` identifiers come from the origin catalog.
+The plugin's 27 rules. The `Pxx` identifiers come from the origin catalog.
 
 ## Rules index
 
@@ -29,6 +29,7 @@ The plugin's 26 rules. The `Pxx` identifiers come from the origin catalog.
 | [`exported-schema-identifier`](#exported-schema-identifier)                             | P35      | —        |
 | [`no-manual-discriminant-comparison`](#no-manual-discriminant-comparison)               | P36      | —        |
 | [`no-manual-discriminant-construction`](#no-manual-discriminant-construction)           | P37      | —        |
+| [`service-key-matches-name`](#service-key-matches-name)                                 | P38      | —        |
 | [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports) | —        | —        |
 | [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag)         | —        | —        |
 | [`anti-slop-prefer-effect-match`](#anti-slop-prefer-effect-match)                       | —        | —        |
@@ -88,6 +89,33 @@ export class Agent extends Context.Service<
 **Why**: `make` and a static layer tie the port to a default implementation, while the port must stay a contract any adapter can satisfy. It is a convention, not Effect's idiom: Effect's own docs put `static readonly layer` on the service.
 
 - **Pattern**: P01 · **Options**: none · **Fix**: none · **Severity**: `error`
+
+### `service-key-matches-name`
+
+<sup>[↑ rules index](#rules-index)</sup>
+
+**Intent**: a service's key is its class name, alone or after a path prefix.
+
+```ts
+// no
+export class GeocodingApis extends Context.Service<GeocodingApis, Shape>()("GeocodingAPIs") {}
+
+// yes
+export class GeocodingApis extends Context.Service<GeocodingApis, Shape>()("GeocodingApis") {}
+
+// yes
+export class GeocodingApis extends Context.Service<GeocodingApis, Shape>()(
+    "app/geo/GeocodingApis",
+) {}
+```
+
+**Trigger**: `class X extends Context.Service<…>()("key")` with a literal key that is neither `"X"` nor ends with `"/X"`.
+
+**Exemptions and blind spots**: keys that are not literals (variables, templates with expressions). A `Context.Service` assigned to a variable is not seen: see `service-not-as-class` (effecttsgo). `deterministic-keys` (effecttsgo) with the `default` or `package-identifier` formula produces keys this rule accepts; with `default-hashed` the two contradict each other: enable only one.
+
+**Why**: the key is the service's identity in errors, traces and `Context` lookups; a key that drifts from the name, as after a rename, makes it hard to find the class behind a message.
+
+- **Pattern**: P38 · **Options**: none · **Fix**: suggestion that replaces the last segment of the key with the class name · **Severity**: —
 
 ### `adapter-import-boundary`
 

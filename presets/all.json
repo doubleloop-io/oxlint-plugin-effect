@@ -25,6 +25,7 @@
         "dl-effect/provide-named-layer": "warn",
         "dl-effect/redacted-secret-names": "warn",
         "dl-effect/run-only-at-entry": "warn",
+        "dl-effect/service-key-matches-name": "warn",
         "dl-effect/service-port-shape-only": "warn",
         "dl-effect/single-style-per-function": "warn",
         "dl-effect/try-object-form": "warn",

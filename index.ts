@@ -22,6 +22,7 @@ import { preferEffectFnRule } from "./rules/prefer-effect-fn.ts"
 import { provideNamedLayerRule } from "./rules/provide-named-layer.ts"
 import { redactedSecretNamesRule } from "./rules/redacted-secret-names.ts"
 import { runOnlyAtEntryRule } from "./rules/run-only-at-entry.ts"
+import { serviceKeyMatchesNameRule } from "./rules/service-key-matches-name.ts"
 import { servicePortShapeOnlyRule } from "./rules/service-port-shape-only.ts"
 import { singleStylePerFunctionRule } from "./rules/single-style-per-function.ts"
 import { tryObjectFormRule } from "./rules/try-object-form.ts"
@@ -54,6 +55,7 @@ const dlEffectPlugin = eslintCompatPlugin({
         "provide-named-layer": provideNamedLayerRule,
         "redacted-secret-names": redactedSecretNamesRule,
         "run-only-at-entry": runOnlyAtEntryRule,
+        "service-key-matches-name": serviceKeyMatchesNameRule,
         "service-port-shape-only": servicePortShapeOnlyRule,
         "single-style-per-function": singleStylePerFunctionRule,
         "try-object-form": tryObjectFormRule,
