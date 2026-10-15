@@ -146,9 +146,10 @@ To change one option, extend `all` and override only the rules that use it.
 
 ## Development
 
-- `pnpm test`: the `RuleTester`s from `oxlint/plugins-dev` with `node --test`, plus two alignment checks: `presets/all.json` against the plugin's rules, and `RULES.md` with one section per rule.
-- `pnpm presets:json`: regenerates `presets/all.json` from `presets/all.ts`, which is the source (the rule list comes from the plugin).
-- `pnpm check`: formats with oxfmt, typechecks and tests; run it after every change.
-- `pnpm typecheck`, `pnpm format:check`.
+- `pnpm format`: formats with oxfmt; the only script that rewrites sources.
+- `pnpm check`: format check, typecheck, lint and tests, writing nothing. The tests are the `RuleTester`s from `oxlint/plugins-dev` with `node --test`, plus an alignment check of `RULES.md` with one section per rule.
+- `pnpm build`: compiles to `dist/` and generates `dist/presets/all.json` from `presets/all.ts` (the rule list comes from the plugin).
+- `pnpm pack:check`: checks the built preset, then the tarball `npm pack` would publish: only the files in `files`, no internal names, `publint --strict`.
+- `pnpm build-and-pack`: run it after every change.
 
-A new rule must be registered in `index.ts` and documented in `RULES.md` under a `` ### `rule-name` `` heading; `pnpm presets:json` adds it to the preset.
+A new rule must be registered in `index.ts` and documented in `RULES.md` under a `` ### `rule-name` `` heading; `pnpm build` adds it to the preset.

@@ -1,0 +1,43 @@
+name: CI
+
+on:
+    workflow_dispatch:
+    push:
+        branches:
+            - main
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v7
+
+            - name: Install dependencies
+              uses: ./.github/actions/setup
+
+            - name: Format
+              run: pnpm format:check
+
+            - name: Types
+              run: pnpm typecheck
+
+            - name: Lint
+              run: pnpm lint
+
+            - name: Test
+              run: pnpm test
+
+            - name: Build
+              run: pnpm build
+
+            - name: Check tarball
+              run: pnpm pack:check
+
+            - name: Smoke test tarball
+              run: pnpm smoke-test

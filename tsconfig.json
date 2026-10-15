@@ -20,6 +20,7 @@
         "rules-md.test.ts",
         "presets/**/*.ts",
         "rules/**/*.ts",
+        "scripts/**/*.ts",
         "shared/**/*.ts"
     ]
 }

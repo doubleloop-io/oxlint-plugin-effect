@@ -1,3 +1,5 @@
+import { fileURLToPath } from "node:url"
+
 import { eslintCompatPlugin } from "@oxlint/plugins"
 
 import { adapterImportBoundaryRule } from "./rules/adapter-import-boundary.ts"
@@ -32,6 +34,9 @@ import { tryObjectFormRule } from "./rules/try-object-form.ts"
 import { untracedRecursionRule } from "./rules/untraced-recursion.ts"
 
 export const pluginName = "dl-effect"
+
+// Resolved at runtime so it points at this file both from the sources and from `dist/`.
+export const pluginPath = fileURLToPath(import.meta.url)
 
 const dlEffectPlugin = eslintCompatPlugin({
     meta: { name: pluginName },
