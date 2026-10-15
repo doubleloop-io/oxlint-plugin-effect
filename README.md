@@ -90,6 +90,10 @@ const transportTypes = ["Response", "NextResponse"]
 // match and set only by a constructor. Add the ones your unions use, such as `type` or `kind`.
 const discriminants = ["_tag"]
 
+// Schema fields holding a secret: a field matches an entry or ends with it capitalized
+// (`password` matches `dbPassword`). No generic `token`: `nextPageToken` is not a secret.
+const secretFields = ["password", "secret", "apiKey", "accessToken", "refreshToken", "idToken"]
+
 export default defineConfig({
     // The package exports no entry point: point at the plugin file.
     jsPlugins: ["./node_modules/@doubleloop/oxlint-plugin-effect/index.ts"],
@@ -132,7 +136,7 @@ export default defineConfig({
         "dl-effect/exported-schema-identifier": "warn",
         "dl-effect/no-inline-schema-codec": "warn",
         // Config & secrets
-        "dl-effect/redacted-secret-names": "warn",
+        "dl-effect/redacted-secret-names": ["warn", { secretFields }],
     },
 })
 ```
