@@ -1,6 +1,6 @@
 import type { ESTree } from "@oxlint/plugins"
 
-import { calleeOf, memberOf } from "./effect-ast.ts"
+import { calleeOf, isFunctionNode, memberOf, type FunctionNode } from "./effect-ast.ts"
 
 const modulesWithMatch = ["Option", "Result", "Exit", "Either"]
 
@@ -49,3 +49,22 @@ export const handlersOf = (match: ESTree.CallExpression) =>
               )
             : [],
     )
+
+const returnedExpressions = (fn: FunctionNode): ReadonlyArray<ESTree.Node> => {
+    if (fn.body?.type !== "BlockStatement") return fn.body ? [fn.body] : []
+    return fn.body.body.flatMap((statement) =>
+        statement.type === "ReturnStatement" && statement.argument ? [statement.argument] : [],
+    )
+}
+
+// What `no-nested-match` reports in a handler: itself a match, or a returned match or ternary.
+export const nestedBranches = (handler: ESTree.Node): ReadonlyArray<ESTree.Node> => {
+    if (isMatchCall(handler) || isMatchChain(handler)) return [handler]
+    if (!isFunctionNode(handler)) return []
+    return returnedExpressions(handler).filter(
+        (expression) =>
+            isMatchCall(expression) ||
+            isMatchChain(expression) ||
+            expression.type === "ConditionalExpression",
+    )
+}

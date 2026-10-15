@@ -1,6 +1,6 @@
 # `@doubleloop/oxlint-plugin-effect` rules
 
-The plugin's 28 rules. The `Pxx` identifiers come from the origin catalog.
+The plugin's 29 rules. The `Pxx` identifiers come from the origin catalog.
 
 ## Rules index
 
@@ -31,6 +31,7 @@ The plugin's 28 rules. The `Pxx` identifiers come from the origin catalog.
 | [`no-manual-discriminant-construction`](#no-manual-discriminant-construction)           | P37      | —        |
 | [`service-key-matches-name`](#service-key-matches-name)                                 | P38      | —        |
 | [`no-inline-schema-codec`](#no-inline-schema-codec)                                     | P39      | —        |
+| [`no-yielded-match`](#no-yielded-match)                                                 | P40      | —        |
 | [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports) | —        | —        |
 | [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag)         | —        | —        |
 | [`anti-slop-prefer-effect-match`](#anti-slop-prefer-effect-match)                       | —        | —        |
@@ -733,6 +734,39 @@ const run = Effect.fn("run")(function* (argv: ReadonlyArray<string>) {
 **Why**: two nested levels of choice hide which branch is the normal one.
 
 - **Pattern**: P30 · **Options**: none · **Fix**: none · **Severity**: `warn`
+
+### `no-yielded-match`
+
+<sup>[↑ rules index](#rules-index)</sup>
+
+**Intent**: inside an Effect generator, return early on the empty or failed case instead of yielding a match.
+
+```ts
+// no
+const save = Effect.fn("save")(function* (id: PolicyId) {
+    const found = yield* findPolicy(id)
+    return yield* Option.match(found, {
+        onNone: () => register(id),
+        onSome: (policy) => update(policy),
+    })
+})
+
+// yes
+const save = Effect.fn("save")(function* (id: PolicyId) {
+    const found = yield* findPolicy(id)
+    if (Option.isNone(found)) return yield* register(id)
+
+    return yield* update(found.value)
+})
+```
+
+**Trigger**: `yield*` of `Option.match(x, {…})` or `Result.match(x, {…})`, or of a `x.pipe(…)`/`pipe(x, …)` ending in `Option.match({…})`/`Result.match({…})`, in the generator of `Effect.gen` or `Effect.fn`.
+
+**Exemptions and blind spots**: an `Option.match` with `onNone` → `Effect.fail(…)` and `onSome` → `Effect.succeed`: see `option-match-to-from-option` (effecttsgo). A handler that `no-nested-match` reports. Matches not yielded directly (assigned first, or inside `Effect.flatMap`) slip through.
+
+**Why**: the match splits the generator into two equal-weight branches; a guard clause leaves one main path of `yield*`.
+
+- **Pattern**: P40 · **Options**: none · **Fix**: none · **Severity**: —
 
 ### `no-inline-yield-star`
 

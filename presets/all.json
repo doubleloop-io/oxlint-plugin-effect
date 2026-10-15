@@ -22,6 +22,7 @@
         "dl-effect/no-parameterless-catch-all": "warn",
         "dl-effect/no-provide-on-definition": "warn",
         "dl-effect/no-transport-types-in-generator": "warn",
+        "dl-effect/no-yielded-match": "warn",
         "dl-effect/prefer-effect-fn": "warn",
         "dl-effect/provide-named-layer": "warn",
         "dl-effect/redacted-secret-names": "warn",

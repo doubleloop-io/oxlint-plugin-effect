@@ -19,6 +19,7 @@ import { noNestedMatchRule } from "./rules/no-nested-match.ts"
 import { noParameterlessCatchAllRule } from "./rules/no-parameterless-catch-all.ts"
 import { noProvideOnDefinitionRule } from "./rules/no-provide-on-definition.ts"
 import { noTransportTypesInGeneratorRule } from "./rules/no-transport-types-in-generator.ts"
+import { noYieldedMatchRule } from "./rules/no-yielded-match.ts"
 import { preferEffectFnRule } from "./rules/prefer-effect-fn.ts"
 import { provideNamedLayerRule } from "./rules/provide-named-layer.ts"
 import { redactedSecretNamesRule } from "./rules/redacted-secret-names.ts"
@@ -53,6 +54,7 @@ const dlEffectPlugin = eslintCompatPlugin({
         "no-parameterless-catch-all": noParameterlessCatchAllRule,
         "no-provide-on-definition": noProvideOnDefinitionRule,
         "no-transport-types-in-generator": noTransportTypesInGeneratorRule,
+        "no-yielded-match": noYieldedMatchRule,
         "prefer-effect-fn": preferEffectFnRule,
         "provide-named-layer": provideNamedLayerRule,
         "redacted-secret-names": redactedSecretNamesRule,
