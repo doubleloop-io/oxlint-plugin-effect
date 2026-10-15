@@ -1,4 +1,4 @@
-# `@doubleloop/oxlint-plugin-effect` rules
+# `@doubleloop-io/oxlint-plugin-effect` rules
 
 The plugin's 30 rules. The `Pxx` identifiers come from the origin catalog.
 
