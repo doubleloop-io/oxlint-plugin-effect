@@ -8,6 +8,7 @@ import { antiSlopNoServiceConstructorImportsRule } from "./rules/anti-slop-no-se
 import { antiSlopPreferEffectMatchRule } from "./rules/anti-slop-prefer-effect-match.ts"
 import { boundaryEntrypointShapeRule } from "./rules/boundary-entrypoint-shape.ts"
 import { errorHandlingInEffectFnHandlerRule } from "./rules/error-handling-in-effect-fn-handler.ts"
+import { exportedSchemaIdentifierRule } from "./rules/exported-schema-identifier.ts"
 import { noAsymmetricMatchHandlersRule } from "./rules/no-asymmetric-match-handlers.ts"
 import { noBareErrorInEffectRule } from "./rules/no-bare-error-in-effect.ts"
 import { noEffectPromiseRule } from "./rules/no-effect-promise.ts"
@@ -39,6 +40,7 @@ const dlEffectPlugin = eslintCompatPlugin({
         "adapter-import-boundary": adapterImportBoundaryRule,
         "boundary-entrypoint-shape": boundaryEntrypointShapeRule,
         "error-handling-in-effect-fn-handler": errorHandlingInEffectFnHandlerRule,
+        "exported-schema-identifier": exportedSchemaIdentifierRule,
         "no-asymmetric-match-handlers": noAsymmetricMatchHandlersRule,
         "no-bare-error-in-effect": noBareErrorInEffectRule,
         "no-effect-promise": noEffectPromiseRule,

@@ -11,6 +11,7 @@
         "dl-effect/adapter-import-boundary": "warn",
         "dl-effect/boundary-entrypoint-shape": "warn",
         "dl-effect/error-handling-in-effect-fn-handler": "warn",
+        "dl-effect/exported-schema-identifier": "warn",
         "dl-effect/no-asymmetric-match-handlers": "warn",
         "dl-effect/no-bare-error-in-effect": "warn",
         "dl-effect/no-effect-promise": "warn",

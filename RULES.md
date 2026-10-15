@@ -1,6 +1,6 @@
 # `@doubleloop/oxlint-plugin-effect` rules
 
-The plugin's 25 rules. The `Pxx` identifiers come from the origin catalog.
+The plugin's 26 rules. The `Pxx` identifiers come from the origin catalog.
 
 ## Rules index
 
@@ -26,6 +26,7 @@ The plugin's 25 rules. The `Pxx` identifiers come from the origin catalog.
 | [`no-inline-yield-star`](#no-inline-yield-star)                                         | P32      | `warn`   |
 | [`no-effect-return-type`](#no-effect-return-type)                                       | P33      | `warn`   |
 | [`no-asymmetric-match-handlers`](#no-asymmetric-match-handlers)                         | P34      | `warn`   |
+| [`exported-schema-identifier`](#exported-schema-identifier)                             | P35      | —        |
 | [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports) | —        | —        |
 | [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag)         | —        | —        |
 | [`anti-slop-no-manual-tag-comparison`](#anti-slop-no-manual-tag-comparison)             | —        | —        |
@@ -366,6 +367,32 @@ serviceAccount: Config.schema(Schema.Redacted(NonBlank), "GOOGLE_SERVICE_ACCOUNT
 **Why**: a `Redacted` value does not end up in logs or `toString`.
 
 - **Pattern**: P13 · **Options**: none · **Fix**: none · **Severity**: `warn`
+
+## Schema
+
+### `exported-schema-identifier`
+
+<sup>[↑ rules index](#rules-index)</sup>
+
+**Intent**: an exported schema carries an `identifier` equal to its name.
+
+```ts
+// no
+export const EventBusEvents = Schema.Union([Created, Deleted])
+
+// yes
+export const EventBusEvents = Schema.Union([Created, Deleted]).annotate({
+    identifier: "EventBusEvents",
+})
+```
+
+**Trigger**: `export const X = Schema.Struct(…)`, `Schema.Union(…)` or `Schema.Array(…)`, also followed by `.pipe(…)`, `.annotate(…)` or `.check(…)`, with no `identifier` in a `.annotate(…)` or `Schema.annotate(…)` of the chain, or with a literal `identifier` other than `"X"`.
+
+**Exemptions and blind spots**: non-exported schemas (fragments reused through `.fields`), and `Schema.Class` and `Schema.TaggedError`, which carry the name already. A computed `identifier` is not compared. Other constructors (`Schema.TaggedStruct`, `Schema.Literals`, …), `export { X }` lists and chains through other methods slip through. An exported fragment reused only through `.fields` fires too, although the annotation does not reach the schemas that spread it: export the plain fields object instead (`export const BaseFields = { … }`).
+
+**Why**: without an `identifier`, decoding errors, JSON Schema and arbitraries describe the schema by its structure instead of its name.
+
+- **Pattern**: P35 · **Options**: none · **Fix**: suggestion that adds or corrects the `identifier` · **Severity**: —
 
 ## Effectful functions
 
