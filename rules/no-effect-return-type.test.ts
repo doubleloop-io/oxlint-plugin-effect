@@ -2,6 +2,9 @@ import { RuleTester } from "oxlint/plugins-dev"
 
 import { noEffectReturnTypeRule } from "./no-effect-return-type.ts"
 
+const exportedQuery =
+    "export const findPrice = (id: string): Effect.Effect<Price, PriceNotFound> => repo.find(id)"
+
 new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
     "no-effect-return-type",
     noEffectReturnTypeRule,
@@ -14,8 +17,26 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
             "const run = (program: Effect.Effect<void>) => Effect.runPromise(program)",
             "const lookup = (name: string): Effect.Effect<Race, RaceNotFound> => cache.has(name) ? Effect.succeed(cache.get(name)) : Effect.fail(new RaceNotFound({ name }))",
             "const walk = (node: Tree): Effect.Effect<number, WalkError> => Effect.flatMap(childrenOf(node), (children) => Effect.forEach(children, walk))",
+            exportedQuery,
+            "export function pricesLayer(id: string): Layer.Layer<Prices, never, HttpClient> { return Layer.effect(Prices, pricesFor(id)) }",
+            "export const findPrice = function (id: string): Effect.Effect<Price> { return repo.find(id) }",
+            "export default (id: string): Effect.Effect<Price> => repo.find(id)",
+            { code: exportedQuery, options: [{ checkExported: false }] },
         ],
         invalid: [
+            {
+                code: exportedQuery,
+                options: [{ checkExported: true }],
+                errors: [{ messageId: "effectReturnType" }],
+            },
+            {
+                code: "export const PricesLive = { find: (id: string): Effect.Effect<Price> => repo.find(id) }",
+                errors: [{ messageId: "effectReturnType" }],
+            },
+            {
+                code: "export const evaluate = (initial: Supplements) => (id: string): Effect.Effect<Price> => repo.find(id)",
+                errors: [{ messageId: "effectReturnType" }],
+            },
             {
                 code: "const readSheet = (id: string): Effect.Effect<Sheet, SheetReadError, SheetReader> => reader.read(id)",
                 errors: [

@@ -55,12 +55,31 @@ const isRecursive = (node: FunctionNode, sourceCode: SourceCode) => {
         )
 }
 
+// Only the declaration itself: methods of an exported object and functions it returns are not
+// part of the module's signature.
+const isExportedDeclaration = (node: FunctionNode) => {
+    const declarator = node.parent
+    const declaration =
+        declarator?.type === "VariableDeclarator" && declarator.init === node
+            ? declarator.parent
+            : node
+    const parent = declaration?.parent?.type
+    return parent === "ExportNamedDeclaration" || parent === "ExportDefaultDeclaration"
+}
+
+const checksExported = (options: ReadonlyArray<unknown>) => {
+    const [first] = options
+    return typeof first === "object" && first !== null && "checkExported" in first
+        ? first.checkExported === true
+        : false
+}
+
 export const noEffectReturnTypeRule = defineRule({
     meta: {
         type: "suggestion",
         docs: {
             description:
-                "Let inference type a function returning an Effect: its error and requirement channels change with every callee.",
+                "Let inference type a function returning an Effect: its error and requirement channels change with every callee. Exported declarations are skipped: their annotation is a contract.",
         },
         hasSuggestions: true,
         messages: {
@@ -68,8 +87,16 @@ export const noEffectReturnTypeRule = defineRule({
                 "Remove the return type annotation: error and requirement channels follow the callees, so inference keeps them up to date.",
             removeReturnType: "Remove the return type annotation.",
         },
+        schema: [
+            {
+                type: "object",
+                properties: { checkExported: { type: "boolean" } },
+                additionalProperties: false,
+            },
+        ],
     },
     createOnce(context) {
+        let checkExported = false
         const annotated = new Set<FunctionNode>()
         const returned = new Map<FunctionNode, Array<ESTree.Node>>()
 
@@ -87,6 +114,7 @@ export const noEffectReturnTypeRule = defineRule({
                 node.body?.type === "BlockStatement" ? statements : node.body ? [node.body] : []
             if (returnsDifferentShapes(expressions.flatMap(branchesOf), context.sourceCode)) return
             if (isRecursive(node, context.sourceCode)) return
+            if (!checkExported && isExportedDeclaration(node)) return
             const { returnType } = node
             context.report({
                 node: returnType,
@@ -101,6 +129,9 @@ export const noEffectReturnTypeRule = defineRule({
         }
 
         return {
+            before() {
+                checkExported = checksExported(context.options)
+            },
             TSTypeReference(node) {
                 const fn = nearestFunction(node)
                 if (fn?.returnType && isChannelType(node) && isInside(node, fn.returnType)) {

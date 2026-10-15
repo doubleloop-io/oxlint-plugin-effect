@@ -595,7 +595,7 @@ const printMissing = Effect.gen(function* () { … }).pipe(Effect.provide(missin
 
 **Trigger**: `Effect.provide` applied to `Effect.gen(…)` or to `Effect.fn(…)(…)`, in all three forms: with `.pipe`, as an `Effect.fn` pipeable, data-first.
 
-**Exemptions and blind spots**: test files. `provide` on a named program is allowed; `strict-effect-provide` (effecttsgo) reports it too.
+**Exemptions and blind spots**: test files. A context captured in an enclosing generator with `const ctx = yield* Effect.context<R>()` (also followed by `.pipe(…)`) and handed back to a method of the Layer being built: the caller chose the adapters when it built the Layer. A context obtained through a helper (`yield* contextWithoutSpan()`) is still reported. `provide` on a named program is allowed; `strict-effect-provide` (effecttsgo) reports it too.
 
 **Why**: a program that provides its own Layers can no longer be wired to different adapters by its caller.
 
@@ -670,7 +670,7 @@ return yield * missingIn(sheet)
 
 <sup>[↑ rules index](#rules-index)</sup>
 
-**Intent**: `Effect`, `Stream` and `Layer` return types are inferred, not annotated.
+**Intent**: `Effect`, `Stream` and `Layer` return types are inferred, not annotated, except on exported declarations.
 
 ```ts
 // no
@@ -679,17 +679,17 @@ return yield * missingIn(sheet)
 // yes
 (effect, name) =>
 
-// yes: a named type stays as a contract
-export const insertionAt = (section: Section, start: DayOfYear): Insertion => {
+// yes: an exported declaration keeps its annotation as a contract
+export const findPrice = (id: PriceId): Effect.Effect<Price, PriceNotFound> =>
 ```
 
 **Trigger**: `Effect.Effect`, `Stream.Stream` or `Layer.Layer` in an annotated return type, even nested (`Option.Option<Effect.Effect<…>>`, a function returning an `Effect`).
 
-**Exemptions and blind spots**: recursion, and returns of different shapes that need unifying (`Effect.succeed` and `Effect.fail`), recognized from the shape of the `return`s. An `import type { Effect }` used as `Effect<…>` slips through.
+**Exemptions and blind spots**: module-level declarations with `export` (`export const`, `export function`, `export default`), unless `checkExported` is on; methods of an exported object, functions an exported function returns, and `export { f }` lists are still checked. Recursion, and returns of different shapes that need unifying (`Effect.succeed` and `Effect.fail`), recognized from the shape of the `return`s. An `import type { Effect }` used as `Effect<…>` slips through.
 
-**Why**: the error and requirement channels collect what comes from everything the function calls; an error or a service added deep down would change every caller's annotation.
+**Why**: the error and requirement channels collect what comes from everything the function calls; an error or a service added deep down would change every caller's annotation. An exported signature is the module's contract, like a named type: there the annotation makes such a change visible where it is published.
 
-- **Pattern**: P33 · **Options**: none · **Fix**: suggestion that removes the annotation · **Severity**: `warn`
+- **Pattern**: P33 · **Options**: `checkExported`, default `false`: also checks exported declarations · **Fix**: suggestion that removes the annotation · **Severity**: `warn`
 
 ### `no-asymmetric-match-handlers`
 

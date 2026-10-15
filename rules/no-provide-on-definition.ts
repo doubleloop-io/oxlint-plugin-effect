@@ -20,6 +20,36 @@ const isProgramDefinition = (node: ESTree.Node | undefined): boolean => {
     return isProgramDefinition(pipeReceiver(node))
 }
 
+const isContextCapture = (init: ESTree.Node | null | undefined) => {
+    if (init?.type !== "YieldExpression" || !init.delegate) return false
+    let source: ESTree.Node | null | undefined = init.argument
+    while (source?.type === "CallExpression" && pipeReceiver(source)) source = pipeReceiver(source)
+    return calleeOf(source, "Effect") === "context"
+}
+
+const isCapturedContext = (value: ESTree.Node | undefined) => {
+    if (value?.type !== "Identifier") return false
+    for (let current: ESTree.Node | null = value.parent; current; current = current.parent) {
+        if (current.type !== "BlockStatement") continue
+        const captured = current.body.some(
+            (statement) =>
+                statement.type === "VariableDeclaration" &&
+                statement.kind === "const" &&
+                statement.declarations.some(
+                    (declarator) =>
+                        declarator.id.type === "Identifier" &&
+                        declarator.id.name === value.name &&
+                        isContextCapture(declarator.init),
+                ),
+        )
+        if (captured) return true
+    }
+    return false
+}
+
+const providedValue = (provide: ESTree.CallExpression) =>
+    provide.arguments[provide.arguments.length > 1 ? 1 : 0]
+
 const providedDefinition = (provide: ESTree.CallExpression) => {
     if (provide.arguments.length > 1) return isProgramDefinition(provide.arguments[0])
     const parent = provide.parent
@@ -60,7 +90,9 @@ export const noProvideOnDefinitionRule = defineRule({
             },
             CallExpression(node) {
                 if (inTestFile || calleeOf(node, "Effect") !== "provide") return
-                if (providedDefinition(node)) {
+                // A Layer that captures its context with `Effect.context()` hands it back to each
+                // method: the caller already chose the adapters when it built the Layer.
+                if (providedDefinition(node) && !isCapturedContext(providedValue(node))) {
                     context.report({ node, messageId: "provideOnDefinition" })
                 }
             },
