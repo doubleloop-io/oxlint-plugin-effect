@@ -54,15 +54,6 @@ export const propertyName = (property: ESTree.ObjectProperty) => {
     return undefined
 }
 
-export const isMatchPatternObject = (node: ESTree.ObjectExpression) => {
-    const call = node.parent
-    if (call?.type !== "CallExpression" || !call.arguments.some((argument) => argument === node)) {
-        return false
-    }
-    const method = calleeOf(call, "Match")
-    return method === "when" || method === "not"
-}
-
 // The fields that discriminate a closed union: `_tag` for Effect's tagged values, plus whatever
 // the codebase uses (`type`, `kind`). Shared by the rules on comparison and construction.
 const defaultDiscriminants = ["_tag"]

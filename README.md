@@ -53,7 +53,7 @@ What each rule reports and why is in [`RULES.md`](RULES.md).
 | Topic                | Rules                                                                                                                                                                                                                                                                                                                                                                                                                |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Error channel        | [`no-bare-error-in-effect`](RULES.md#no-bare-error-in-effect), [`try-object-form`](RULES.md#try-object-form), [`no-effect-promise`](RULES.md#no-effect-promise), [`no-parameterless-catch-all`](RULES.md#no-parameterless-catch-all), [`error-handling-in-effect-fn-handler`](RULES.md#error-handling-in-effect-fn-handler), [`anti-slop-no-manual-effect-error-tag`](RULES.md#anti-slop-no-manual-effect-error-tag) |
-| Tagged values        | [`no-manual-discriminant-comparison`](RULES.md#no-manual-discriminant-comparison), [`anti-slop-no-manual-tagged-construction`](RULES.md#anti-slop-no-manual-tagged-construction)                                                                                                                                                                                                                                     |
+| Tagged values        | [`no-manual-discriminant-comparison`](RULES.md#no-manual-discriminant-comparison), [`no-manual-discriminant-construction`](RULES.md#no-manual-discriminant-construction)                                                                                                                                                                                                                                             |
 | Services & Layers    | [`service-port-shape-only`](RULES.md#service-port-shape-only), [`provide-named-layer`](RULES.md#provide-named-layer), [`no-provide-on-definition`](RULES.md#no-provide-on-definition), [`anti-slop-no-service-constructor-imports`](RULES.md#anti-slop-no-service-constructor-imports)                                                                                                                               |
 | Runtime & entrypoint | [`run-only-at-entry`](RULES.md#run-only-at-entry), [`boundary-entrypoint-shape`](RULES.md#boundary-entrypoint-shape)                                                                                                                                                                                                                                                                                                 |
 | Design & boundaries  | [`adapter-import-boundary`](RULES.md#adapter-import-boundary), [`no-transport-types-in-generator`](RULES.md#no-transport-types-in-generator)                                                                                                                                                                                                                                                                         |
@@ -64,7 +64,7 @@ What each rule reports and why is in [`RULES.md`](RULES.md).
 
 ### Absorbed from anti-slop
 
-The `anti-slop-*` rules come from the five Effect rules of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop) (plugin `anti-slop-effect`, commit [`c44ef22`](https://github.com/dmmulroy/anti-slop/tree/c44ef22ca116d0ba62a3ff663a0bd13a3f3fa40b/src/effect)), ported into this plugin; its generic TypeScript rules stay out. `no-manual-tag-comparison` is retired: [`no-manual-discriminant-comparison`](RULES.md#no-manual-discriminant-comparison) covers it with its default. In the others, detection logic and messages are unchanged; [`anti-slop-no-service-constructor-imports`](RULES.md#anti-slop-no-service-constructor-imports) recognizes test files through the shared [`testFiles`](RULES.md#file-options) option instead of its own `*.test.*`/`*.spec.*` check. Do not enable the `anti-slop-effect` plugin alongside this one: every finding would be reported twice. The original code is MIT-licensed: see [`LICENSE.anti-slop`](LICENSE.anti-slop).
+The `anti-slop-*` rules come from the five Effect rules of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop) (plugin `anti-slop-effect`, commit [`c44ef22`](https://github.com/dmmulroy/anti-slop/tree/c44ef22ca116d0ba62a3ff663a0bd13a3f3fa40b/src/effect)), ported into this plugin; its generic TypeScript rules stay out. `no-manual-tag-comparison` and `no-manual-tagged-construction` are retired: [`no-manual-discriminant-comparison`](RULES.md#no-manual-discriminant-comparison) and [`no-manual-discriminant-construction`](RULES.md#no-manual-discriminant-construction) cover them with their default. In the others, detection logic and messages are unchanged; [`anti-slop-no-service-constructor-imports`](RULES.md#anti-slop-no-service-constructor-imports) recognizes test files through the shared [`testFiles`](RULES.md#file-options) option instead of its own `*.test.*`/`*.spec.*` check. Do not enable the `anti-slop-effect` plugin alongside this one: every finding would be reported twice. The original code is MIT-licensed: see [`LICENSE.anti-slop`](LICENSE.anti-slop).
 
 ## Default configuration
 
@@ -87,7 +87,7 @@ const testFiles = ["**/*.test.*", "**/*.spec.*", "**/__tests__/**", "**/test/**"
 const transportTypes = ["Response", "NextResponse"]
 
 // Fields that discriminate a closed union, compared or switched on only through an exhaustive
-// match. Add the ones your unions use, such as `type` or `kind`.
+// match and set only by a constructor. Add the ones your unions use, such as `type` or `kind`.
 const discriminants = ["_tag"]
 
 export default defineConfig({
@@ -104,7 +104,7 @@ export default defineConfig({
         "dl-effect/anti-slop-no-manual-effect-error-tag": "warn",
         // Tagged values
         "dl-effect/no-manual-discriminant-comparison": ["warn", { discriminants }],
-        "dl-effect/anti-slop-no-manual-tagged-construction": "warn",
+        "dl-effect/no-manual-discriminant-construction": ["warn", { discriminants }],
         // Services & Layers
         "dl-effect/service-port-shape-only": "warn",
         "dl-effect/provide-named-layer": ["warn", { testFiles }],

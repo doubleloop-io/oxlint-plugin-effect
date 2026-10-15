@@ -2,7 +2,6 @@ import { eslintCompatPlugin } from "@oxlint/plugins"
 
 import { adapterImportBoundaryRule } from "./rules/adapter-import-boundary.ts"
 import { antiSlopNoManualEffectErrorTagRule } from "./rules/anti-slop-no-manual-effect-error-tag.ts"
-import { antiSlopNoManualTaggedConstructionRule } from "./rules/anti-slop-no-manual-tagged-construction.ts"
 import { antiSlopNoServiceConstructorImportsRule } from "./rules/anti-slop-no-service-constructor-imports.ts"
 import { antiSlopPreferEffectMatchRule } from "./rules/anti-slop-prefer-effect-match.ts"
 import { boundaryEntrypointShapeRule } from "./rules/boundary-entrypoint-shape.ts"
@@ -14,6 +13,7 @@ import { noEffectPromiseRule } from "./rules/no-effect-promise.ts"
 import { noEffectReturnTypeRule } from "./rules/no-effect-return-type.ts"
 import { noInlineYieldStarRule } from "./rules/no-inline-yield-star.ts"
 import { noManualDiscriminantComparisonRule } from "./rules/no-manual-discriminant-comparison.ts"
+import { noManualDiscriminantConstructionRule } from "./rules/no-manual-discriminant-construction.ts"
 import { noNestedMatchRule } from "./rules/no-nested-match.ts"
 import { noParameterlessCatchAllRule } from "./rules/no-parameterless-catch-all.ts"
 import { noProvideOnDefinitionRule } from "./rules/no-provide-on-definition.ts"
@@ -33,7 +33,6 @@ const dlEffectPlugin = eslintCompatPlugin({
     meta: { name: pluginName },
     rules: {
         "anti-slop-no-manual-effect-error-tag": antiSlopNoManualEffectErrorTagRule,
-        "anti-slop-no-manual-tagged-construction": antiSlopNoManualTaggedConstructionRule,
         "anti-slop-no-service-constructor-imports": antiSlopNoServiceConstructorImportsRule,
         "anti-slop-prefer-effect-match": antiSlopPreferEffectMatchRule,
         "adapter-import-boundary": adapterImportBoundaryRule,
@@ -46,6 +45,7 @@ const dlEffectPlugin = eslintCompatPlugin({
         "no-effect-return-type": noEffectReturnTypeRule,
         "no-inline-yield-star": noInlineYieldStarRule,
         "no-manual-discriminant-comparison": noManualDiscriminantComparisonRule,
+        "no-manual-discriminant-construction": noManualDiscriminantConstructionRule,
         "no-nested-match": noNestedMatchRule,
         "no-parameterless-catch-all": noParameterlessCatchAllRule,
         "no-provide-on-definition": noProvideOnDefinitionRule,

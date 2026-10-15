@@ -28,9 +28,9 @@ The plugin's 26 rules. The `Pxx` identifiers come from the origin catalog.
 | [`no-asymmetric-match-handlers`](#no-asymmetric-match-handlers)                         | P34      | `warn`   |
 | [`exported-schema-identifier`](#exported-schema-identifier)                             | P35      | —        |
 | [`no-manual-discriminant-comparison`](#no-manual-discriminant-comparison)               | P36      | —        |
+| [`no-manual-discriminant-construction`](#no-manual-discriminant-construction)           | P37      | —        |
 | [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports) | —        | —        |
 | [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag)         | —        | —        |
-| [`anti-slop-no-manual-tagged-construction`](#anti-slop-no-manual-tagged-construction)   | —        | —        |
 | [`anti-slop-prefer-effect-match`](#anti-slop-prefer-effect-match)                       | —        | —        |
 
 The `all` preset enables them all at `warn`. Severity is the one each rule was kept at zero noise with on an Effect 4 codebase: a data point about its stability, not a recommendation. `—` means not yet measured.
@@ -327,11 +327,11 @@ Match.value(payment).pipe(
 
 - **Pattern**: P36 · **Options**: `discriminants`, replaces the default `["_tag"]`; add the fields your unions discriminate on (`type`, `kind`) · **Fix**: none · **Severity**: —
 
-### `anti-slop-no-manual-tagged-construction`
+### `no-manual-discriminant-construction`
 
 <sup>[↑ rules index](#rules-index)</sup>
 
-**Intent**: a tagged value is built by its constructor, never as an object literal with `_tag`.
+**Intent**: a union's variant is built by its constructor, never as an object literal with the discriminant.
 
 ```ts
 // no
@@ -339,15 +339,21 @@ const error = { _tag: "NotFound", id }
 
 // yes
 const error = new NotFound({ id })
+
+// no, with `discriminants: ["_tag", "eventType"]`
+const event = { eventType: "PaymentStarted", id, payment }
+
+// yes
+const event = PaymentStartedEvent.make({ id, payment })
 ```
 
-**Trigger**: an object literal with a `_tag` property (also `"_tag"` or `["_tag"]`) whose value is a string literal.
+**Trigger**: an object literal with a discriminant property (also `"type"` or `["type"]`) whose value is a string literal. The discriminants are the names in `discriminants`.
 
-**Exemptions and blind spots**: the patterns passed to `Match.when` and `Match.not`, and `_tag` values that are not literals. See `schema-struct-with-tag` (effecttsgo) for `Schema.Struct` with a `_tag` field.
+**Exemptions and blind spots**: values that are not literals (`"Ready" as const` included). Literals that are patterns or raw input, also nested: the arguments of `Match.when`, `Match.not`, of `.with(…)` on a ts-pattern `match(…)` chain, and the input of `Schema.decode*(X)(…)`/`Schema.encode*(X)(…)`. Transport payloads written as literals fire, and a name added to `discriminants` fires on objects outside closed unions: the list is a choice of the codebase. See `schema-struct-with-tag` (effecttsgo) for `Schema.Struct` with a `_tag` field.
 
 **Why**: a literal skips the constructor, so it carries none of the class's prototype, equality or validation, and drifts silently when the type changes.
 
-- **Pattern**: — · **Options**: none · **Fix**: none · **Severity**: —
+- **Pattern**: P37 · **Options**: `discriminants`, shared with [`no-manual-discriminant-comparison`](#no-manual-discriminant-comparison), default `["_tag"]` · **Fix**: none · **Severity**: —
 
 ## Config
 
