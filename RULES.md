@@ -583,9 +583,9 @@ const createEvent = Effect.fn("events.create")(function* (request: Request) {
 })
 ```
 
-**Trigger**: `async`, `await` and `.then(` in a function that builds Effects: an Effect generator, or a function using an `Effect.*` member. In a `test`/`it` callback (`.only`, `.each(…)` and the like included) the mix is reported once, on the callback.
+**Trigger**: `async`, `await` and `.then(` in a function that builds Effects: an Effect generator, or a function using an `Effect.*` member. A `test`/`it` callback (`.only`, `.each(…)` and the like included) or a `beforeAll`/`afterAll`/`beforeEach`/`afterEach` hook is reported once, on the callback, when more than one of its `await`s, or any `.then(`, involves Effect: has an `Effect.*` member in its expression, nested callbacks and `Effect.run*` included.
 
-**Exemptions and blind spots**: `Effect.run*` alone does not make a function effectful: it is how an async boundary hands over to Effect, and where it may appear is decided by [`run-only-at-entry`](#run-only-at-entry). In tests the fix is a body that is one Effect (`it.effect`, or one call to the test runner), not a `tryPromise` per promise.
+**Exemptions and blind spots**: `Effect.run*` alone does not make a function effectful: it is how an async boundary hands over to Effect, and where it may appear is decided by [`run-only-at-entry`](#run-only-at-entry). A test or hook may await promise-based fixtures (a container, an identity provider), then one Effect program, and assert on its result. A step that reaches Effect only through a helper (`await run(seed)`) is not counted.
 
 **Why**: errors travel on two channels, exceptions and Effect, and neither sees them all.
 

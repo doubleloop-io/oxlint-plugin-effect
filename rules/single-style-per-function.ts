@@ -2,10 +2,15 @@ import { defineRule, type ESTree } from "@oxlint/plugins"
 
 import { isEffectGenerator, memberOf, type FunctionNode } from "../shared/effect-ast.ts"
 
+type PromiseStep = {
+    readonly node: ESTree.AwaitExpression | ESTree.CallExpression
+    involvesEffect: boolean
+}
+
 type Frame = {
     readonly fn: FunctionNode
     effectful: boolean
-    readonly promiseSteps: Array<ESTree.Node>
+    readonly promiseSteps: Array<PromiseStep>
 }
 
 const isThenCall = (node: ESTree.CallExpression) =>
@@ -15,16 +20,30 @@ const isThenCall = (node: ESTree.CallExpression) =>
     node.callee.property.name === "then"
 
 const testRunners = new Set(["test", "it"])
+const testHooks = new Set(["beforeAll", "afterAll", "beforeEach", "afterEach"])
 
-// `test(…)`, `test.only(…)`, `test.each(table)(…)`: the callee chain roots at `test` or `it`.
-const isTestCallback = (fn: FunctionNode) => {
+// `test(…)`, `test.only(…)`, `test.each(table)(…)`: the callee chain roots at the runner or hook.
+const testRoleOf = (fn: FunctionNode) => {
     const call = fn.parent
-    if (call?.type !== "CallExpression" || !call.arguments.some((arg) => arg === fn)) return false
+    if (call?.type !== "CallExpression" || !call.arguments.some((arg) => arg === fn))
+        return undefined
     let callee: ESTree.Node = call.callee
     while (callee.type === "MemberExpression" || callee.type === "CallExpression") {
         callee = callee.type === "MemberExpression" ? callee.object : callee.callee
     }
-    return callee.type === "Identifier" && testRunners.has(callee.name)
+    if (callee.type !== "Identifier") return undefined
+    if (testRunners.has(callee.name)) return "test"
+    if (testHooks.has(callee.name)) return "hook"
+    return undefined
+}
+
+// Awaiting promise-based fixtures and then one Effect program reads as Arrange/Act/Assert;
+// a second Effect step is where promise and Effect sequencing start to interleave.
+const interleavesEffectSteps = (frame: Frame) => {
+    const effectSteps = frame.promiseSteps.filter((step) => step.involvesEffect)
+    return (
+        effectSteps.length > 1 || effectSteps.some((step) => step.node.type !== "AwaitExpression")
+    )
 }
 
 export const singleStylePerFunctionRule = defineRule({
@@ -39,29 +58,43 @@ export const singleStylePerFunctionRule = defineRule({
             promiseStep:
                 "Do not mix promises with Effect in the same function: lift the promise with `Effect.tryPromise({ try, catch })`.",
             asyncEffectTest:
-                "This test mixes promises with Effect: make its body one Effect, with `it.effect` from `@effect/vitest` or by returning a single test runner call from a non-async callback.",
+                "This test chains promises around Effect: await a single program and assert on its result, or make its body one Effect with `it.effect` from `@effect/vitest`.",
+            asyncEffectHook:
+                "This hook chains promises around Effect: await a single program, lifting the promises into it with `Effect.tryPromise({ try, catch })`, or build the fixture as a Layer with `layer` from `@effect/vitest`.",
         },
     },
     createOnce(context) {
         const frames: Array<Frame> = []
         const current = () => frames.at(-1)
+        const openSteps: Array<PromiseStep> = []
 
         const enter = (fn: FunctionNode) => {
             frames.push({ fn, effectful: isEffectGenerator(fn), promiseSteps: [] })
         }
 
+        const openStep = (node: PromiseStep["node"]) => {
+            const step = { node, involvesEffect: false }
+            current()?.promiseSteps.push(step)
+            openSteps.push(step)
+        }
+
         const exit = () => {
             const frame = frames.pop()
-            if (frame === undefined || !frame.effectful) return
-            // One report per test: the remedy is the test's shape, not each promise in it.
-            if (isTestCallback(frame.fn)) {
-                if (frame.fn.async || frame.promiseSteps.length > 0)
-                    context.report({ node: frame.fn, messageId: "asyncEffectTest" })
+            if (frame === undefined) return
+            // One report per test or hook: the remedy is its shape, not each promise in it.
+            const role = testRoleOf(frame.fn)
+            if (role !== undefined) {
+                if (interleavesEffectSteps(frame))
+                    context.report({
+                        node: frame.fn,
+                        messageId: role === "test" ? "asyncEffectTest" : "asyncEffectHook",
+                    })
                 return
             }
+            if (!frame.effectful) return
             if (frame.fn.async) context.report({ node: frame.fn, messageId: "asyncEffect" })
-            for (const node of frame.promiseSteps)
-                context.report({ node, messageId: "promiseStep" })
+            for (const step of frame.promiseSteps)
+                context.report({ node: step.node, messageId: "promiseStep" })
         }
 
         return {
@@ -72,19 +105,25 @@ export const singleStylePerFunctionRule = defineRule({
             "FunctionExpression:exit": exit,
             "FunctionDeclaration:exit": exit,
             MemberExpression(node) {
-                const frame = current()
                 const name = memberOf(node, "Effect")
+                if (name === undefined) return
+                // A step involves Effect wherever it appears in it, nested callbacks included.
+                for (const step of openSteps) step.involvesEffect = true
+                const frame = current()
+                if (frame === undefined) return
                 // `Effect.run*` is how an async boundary legitimately hands off to Effect (P27);
                 // where it may appear is run-only-at-entry's business.
-                if (frame !== undefined && name !== undefined && !name.startsWith("run")) {
-                    frame.effectful = true
-                }
+                if (!name.startsWith("run")) frame.effectful = true
             },
-            AwaitExpression(node) {
-                current()?.promiseSteps.push(node)
+            AwaitExpression: openStep,
+            "AwaitExpression:exit"() {
+                openSteps.pop()
             },
             CallExpression(node) {
-                if (isThenCall(node)) current()?.promiseSteps.push(node)
+                if (isThenCall(node)) openStep(node)
+            },
+            "CallExpression:exit"(node) {
+                if (isThenCall(node)) openSteps.pop()
             },
         }
     },
