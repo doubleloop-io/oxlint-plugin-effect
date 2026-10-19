@@ -18,17 +18,7 @@ Requires Node `^22.20.0 || >=24.8.0` and oxlint `^1.82.0`.
 
 ## Configuration
 
-Extend the `all` preset.
-
-With `.oxlintrc.json`, where `extends` takes file paths:
-
-```json
-{
-    "extends": ["./node_modules/@doubleloop-io/oxlint-plugin-effect/dist/presets/all.json"]
-}
-```
-
-With `oxlint.config.ts`, where `extends` takes config objects:
+Extend the `all` preset. Prefer `oxlint.config.ts`, where `extends` takes config objects and the preset is imported by package name:
 
 ```ts
 import dlEffectAll from "@doubleloop-io/oxlint-plugin-effect/presets/all"
@@ -37,7 +27,27 @@ import { defineConfig } from "oxlint"
 export default defineConfig({ extends: [dlEffectAll] })
 ```
 
+With `.oxlintrc.json`, `extends` takes file paths only, so the preset is reached through `node_modules`:
+
+```json
+{
+    "extends": ["./node_modules/@doubleloop-io/oxlint-plugin-effect/dist/presets/all.json"]
+}
+```
+
 `all` enables every rule at `warn`, so adopting it never breaks a build: look at the warnings first, then raise to `error` the rules you want to enforce. A `recommended` preset with reasoned severities will come from measurements on real codebases.
+
+To pick rules without the preset, load the plugin by package name and list the rules:
+
+```json
+{
+    "jsPlugins": ["@doubleloop-io/oxlint-plugin-effect"],
+    "rules": {
+        "dl-effect/no-effect-promise": "error",
+        "dl-effect/try-object-form": "error"
+    }
+}
+```
 
 ### Configuration options
 
@@ -77,6 +87,14 @@ The other options and every default are in [Default configuration](#default-conf
 
 [`@effect/tsgo`](https://github.com/Effect-TS/tsgo) is the official Effect language service on top of the TypeScript Go compiler; its `effecttsgo` oxlint presets add more than 100 type-aware rules. This plugin does not need it, and its rules target what those presets do not check, so the two complement each other. To use both, follow its [Oxlint Setup guide](https://github.com/Effect-TS/tsgo/blob/main/docs/README.md) and put its preset in `extends` **before** `all`:
 
+```ts
+import dlEffectAll from "@doubleloop-io/oxlint-plugin-effect/presets/all"
+import { recommended as effectTsgoRecommended } from "@effect/tsgo/oxlint-presets"
+import { defineConfig } from "oxlint"
+
+export default defineConfig({ extends: [effectTsgoRecommended, dlEffectAll] })
+```
+
 ```json
 {
     "extends": [
@@ -84,14 +102,6 @@ The other options and every default are in [Default configuration](#default-conf
         "./node_modules/@doubleloop-io/oxlint-plugin-effect/dist/presets/all.json"
     ]
 }
-```
-
-```ts
-import dlEffectAll from "@doubleloop-io/oxlint-plugin-effect/presets/all"
-import { recommended as effectTsgoRecommended } from "@effect/tsgo/oxlint-presets"
-import { defineConfig } from "oxlint"
-
-export default defineConfig({ extends: [effectTsgoRecommended, dlEffectAll] })
 ```
 
 ## Rules
@@ -143,8 +153,7 @@ const discriminants = ["_tag"]
 const secretFields = ["password", "secret", "apiKey", "accessToken", "refreshToken", "idToken"]
 
 export default defineConfig({
-    // The package exports no entry point: point at the plugin file.
-    jsPlugins: ["./node_modules/@doubleloop-io/oxlint-plugin-effect/dist/index.js"],
+    jsPlugins: ["@doubleloop-io/oxlint-plugin-effect"],
     // Every rule at `warn`, to measure noise without blocking.
     rules: {
         // Error channel
@@ -204,7 +213,7 @@ Supported oxlint is the `peerDependencies` range, `^1.82.0`; CI tests the tarbal
 - `pnpm check`: format check, typecheck, lint and tests, writing nothing. The tests are the `RuleTester`s from `oxlint/plugins-dev` with `node --test`, plus an alignment check of `RULES.md` with one section per rule.
 - `pnpm build`: compiles to `dist/` and generates `dist/presets/all.json` from `presets/all.ts` (the rule list comes from the plugin).
 - `pnpm pack:check`: checks the built preset, then the tarball `npm pack` would publish: only the files in `files`, no internal names, `publint --strict`.
-- `pnpm smoke-test`: installs the tarball in `smoke-fixture/` with pnpm and checks the diagnostics of oxlint with both config forms.
+- `pnpm smoke-test`: installs the tarball in `smoke-fixture/` with pnpm and checks the diagnostics of oxlint with each config form: `oxlint.config.ts` and `.oxlintrc.json` with the preset, `.oxlintrc.json` with the plugin by package name.
 - `pnpm build-and-pack`: `check`, `build`, `pack:check` and `smoke-test`; run it after every change.
 - `docs/consumer-loop.md`: how to run a consumer's checks against the checkout, without a release.
 

@@ -16,6 +16,10 @@
     ],
     "type": "module",
     "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        },
         "./presets/all": {
             "types": "./dist/presets/all.d.ts",
             "default": "./dist/presets/all.js"

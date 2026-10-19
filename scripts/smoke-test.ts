@@ -12,6 +12,7 @@ const fixtureDir = new URL("../smoke-fixture/", import.meta.url)
 const configs = [
     { source: "configs/oxlintrc.json", target: ".oxlintrc.json" },
     { source: "configs/oxlint-config.ts", target: "oxlint.config.ts" },
+    { source: "configs/oxlintrc-plugin.json", target: ".oxlintrc.json" },
 ]
 
 const expected = [

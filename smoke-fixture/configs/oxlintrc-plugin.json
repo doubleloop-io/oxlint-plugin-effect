@@ -1,0 +1,7 @@
+{
+    "jsPlugins": ["@doubleloop-io/oxlint-plugin-effect"],
+    "rules": {
+        "dl-effect/no-effect-promise": "warn",
+        "dl-effect/try-object-form": "warn"
+    }
+}
