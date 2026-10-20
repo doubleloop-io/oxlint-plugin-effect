@@ -1,6 +1,11 @@
 import { defineRule, type ESTree } from "@oxlint/plugins"
 
-import { isEffectGenerator, memberOf, type FunctionNode } from "../shared/effect-ast.ts"
+import {
+    isEffectGenerator,
+    isServerComponent,
+    memberOf,
+    type FunctionNode,
+} from "../shared/effect-ast.ts"
 
 type PromiseStep = {
     readonly node: ESTree.AwaitExpression | ESTree.CallExpression
@@ -10,6 +15,7 @@ type PromiseStep = {
 type Frame = {
     readonly fn: FunctionNode
     effectful: boolean
+    rendersJsx: boolean
     readonly promiseSteps: Array<PromiseStep>
 }
 
@@ -69,7 +75,12 @@ export const singleStylePerFunctionRule = defineRule({
         const openSteps: Array<PromiseStep> = []
 
         const enter = (fn: FunctionNode) => {
-            frames.push({ fn, effectful: isEffectGenerator(fn), promiseSteps: [] })
+            frames.push({
+                fn,
+                effectful: isEffectGenerator(fn),
+                rendersJsx: false,
+                promiseSteps: [],
+            })
         }
 
         const openStep = (node: PromiseStep["node"]) => {
@@ -91,10 +102,15 @@ export const singleStylePerFunctionRule = defineRule({
                     })
                 return
             }
-            if (!frame.effectful) return
+            if (!frame.effectful || isServerComponent(frame.fn, frame.rendersJsx)) return
             if (frame.fn.async) context.report({ node: frame.fn, messageId: "asyncEffect" })
             for (const step of frame.promiseSteps)
                 context.report({ node: step.node, messageId: "promiseStep" })
+        }
+
+        const markJsx = () => {
+            const frame = current()
+            if (frame !== undefined) frame.rendersJsx = true
         }
 
         return {
@@ -115,6 +131,8 @@ export const singleStylePerFunctionRule = defineRule({
                 // where it may appear is run-only-at-entry's business.
                 if (!name.startsWith("run")) frame.effectful = true
             },
+            JSXElement: markJsx,
+            JSXFragment: markJsx,
             AwaitExpression: openStep,
             "AwaitExpression:exit"() {
                 openSteps.pop()

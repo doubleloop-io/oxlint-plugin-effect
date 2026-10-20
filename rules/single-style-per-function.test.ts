@@ -17,8 +17,21 @@ new RuleTester().run("single-style-per-function", singleStylePerFunctionRule, {
         'test("refuses a forged credential", async () => { const credential = await authority.forge(); const failure = await callApi(credential, (client) => Effect.flip(client.me())); expect(failure).toBeDefined() })',
         "beforeAll(async () => { const connection = await postgres.start(); await Effect.runPromise(Effect.gen(function* () { yield* migrate(connection.url) })) })",
         "afterAll(async () => { await Effect.runPromise(cleanup) })",
+        {
+            filename: "src/app/events/page.tsx",
+            code: "export default async function EventPage() { const visitor = await currentVisitor(); const answer = await Effect.runPromise(Effect.result(loadEvent(visitor))); return <EventView answer={answer} /> }",
+        },
     ],
     invalid: [
+        {
+            filename: "src/app/events/page.tsx",
+            code: "export default async function EventsPage() { const visitor = await currentVisitor(); const answer = await Effect.runPromise(Effect.result(loadEvents(visitor))); return answer.events.map((event) => <EventRow event={event} />) }",
+            errors: [
+                { messageId: "asyncEffect" },
+                { messageId: "promiseStep" },
+                { messageId: "promiseStep" },
+            ],
+        },
         {
             code: "const POST = async (request) => { const form = await request.formData(); return Effect.runPromise(Effect.result(create(form))) }",
             errors: [{ messageId: "asyncEffect" }, { messageId: "promiseStep" }],

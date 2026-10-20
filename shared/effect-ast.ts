@@ -66,3 +66,7 @@ export const nearestFunction = (node: ESTree.Node): FunctionNode | undefined => 
     }
     return undefined
 }
+
+// An async function that renders JSX is a React Server Component: it hands its outcome to React,
+// and how failures become UI is the application's call, not a rule's.
+export const isServerComponent = (fn: FunctionNode, rendersJsx: boolean) => fn.async && rendersJsx

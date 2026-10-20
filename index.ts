@@ -3,10 +3,10 @@ import { fileURLToPath } from "node:url"
 import { eslintCompatPlugin } from "@oxlint/plugins"
 
 import { adapterImportBoundaryRule } from "./rules/adapter-import-boundary.ts"
+import { allErrorsHandledAtBoundaryRule } from "./rules/all-errors-handled-at-boundary.ts"
 import { antiSlopNoManualEffectErrorTagRule } from "./rules/anti-slop-no-manual-effect-error-tag.ts"
 import { antiSlopNoServiceConstructorImportsRule } from "./rules/anti-slop-no-service-constructor-imports.ts"
 import { antiSlopPreferEffectMatchRule } from "./rules/anti-slop-prefer-effect-match.ts"
-import { boundaryEntrypointShapeRule } from "./rules/boundary-entrypoint-shape.ts"
 import { errorHandlingInEffectFnHandlerRule } from "./rules/error-handling-in-effect-fn-handler.ts"
 import { exportedSchemaIdentifierRule } from "./rules/exported-schema-identifier.ts"
 import { noAsymmetricMatchHandlersRule } from "./rules/no-asymmetric-match-handlers.ts"
@@ -45,7 +45,7 @@ const dlEffectPlugin = eslintCompatPlugin({
         "anti-slop-no-service-constructor-imports": antiSlopNoServiceConstructorImportsRule,
         "anti-slop-prefer-effect-match": antiSlopPreferEffectMatchRule,
         "adapter-import-boundary": adapterImportBoundaryRule,
-        "boundary-entrypoint-shape": boundaryEntrypointShapeRule,
+        "all-errors-handled-at-boundary": allErrorsHandledAtBoundaryRule,
         "error-handling-in-effect-fn-handler": errorHandlingInEffectFnHandlerRule,
         "exported-schema-identifier": exportedSchemaIdentifierRule,
         "no-asymmetric-match-handlers": noAsymmetricMatchHandlersRule,

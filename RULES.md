@@ -19,7 +19,7 @@ The plugin's 30 rules. The `Pxx` identifiers come from the origin catalog.
 | [`single-style-per-function`](#single-style-per-function)                               | P24      | `error`  |
 | [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler)           | P25      | `warn`   |
 | [`no-transport-types-in-generator`](#no-transport-types-in-generator)                   | P26      | `error`  |
-| [`boundary-entrypoint-shape`](#boundary-entrypoint-shape)                               | P27      | `warn`   |
+| [`all-errors-handled-at-boundary`](#all-errors-handled-at-boundary)                     | P27      | `warn`   |
 | [`provide-named-layer`](#provide-named-layer)                                           | P28      | `error`  |
 | [`no-provide-on-definition`](#no-provide-on-definition)                                 | P28      | `error`  |
 | [`no-nested-match`](#no-nested-match)                                                   | P30      | `warn`   |
@@ -50,7 +50,7 @@ The `all` preset enables them all at `warn`. Severity is the one each rule was k
 When the reason for an exclusion is part of the rule, the rule itself recognizes the files, through an option that **replaces** the defaults (it does not extend them). Globs are matched against the path relative to oxlint's working directory, with `/` on every platform.
 
 - **`entryFiles`**, used by [`run-only-at-entry`](#run-only-at-entry) and [`adapter-import-boundary`](#adapter-import-boundary). Default `**/main.ts`, `**/cli.ts`, `**/bin/**`. `index.ts` is excluded on purpose: it is usually a barrel, and exempting it would let adapters reach the rest of the application through re-exports.
-- **`testFiles`**, used by [`adapter-import-boundary`](#adapter-import-boundary), [`no-effect-promise`](#no-effect-promise), [`provide-named-layer`](#provide-named-layer), [`no-provide-on-definition`](#no-provide-on-definition), [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler) and [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports). Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. A helper directory such as `src/testing/` does not count as tests: it is support code.
+- **`testFiles`**, used by [`adapter-import-boundary`](#adapter-import-boundary), [`no-effect-promise`](#no-effect-promise), [`provide-named-layer`](#provide-named-layer), [`no-provide-on-definition`](#no-provide-on-definition), [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler), [`all-errors-handled-at-boundary`](#all-errors-handled-at-boundary) and [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports). Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. A helper directory such as `src/testing/` does not count as tests: it is support code.
 
 The defaults come from a Node CLI. On another layout (Next.js, a monorepo) they must be reconfigured before reading the numbers, and every rule sharing an option must be reconfigured:
 
@@ -585,7 +585,7 @@ const createEvent = Effect.fn("events.create")(function* (request: Request) {
 
 **Trigger**: `async`, `await` and `.then(` in a function that builds Effects: an Effect generator, or a function using an `Effect.*` member. A `test`/`it` callback (`.only`, `.each(…)` and the like included) or a `beforeAll`/`afterAll`/`beforeEach`/`afterEach` hook is reported once, on the callback, when more than one of its `await`s, or any `.then(`, involves Effect: has an `Effect.*` member in its expression, nested callbacks and `Effect.run*` included.
 
-**Exemptions and blind spots**: `Effect.run*` alone does not make a function effectful: it is how an async boundary hands over to Effect, and where it may appear is decided by [`run-only-at-entry`](#run-only-at-entry). A test or hook may await promise-based fixtures (a container, an identity provider), then one Effect program, and assert on its result. A step that reaches Effect only through a helper (`await run(seed)`) is not counted.
+**Exemptions and blind spots**: `Effect.run*` alone does not make a function effectful: it is how an async boundary hands over to Effect, and where it may appear is decided by [`run-only-at-entry`](#run-only-at-entry). An `async` function that renders JSX itself, not only in nested callbacks, is a Server Component: how it turns failures into UI is left to the application. A test or hook may await promise-based fixtures (a container, an identity provider), then one Effect program, and assert on its result. A step that reaches Effect only through a helper (`await run(seed)`) is not counted.
 
 **Why**: errors travel on two channels, exceptions and Effect, and neither sees them all.
 
@@ -661,7 +661,7 @@ const createEvent = Effect.fn("events.create")(
 
 - **Pattern**: P26 · **Options**: `transportTypes`, replaces the default `["Response", "NextResponse"]`; add your own transport DTOs · **Fix**: none · **Severity**: `error`
 
-### `boundary-entrypoint-shape`
+### `all-errors-handled-at-boundary`
 
 <sup>[↑ rules index](#rules-index)</sup>
 
@@ -681,11 +681,11 @@ const runBoundary = (effect: Effect.Effect<Response, never, never>) => Effect.ru
 
 **Trigger**: `Effect.runPromise`, `runSync`, `runFork`, `runCallback` and `NodeRuntime.runMain`/`BunRuntime.runMain` whose argument is neither `… satisfies Effect.Effect<A, never>` nor a parameter declared with that type.
 
-**Exemptions and blind spots**: the `*Exit` variants, which return failures as values. The rule checks the shape; `tsc` gives the guarantee.
+**Exemptions and blind spots**: the `*Exit` variants, which return failures as values; runners inside an `async` function that renders JSX itself, a Server Component, which hands failures to React rather than to an HTTP response; test files, where a rejected run fails the test with the error. The rule checks the shape; `tsc` gives the guarantee.
 
 **Why**: `Effect.runPromise` turns any error left over into a rejected promise, a generic 500. With `never`, a new untranslated error does not compile, and `R = never` forces all Layers to be provided.
 
-- **Pattern**: P27 · **Options**: none · **Fix**: none · **Severity**: `warn`
+- **Pattern**: P27 · **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `warn`
 
 ## Wiring and code shape
 
