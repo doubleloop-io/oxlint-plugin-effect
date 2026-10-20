@@ -37,9 +37,12 @@
         "test": "node --test rules-md.test.ts rules/*.test.ts",
         "check": "pnpm format:check && pnpm typecheck && pnpm lint && pnpm test",
         "build": "rm -rf dist && tsc -p tsconfig.build.json && node presets/all-json.ts",
+        "build:w": "node --watch-path=index.ts --watch-path=rules --watch-path=presets --watch-path=shared --watch-path=tsconfig.build.json scripts/build.ts",
         "pack:check": "node --test presets/all-dist.test.ts && node scripts/pack-check.ts",
         "build-and-pack": "pnpm check && pnpm build && pnpm pack:check && pnpm smoke-test",
-        "smoke-test": "node scripts/smoke-test.ts"
+        "smoke-test": "node scripts/smoke-test.ts",
+        "consumer:link": "./link-consumer.sh link",
+        "consumer:unlink": "./link-consumer.sh unlink"
     },
     "dependencies": {
         "@oxlint/plugins": "^1.82.0"
