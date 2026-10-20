@@ -1,47 +1,48 @@
 # `@doubleloop-io/oxlint-plugin-effect` rules
 
-The plugin's 30 rules. The `Pxx` identifiers come from the origin catalog.
+The plugin's 31 rules. The `Pxx` identifiers come from the origin catalog.
 
 ## Rules index
 
-| Rule                                                                                    | Pattern  | Severity |
-| --------------------------------------------------------------------------------------- | -------- | -------- |
-| [`service-port-shape-only`](#service-port-shape-only)                                   | P01      | `error`  |
-| [`adapter-import-boundary`](#adapter-import-boundary)                                   | P02      | `error`  |
-| [`run-only-at-entry`](#run-only-at-entry)                                               | P04, P22 | `error`  |
-| [`no-bare-error-in-effect`](#no-bare-error-in-effect)                                   | P05      | `error`  |
-| [`try-object-form`](#try-object-form)                                                   | P08      | `error`  |
-| [`no-effect-promise`](#no-effect-promise)                                               | P08      | `warn`   |
-| [`no-parameterless-catch-all`](#no-parameterless-catch-all)                             | P09      | `error`  |
-| [`redacted-secret-names`](#redacted-secret-names)                                       | P13      | `warn`   |
-| [`prefer-effect-fn`](#prefer-effect-fn)                                                 | P17      | `warn`   |
-| [`untraced-recursion`](#untraced-recursion)                                             | P17      | `warn`   |
-| [`single-style-per-function`](#single-style-per-function)                               | P24      | `error`  |
-| [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler)           | P25      | `warn`   |
-| [`no-transport-types-in-generator`](#no-transport-types-in-generator)                   | P26      | `error`  |
-| [`all-errors-handled-at-boundary`](#all-errors-handled-at-boundary)                     | P27      | `warn`   |
-| [`provide-named-layer`](#provide-named-layer)                                           | P28      | `error`  |
-| [`no-provide-on-definition`](#no-provide-on-definition)                                 | P28      | `error`  |
-| [`no-nested-match`](#no-nested-match)                                                   | P30      | `warn`   |
-| [`no-inline-yield-star`](#no-inline-yield-star)                                         | P32      | `warn`   |
-| [`no-effect-return-type`](#no-effect-return-type)                                       | P33      | `warn`   |
-| [`no-asymmetric-match-handlers`](#no-asymmetric-match-handlers)                         | P34      | `warn`   |
-| [`exported-schema-identifier`](#exported-schema-identifier)                             | P35      | —        |
-| [`no-manual-discriminant-comparison`](#no-manual-discriminant-comparison)               | P36      | —        |
-| [`no-manual-discriminant-construction`](#no-manual-discriminant-construction)           | P37      | —        |
-| [`service-key-matches-name`](#service-key-matches-name)                                 | P38      | —        |
-| [`no-inline-schema-codec`](#no-inline-schema-codec)                                     | P39      | —        |
-| [`no-yielded-match`](#no-yielded-match)                                                 | P40      | —        |
-| [`service-built-with-of`](#service-built-with-of)                                       | P41      | —        |
-| [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports) | —        | —        |
-| [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag)         | —        | —        |
-| [`anti-slop-prefer-effect-match`](#anti-slop-prefer-effect-match)                       | —        | —        |
+| Rule                                                                                    | Pattern | Severity |
+| --------------------------------------------------------------------------------------- | ------- | -------- |
+| [`service-port-shape-only`](#service-port-shape-only)                                   | P01     | `error`  |
+| [`adapter-import-boundary`](#adapter-import-boundary)                                   | P02     | `error`  |
+| [`run-only-in-runner`](#run-only-in-runner)                                             | P04     | `error`  |
+| [`no-bare-error-in-effect`](#no-bare-error-in-effect)                                   | P05     | `error`  |
+| [`try-object-form`](#try-object-form)                                                   | P08     | `error`  |
+| [`no-effect-promise`](#no-effect-promise)                                               | P08     | `warn`   |
+| [`no-parameterless-catch-all`](#no-parameterless-catch-all)                             | P09     | `error`  |
+| [`redacted-secret-names`](#redacted-secret-names)                                       | P13     | `warn`   |
+| [`prefer-effect-fn`](#prefer-effect-fn)                                                 | P17     | `warn`   |
+| [`untraced-recursion`](#untraced-recursion)                                             | P17     | `warn`   |
+| [`prefer-effect-vitest`](#prefer-effect-vitest)                                         | P22     | —        |
+| [`single-style-per-function`](#single-style-per-function)                               | P24     | `error`  |
+| [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler)           | P25     | `warn`   |
+| [`no-transport-types-in-generator`](#no-transport-types-in-generator)                   | P26     | `error`  |
+| [`all-errors-handled-at-boundary`](#all-errors-handled-at-boundary)                     | P27     | `warn`   |
+| [`provide-named-layer`](#provide-named-layer)                                           | P28     | `error`  |
+| [`no-provide-on-definition`](#no-provide-on-definition)                                 | P28     | `error`  |
+| [`no-nested-match`](#no-nested-match)                                                   | P30     | `warn`   |
+| [`no-inline-yield-star`](#no-inline-yield-star)                                         | P32     | `warn`   |
+| [`no-effect-return-type`](#no-effect-return-type)                                       | P33     | `warn`   |
+| [`no-asymmetric-match-handlers`](#no-asymmetric-match-handlers)                         | P34     | `warn`   |
+| [`exported-schema-identifier`](#exported-schema-identifier)                             | P35     | —        |
+| [`no-manual-discriminant-comparison`](#no-manual-discriminant-comparison)               | P36     | —        |
+| [`no-manual-discriminant-construction`](#no-manual-discriminant-construction)           | P37     | —        |
+| [`service-key-matches-name`](#service-key-matches-name)                                 | P38     | —        |
+| [`no-inline-schema-codec`](#no-inline-schema-codec)                                     | P39     | —        |
+| [`no-yielded-match`](#no-yielded-match)                                                 | P40     | —        |
+| [`service-built-with-of`](#service-built-with-of)                                       | P41     | —        |
+| [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports) | —       | —        |
+| [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag)         | —       | —        |
+| [`anti-slop-prefer-effect-match`](#anti-slop-prefer-effect-match)                       | —       | —        |
 
 The `all` preset enables them all at `warn`. Severity is the one each rule was kept at zero noise with on an Effect 4 codebase: a data point about its stability, not a recommendation. `—` means not yet measured.
 
 ## Common limits
 
-- **Syntax only**: no rule uses type information.
+- **Syntax only**: no rule uses type information, and only [`prefer-effect-vitest`](#prefer-effect-vitest) looks past the file, to find whether `@effect/vitest` is installed.
 - **Literal names**: `Effect.gen` is recognized, `import { Effect as E }` or `import * as L from "effect/Layer"` slip through. On code that uses aliases, silence is not compliance.
 - **Effect 4**: the rules also recognize some v3 APIs (`catchAll`, `Effect.Service`, `Context.Tag`), but they are written and tested against v4.
 
@@ -49,8 +50,8 @@ The `all` preset enables them all at `warn`. Severity is the one each rule was k
 
 When the reason for an exclusion is part of the rule, the rule itself recognizes the files, through an option that **replaces** the defaults (it does not extend them). Globs are matched against the path relative to oxlint's working directory, with `/` on every platform.
 
-- **`entryFiles`**, used by [`run-only-at-entry`](#run-only-at-entry) and [`adapter-import-boundary`](#adapter-import-boundary). Default `**/main.ts`, `**/cli.ts`, `**/bin/**`. `index.ts` is excluded on purpose: it is usually a barrel, and exempting it would let adapters reach the rest of the application through re-exports.
-- **`testFiles`**, used by [`adapter-import-boundary`](#adapter-import-boundary), [`no-effect-promise`](#no-effect-promise), [`provide-named-layer`](#provide-named-layer), [`no-provide-on-definition`](#no-provide-on-definition), [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler), [`all-errors-handled-at-boundary`](#all-errors-handled-at-boundary) and [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports). Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. A helper directory such as `src/testing/` does not count as tests: it is support code.
+- **`entryFiles`**, used by [`run-only-in-runner`](#run-only-in-runner) and [`adapter-import-boundary`](#adapter-import-boundary). Default `**/main.ts`, `**/cli.ts`, `**/bin/**`. `index.ts` is excluded on purpose: it is usually a barrel, and exempting it would let adapters reach the rest of the application through re-exports.
+- **`testFiles`**, used by [`run-only-in-runner`](#run-only-in-runner), [`adapter-import-boundary`](#adapter-import-boundary), [`no-effect-promise`](#no-effect-promise), [`provide-named-layer`](#provide-named-layer), [`no-provide-on-definition`](#no-provide-on-definition), [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler), [`all-errors-handled-at-boundary`](#all-errors-handled-at-boundary) and [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports). Those rules skip test files; [`prefer-effect-vitest`](#prefer-effect-vitest) checks only them. Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. A helper directory such as `src/testing/` does not count as tests: it is support code.
 
 The defaults come from a Node CLI. On another layout (Next.js, a monorepo) they must be reconfigured before reading the numbers, and every rule sharing an option must be reconfigured:
 
@@ -60,7 +61,7 @@ const entryFiles = ["apps/web/src/app/**/route.ts", "apps/web/src/runtime.ts"]
 export default defineConfig({
     extends: [dlEffectAll],
     rules: {
-        "dl-effect/run-only-at-entry": ["warn", { entryFiles }],
+        "dl-effect/run-only-in-runner": ["warn", { entryFiles }],
         "dl-effect/adapter-import-boundary": ["warn", { entryFiles }],
     },
 })
@@ -199,19 +200,15 @@ const issues = yield * IssueService
 
 - **Pattern**: — · **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: —
 
-### `run-only-at-entry`
+### `run-only-in-runner`
 
 <sup>[↑ rules index](#rules-index)</sup>
 
-**Intent**: Effects run only at the entry point, and tests run them through the test runtime.
+**Intent**: Effects run only in the program's runner, the entry point.
 
 ```ts
 // no
 export const check = () => Effect.runPromise(pingDb(url))
-
-test("…", async () => {
-    await Effect.runPromise(authorize({ role: "Manager" }))
-})
 
 // yes: in main.ts
 NodeRuntime.runMain(
@@ -220,18 +217,41 @@ NodeRuntime.runMain(
         never
     >,
 )
-
-// yes: in a test, fakes as Layers
-it.effect("…", () => authorize({ role: "Manager" }).pipe(Effect.provide(sheetWith(row))))
 ```
 
 **Trigger**: every reference, not just calls, to `Effect.run*`, `NodeRuntime.runMain`, `BunRuntime.runMain` and `ManagedRuntime.make` outside entry files.
 
-**Exemptions and blind spots**: test files are not exempt; a module-level `ManagedRuntime` in a test is the typical catch. Without `@effect/vitest`, a single test runner module that provides the test Layer goes in `entryFiles`, and each test returns one call to it; the test runtime, `TestClock` included, is lost.
+**Exemptions and blind spots**: test files, checked by [`prefer-effect-vitest`](#prefer-effect-vitest) instead.
 
-**Why**: logger, Layers and defect handling are configured in one place. In tests, the test runtime brings `TestClock` and fakes replace services where the code reads them.
+**Why**: logger, Layers and defect handling are configured in one place.
 
-- **Pattern**: P04, P22 · **Options**: `entryFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `error`
+- **Pattern**: P04 · **Options**: `entryFiles`, `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `error`
+
+### `prefer-effect-vitest`
+
+<sup>[↑ rules index](#rules-index)</sup>
+
+**Intent**: tests hand their Effects to `@effect/vitest` instead of running them.
+
+```ts
+// no
+test("…", async () => {
+    await Effect.runPromise(authorize({ role: "Manager" }))
+})
+
+// yes: fakes as Layers
+import { effect } from "@effect/vitest"
+
+effect("…", () => authorize({ role: "Manager" }).pipe(Effect.provide(sheetWith(row))))
+```
+
+**Trigger**: the same references as [`run-only-in-runner`](#run-only-in-runner), inside test files only.
+
+**Exemptions and blind spots**: projects where `@effect/vitest` cannot be found in a `node_modules` from the test file up, since the remedy is out of reach there; scattered runs in their tests go unreported. Every file outside `testFiles`, test helpers such as `src/testing/` included.
+
+**Why**: the test runtime brings `TestClock` and a scope per test, and fixtures provided as Layers replace services where the code reads them.
+
+- **Pattern**: P22 · **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: —
 
 ## Errors
 
@@ -585,7 +605,7 @@ const createEvent = Effect.fn("events.create")(function* (request: Request) {
 
 **Trigger**: `async`, `await` and `.then(` in a function that builds Effects: an Effect generator, or a function using an `Effect.*` member. A `test`/`it` callback (`.only`, `.each(…)` and the like included) or a `beforeAll`/`afterAll`/`beforeEach`/`afterEach` hook is reported once, on the callback, when more than one of its `await`s, or any `.then(`, involves Effect: has an `Effect.*` member in its expression, nested callbacks and `Effect.run*` included.
 
-**Exemptions and blind spots**: `Effect.run*` alone does not make a function effectful: it is how an async boundary hands over to Effect, and where it may appear is decided by [`run-only-at-entry`](#run-only-at-entry). An `async` function that renders JSX itself, not only in nested callbacks, is a Server Component: how it turns failures into UI is left to the application. A test or hook may await promise-based fixtures (a container, an identity provider), then one Effect program, and assert on its result. A step that reaches Effect only through a helper (`await run(seed)`) is not counted.
+**Exemptions and blind spots**: `Effect.run*` alone does not make a function effectful: it is how an async boundary hands over to Effect, and where it may appear is decided by [`run-only-in-runner`](#run-only-in-runner). An `async` function that renders JSX itself, not only in nested callbacks, is a Server Component: how it turns failures into UI is left to the application. A test or hook may await promise-based fixtures (a container, an identity provider), then one Effect program, and assert on its result. A step that reaches Effect only through a helper (`await run(seed)`) is not counted.
 
 **Why**: errors travel on two channels, exceptions and Effect, and neither sees them all.
 

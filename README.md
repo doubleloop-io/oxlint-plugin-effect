@@ -53,8 +53,8 @@ To pick rules without the preset, load the plugin by package name and list the r
 
 Two options tell the rules where your files are. Their defaults fit a Node CLI; on another layout (Next.js, a monorepo) set them before reading the warnings.
 
-- `entryFiles`: the files allowed to run Effects and import adapters. Default `**/main.ts`, `**/cli.ts`, `**/bin/**`. Used by `run-only-at-entry` and `adapter-import-boundary`.
-- `testFiles`: the files exempt from the rules that tests legitimately break. Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. Used by `adapter-import-boundary`, `no-effect-promise`, `provide-named-layer`, `no-provide-on-definition`, `error-handling-in-effect-fn-handler`, `all-errors-handled-at-boundary` and `anti-slop-no-service-constructor-imports`.
+- `entryFiles`: the files allowed to run Effects and import adapters. Default `**/main.ts`, `**/cli.ts`, `**/bin/**`. Used by `run-only-in-runner` and `adapter-import-boundary`.
+- `testFiles`: the test files, exempt from the rules that tests legitimately break and the only files `prefer-effect-vitest` checks. Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. Used by `run-only-in-runner`, `prefer-effect-vitest`, `adapter-import-boundary`, `no-effect-promise`, `provide-named-layer`, `no-provide-on-definition`, `error-handling-in-effect-fn-handler`, `all-errors-handled-at-boundary` and `anti-slop-no-service-constructor-imports`.
 
 An option **replaces** its default instead of extending it, and every rule that uses it must get the same value. With `oxlint.config.ts`, declare each option once and override the rules that use it after `extends`:
 
@@ -68,7 +68,8 @@ const testFiles = ["**/*.test.ts", "e2e/**"]
 export default defineConfig({
     extends: [dlEffectAll],
     rules: {
-        "dl-effect/run-only-at-entry": ["warn", { entryFiles }],
+        "dl-effect/run-only-in-runner": ["warn", { entryFiles, testFiles }],
+        "dl-effect/prefer-effect-vitest": ["warn", { testFiles }],
         "dl-effect/adapter-import-boundary": ["warn", { entryFiles, testFiles }],
         "dl-effect/no-effect-promise": ["warn", { testFiles }],
         "dl-effect/provide-named-layer": ["warn", { testFiles }],
@@ -114,7 +115,7 @@ What each rule reports and why is in [`RULES.md`](RULES.md).
 | Error channel        | [`no-bare-error-in-effect`](RULES.md#no-bare-error-in-effect), [`try-object-form`](RULES.md#try-object-form), [`no-effect-promise`](RULES.md#no-effect-promise), [`no-parameterless-catch-all`](RULES.md#no-parameterless-catch-all), [`error-handling-in-effect-fn-handler`](RULES.md#error-handling-in-effect-fn-handler), [`anti-slop-no-manual-effect-error-tag`](RULES.md#anti-slop-no-manual-effect-error-tag) |
 | Tagged values        | [`no-manual-discriminant-comparison`](RULES.md#no-manual-discriminant-comparison), [`no-manual-discriminant-construction`](RULES.md#no-manual-discriminant-construction)                                                                                                                                                                                                                                             |
 | Services & Layers    | [`service-port-shape-only`](RULES.md#service-port-shape-only), [`service-key-matches-name`](RULES.md#service-key-matches-name), [`service-built-with-of`](RULES.md#service-built-with-of), [`provide-named-layer`](RULES.md#provide-named-layer), [`no-provide-on-definition`](RULES.md#no-provide-on-definition), [`anti-slop-no-service-constructor-imports`](RULES.md#anti-slop-no-service-constructor-imports)   |
-| Runtime & entrypoint | [`run-only-at-entry`](RULES.md#run-only-at-entry), [`all-errors-handled-at-boundary`](RULES.md#all-errors-handled-at-boundary)                                                                                                                                                                                                                                                                                       |
+| Runtime & entrypoint | [`run-only-in-runner`](RULES.md#run-only-in-runner), [`all-errors-handled-at-boundary`](RULES.md#all-errors-handled-at-boundary)                                                                                                                                                                                                                                                                                     |
 | Design & boundaries  | [`adapter-import-boundary`](RULES.md#adapter-import-boundary), [`no-transport-types-in-generator`](RULES.md#no-transport-types-in-generator)                                                                                                                                                                                                                                                                         |
 | Effectful functions  | [`prefer-effect-fn`](RULES.md#prefer-effect-fn), [`untraced-recursion`](RULES.md#untraced-recursion), [`single-style-per-function`](RULES.md#single-style-per-function)                                                                                                                                                                                                                                              |
 | Code shape           | [`no-nested-match`](RULES.md#no-nested-match), [`no-yielded-match`](RULES.md#no-yielded-match), [`no-inline-yield-star`](RULES.md#no-inline-yield-star), [`no-effect-return-type`](RULES.md#no-effect-return-type), [`no-asymmetric-match-handlers`](RULES.md#no-asymmetric-match-handlers), [`anti-slop-prefer-effect-match`](RULES.md#anti-slop-prefer-effect-match)                                               |
@@ -176,7 +177,8 @@ export default defineConfig({
         "dl-effect/no-provide-on-definition": ["warn", { testFiles }],
         "dl-effect/anti-slop-no-service-constructor-imports": ["warn", { testFiles }],
         // Runtime & entrypoint
-        "dl-effect/run-only-at-entry": ["warn", { entryFiles }],
+        "dl-effect/run-only-in-runner": ["warn", { entryFiles, testFiles }],
+        "dl-effect/prefer-effect-vitest": ["warn", { testFiles }],
         "dl-effect/all-errors-handled-at-boundary": "warn",
         // Design & boundaries
         "dl-effect/adapter-import-boundary": ["warn", { entryFiles, testFiles }],

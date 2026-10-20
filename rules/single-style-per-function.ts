@@ -128,7 +128,7 @@ export const singleStylePerFunctionRule = defineRule({
                 const frame = current()
                 if (frame === undefined) return
                 // `Effect.run*` is how an async boundary legitimately hands off to Effect (P27);
-                // where it may appear is run-only-at-entry's business.
+                // where it may appear is run-only-in-runner's business.
                 if (!name.startsWith("run")) frame.effectful = true
             },
             JSXElement: markJsx,

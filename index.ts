@@ -23,9 +23,10 @@ import { noProvideOnDefinitionRule } from "./rules/no-provide-on-definition.ts"
 import { noTransportTypesInGeneratorRule } from "./rules/no-transport-types-in-generator.ts"
 import { noYieldedMatchRule } from "./rules/no-yielded-match.ts"
 import { preferEffectFnRule } from "./rules/prefer-effect-fn.ts"
+import { preferEffectVitestRule } from "./rules/prefer-effect-vitest.ts"
 import { provideNamedLayerRule } from "./rules/provide-named-layer.ts"
 import { redactedSecretNamesRule } from "./rules/redacted-secret-names.ts"
-import { runOnlyAtEntryRule } from "./rules/run-only-at-entry.ts"
+import { runOnlyInRunnerRule } from "./rules/run-only-in-runner.ts"
 import { serviceBuiltWithOfRule } from "./rules/service-built-with-of.ts"
 import { serviceKeyMatchesNameRule } from "./rules/service-key-matches-name.ts"
 import { servicePortShapeOnlyRule } from "./rules/service-port-shape-only.ts"
@@ -62,9 +63,10 @@ const dlEffectPlugin = eslintCompatPlugin({
         "no-transport-types-in-generator": noTransportTypesInGeneratorRule,
         "no-yielded-match": noYieldedMatchRule,
         "prefer-effect-fn": preferEffectFnRule,
+        "prefer-effect-vitest": preferEffectVitestRule,
         "provide-named-layer": provideNamedLayerRule,
         "redacted-secret-names": redactedSecretNamesRule,
-        "run-only-at-entry": runOnlyAtEntryRule,
+        "run-only-in-runner": runOnlyInRunnerRule,
         "service-built-with-of": serviceBuiltWithOfRule,
         "service-key-matches-name": serviceKeyMatchesNameRule,
         "service-port-shape-only": servicePortShapeOnlyRule,
