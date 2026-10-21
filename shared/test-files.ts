@@ -7,6 +7,6 @@ export const defaultTestFiles = [
     "**/__tests__/**",
     "**/test/**",
     "**/tests/**",
-]
+] as const
 
 export const isTestFile = makeFileMatcher("testFiles", defaultTestFiles)

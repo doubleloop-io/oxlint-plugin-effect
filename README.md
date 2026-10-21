@@ -56,32 +56,24 @@ Two options tell the rules where your files are. Their defaults fit a Node CLI; 
 - `entryFiles`: the files allowed to run Effects and import adapters. Default `**/main.ts`, `**/cli.ts`, `**/bin/**`. Used by `run-only-in-runner` and `adapter-import-boundary`.
 - `testFiles`: the test files, exempt from the rules that tests legitimately break and the only files `prefer-effect-vitest` checks. Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. Used by `run-only-in-runner`, `prefer-effect-vitest`, `adapter-import-boundary`, `no-effect-promise`, `provide-named-layer`, `no-provide-on-definition`, `error-handling-in-effect-fn-handler`, `all-errors-handled-at-boundary` and `anti-slop-no-service-constructor-imports`.
 
-An option **replaces** its default instead of extending it, and every rule that uses it must get the same value. With `oxlint.config.ts`, declare each option once and override the rules that use it after `extends`:
+Set an option only where its default does not fit. It **replaces** the default instead of extending it, and every rule that uses it must get the same value. With `oxlint.config.ts`, declare it once and override the rules that use it after `extends`:
 
 ```ts
 import dlEffectAll from "@doubleloop-io/oxlint-plugin-effect/presets/all"
 import { defineConfig } from "oxlint"
 
 const entryFiles = ["apps/web/src/app/**/route.ts", "apps/web/src/runtime.ts"]
-const testFiles = ["**/*.test.ts", "e2e/**"]
 
 export default defineConfig({
     extends: [dlEffectAll],
     rules: {
-        "dl-effect/run-only-in-runner": ["warn", { entryFiles, testFiles }],
-        "dl-effect/prefer-effect-vitest": ["warn", { testFiles }],
-        "dl-effect/adapter-import-boundary": ["warn", { entryFiles, testFiles }],
-        "dl-effect/no-effect-promise": ["warn", { testFiles }],
-        "dl-effect/provide-named-layer": ["warn", { testFiles }],
-        "dl-effect/no-provide-on-definition": ["warn", { testFiles }],
-        "dl-effect/error-handling-in-effect-fn-handler": ["warn", { testFiles }],
-        "dl-effect/all-errors-handled-at-boundary": ["warn", { testFiles }],
-        "dl-effect/anti-slop-no-service-constructor-imports": ["warn", { testFiles }],
+        "dl-effect/run-only-in-runner": ["warn", { entryFiles }],
+        "dl-effect/adapter-import-boundary": ["warn", { entryFiles }],
     },
 })
 ```
 
-With `.oxlintrc.json` the same overrides go under `rules`, repeating each list in every rule.
+The package exports the defaults as `defaultEntryFiles` and `defaultTestFiles`: spread them to extend a default (`testFiles: [...defaultTestFiles, "e2e/**"]`), or reuse them in your own `overrides`. With `.oxlintrc.json` the overrides go under `rules`, repeating each list in every rule.
 
 The other options and every default are in [Default configuration](#default-configuration).
 

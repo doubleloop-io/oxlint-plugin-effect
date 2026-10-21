@@ -34,6 +34,9 @@ import { singleStylePerFunctionRule } from "./rules/single-style-per-function.ts
 import { tryObjectFormRule } from "./rules/try-object-form.ts"
 import { untracedRecursionRule } from "./rules/untraced-recursion.ts"
 
+export { defaultEntryFiles } from "./shared/entry-files.ts"
+export { defaultTestFiles } from "./shared/test-files.ts"
+
 export const pluginName = "dl-effect"
 
 // Resolved at runtime so it points at this file both from the sources and from `dist/`.
