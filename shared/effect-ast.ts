@@ -43,8 +43,14 @@ export const isEffectGenerator = (fn: FunctionNode) => {
     return isEffectFnApplication(call) && call.arguments[0] === fn
 }
 
-// Plain callbacks inside the generator still belong to its success path; the pipeable
-// arguments of an `Effect.fn` nested in it are the handler slot, so they do not.
+const isEffectCombinatorCallback = (fn: FunctionNode) =>
+    fn.parent?.type === "CallExpression" &&
+    memberOf(fn.parent.callee, "Effect") !== undefined &&
+    fn.parent.arguments.some((arg) => arg === fn)
+
+// Callbacks handed to an `Effect.*` combinator inside the generator still belong to its success
+// path; the pipeable arguments of an `Effect.fn` nested in it are the handler slot, so they do
+// not, and neither does a function the generator only defines (an HTTP handler, a service method).
 export const isInsideEffectGeneratorBody = (node: ESTree.Node) => {
     let child: ESTree.Node = node
     for (let current: ESTree.Node | null = node.parent; current; current = current.parent) {
@@ -54,7 +60,10 @@ export const isInsideEffectGeneratorBody = (node: ESTree.Node) => {
         ) {
             return false
         }
-        if (isFunctionNode(current) && current.generator) return isEffectGenerator(current)
+        if (isFunctionNode(current)) {
+            if (current.generator) return isEffectGenerator(current)
+            if (!isEffectCombinatorCallback(current)) return false
+        }
         child = current
     }
     return false

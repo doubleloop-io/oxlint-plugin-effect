@@ -17,6 +17,15 @@ new RuleTester().run("single-style-per-function", singleStylePerFunctionRule, {
         'test("refuses a forged credential", async () => { const credential = await authority.forge(); const failure = await callApi(credential, (client) => Effect.flip(client.me())); expect(failure).toBeDefined() })',
         "beforeAll(async () => { const connection = await postgres.start(); await Effect.runPromise(Effect.gen(function* () { yield* migrate(connection.url) })) })",
         "afterAll(async () => { await Effect.runPromise(cleanup) })",
+        // Helpers in a test file get the allowance of the tests that call them.
+        {
+            filename: "src/health.test.ts",
+            code: "const probe = async (path) => { const { handler, dispose } = toWebHandler(router.pipe(Layer.provide(Layer.succeed(Readiness, { check: Effect.succeed([]) })))); try { return (await handler(new Request(path))).status } finally { await dispose() } }",
+        },
+        {
+            filename: "src/observability.test.ts",
+            code: "const captureLines = async (effect, layer) => { const lines = []; await Effect.runPromise(effect.pipe(Effect.provide(layer), Effect.scoped)); return lines }",
+        },
         {
             filename: "src/app/events/page.tsx",
             code: "export default async function EventPage() { const visitor = await currentVisitor(); const answer = await Effect.runPromise(Effect.result(loadEvent(visitor))); return <EventView answer={answer} /> }",
@@ -55,6 +64,17 @@ new RuleTester().run("single-style-per-function", singleStylePerFunctionRule, {
         {
             code: "beforeAll(async () => { await Effect.runPromise(migrate); await Effect.runPromise(seed) })",
             errors: [{ messageId: "asyncEffectHook" }],
+        },
+        {
+            filename: "src/events.test.ts",
+            code: "const createThenRename = async () => { const first = await Effect.runPromise(create); return Effect.runPromise(rename(first)).then((second) => second.name) }",
+            errors: [{ messageId: "asyncEffectHelper" }],
+        },
+        {
+            filename: "src/events.test.ts",
+            options: [{ testFiles: ["**/*.check.ts"] }],
+            code: "const captureLines = async (effect) => { const lines = []; await Effect.runPromise(effect.pipe(Effect.scoped)); return lines }",
+            errors: [{ messageId: "asyncEffect" }, { messageId: "promiseStep" }],
         },
     ],
 })

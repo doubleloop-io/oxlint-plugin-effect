@@ -51,7 +51,7 @@ The `all` preset enables them all at `warn`. Severity is the one each rule was k
 When the reason for an exclusion is part of the rule, the rule itself recognizes the files, through an option that **replaces** the defaults (it does not extend them). Globs are matched against the path relative to oxlint's working directory, with `/` on every platform.
 
 - **`entryFiles`**, used by [`run-only-in-runner`](#run-only-in-runner) and [`adapter-import-boundary`](#adapter-import-boundary). Default `**/main.ts`, `**/cli.ts`, `**/bin/**`. `index.ts` is excluded on purpose: it is usually a barrel, and exempting it would let adapters reach the rest of the application through re-exports.
-- **`testFiles`**, used by [`run-only-in-runner`](#run-only-in-runner), [`adapter-import-boundary`](#adapter-import-boundary), [`no-effect-promise`](#no-effect-promise), [`provide-named-layer`](#provide-named-layer), [`no-provide-on-definition`](#no-provide-on-definition), [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler), [`all-errors-handled-at-boundary`](#all-errors-handled-at-boundary) and [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports). Those rules skip test files; [`prefer-effect-vitest`](#prefer-effect-vitest) checks only them. Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. A helper directory such as `src/testing/` does not count as tests: it is support code.
+- **`testFiles`**, used by [`run-only-in-runner`](#run-only-in-runner), [`adapter-import-boundary`](#adapter-import-boundary), [`no-effect-promise`](#no-effect-promise), [`provide-named-layer`](#provide-named-layer), [`no-provide-on-definition`](#no-provide-on-definition), [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler), [`no-bare-error-in-effect`](#no-bare-error-in-effect), [`single-style-per-function`](#single-style-per-function), [`all-errors-handled-at-boundary`](#all-errors-handled-at-boundary) and [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports). Those rules skip test files, except `no-bare-error-in-effect`, which skips only primitive failures there, and `single-style-per-function`, which treats their helpers like tests; [`prefer-effect-vitest`](#prefer-effect-vitest) checks only them. Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. A helper directory such as `src/testing/` does not count as tests: it is support code.
 
 The defaults come from a Node CLI. On another layout (Next.js, a monorepo) they must be reconfigured before reading the numbers, and every rule sharing an option must be reconfigured:
 
@@ -279,11 +279,11 @@ Effect.fail(new SheetTabNotFoundError({ spreadsheetId, message: "tab not found" 
 
 **Trigger**: a `throw` directly inside a generator passed to `Effect.gen`/`Effect.fn`; `Effect.fail` with a literal or a template.
 
-**Exemptions and blind spots**: a `throw` inside a nested callback. `Effect.fail(new Error(…))` and `class X extends Error`: see `global-error-in-effect-failure` and `extends-native-error` (effecttsgo).
+**Exemptions and blind spots**: `Effect.fail` with a literal in test files, where a synthetic failure feeds code generic over the error; a `throw` in a test generator is still reported. A `throw` inside a nested callback. `Effect.fail(new Error(…))` and `class X extends Error`: see `global-error-in-effect-failure` and `extends-native-error` (effecttsgo).
 
 **Why**: the typed error channel discriminates only on tags. A `throw` in the generator becomes a defect, outside the error channel.
 
-- **Pattern**: P05 · **Options**: none · **Fix**: none · **Severity**: `error`
+- **Pattern**: P05 · **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `error`
 
 ### `try-object-form`
 
@@ -406,7 +406,7 @@ Match.value(payment).pipe(
 
 **Trigger**: an equality comparison between a discriminant (also `["type"]`) and a string literal, or a `switch` on a discriminant. The discriminants are the names in `discriminants`.
 
-**Exemptions and blind spots**: comparisons against a variable rather than a literal. On `_tag`, the handlers covered by [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag): the two never fire on the same node. Guard clauses such as `if (x.type === "a") return …` fire too; on `_tag` use `Predicate.isTagged`. An exhaustive ts-pattern match is an equally valid remedy. A name added to `discriminants` also fires on objects outside closed unions (DOM events, external payloads): the list is a choice of the codebase.
+**Exemptions and blind spots**: comparisons against a variable rather than a literal. On `_tag`, the handlers covered by [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag): the two never fire on the same node. Guard clauses such as `if (x.type === "a") return …` fire too; on `_tag` use `Predicate.isTagged`. A `_tag` compared with a variant of Effect's own types (`Success`/`Failure` of `Result` and `Exit`, `Left`/`Right`, `Some`/`None`) is reported with their refinement as the remedy, such as `Result.isFailure`: those types cannot gain a variant; a `switch` is reported as usual. An exhaustive ts-pattern match is an equally valid remedy. A name added to `discriminants` also fires on objects outside closed unions (DOM events, external payloads): the list is a choice of the codebase.
 
 **Why**: `Match.tagsExhaustive`, `Match.discriminatorsExhaustive` and `$match` fail to compile when a variant is added; a comparison or a `switch` does not.
 
@@ -434,7 +434,7 @@ const event = PaymentStartedEvent.make({ id, payment })
 
 **Trigger**: an object literal with a discriminant property (also `"type"` or `["type"]`) whose value is a string literal. The discriminants are the names in `discriminants`.
 
-**Exemptions and blind spots**: values that are not literals (`"Ready" as const` included). Literals that are patterns or raw input, also nested: the arguments of `Match.when`, `Match.not`, of `.with(…)` on a ts-pattern `match(…)` chain, and the input of `Schema.decode*(X)(…)`/`Schema.encode*(X)(…)`. Transport payloads written as literals fire, and a name added to `discriminants` fires on objects outside closed unions: the list is a choice of the codebase. See `schema-struct-with-tag` (effecttsgo) for `Schema.Struct` with a `_tag` field.
+**Exemptions and blind spots**: values that are not literals (`"Ready" as const` included). Literals that are patterns or raw input, also nested: the arguments of `Match.when`, `Match.not`, of `.with(…)` on a ts-pattern `match(…)` chain, the expected value of an `expect(…)` matcher or `expect.*` helper, the input of `Schema.decode*(X)(…)`/`Schema.encode*(X)(…)`, the argument of `JSON.stringify`, and an argument whose parameter is annotated `unknown` in a function declared in the same file (a fake API's raw body). Transport payloads written as literals fire, as does raw data passed to an imported function or through a variable, and a name added to `discriminants` fires on objects outside closed unions: the list is a choice of the codebase. See `schema-struct-with-tag` (effecttsgo) for `Schema.Struct` with a `_tag` field.
 
 **Why**: a literal skips the constructor, so it carries none of the class's prototype, equality or validation, and drifts silently when the type changes.
 
@@ -460,7 +460,7 @@ const Session = Schema.Struct({ userId: UserId, accessToken: Schema.Redacted(Sch
 
 **Trigger**:
 
-- a literal name read with `Config.*` that ends with `KEY`, `SECRET`, `TOKEN`, `PASSWORD`, `CREDENTIAL`, `CREDENTIALS` or `_JSON` (service account keys often travel as inline JSON), when it does not go through `Config.redacted` or `Config.schema(Schema.Redacted…(…), name)`;
+- a literal name read with `Config.*` that ends with `KEY`, `SECRET`, `TOKEN`, `PASSWORD`, `CREDENTIAL`, `CREDENTIALS` or `_JSON` (service account keys often travel as inline JSON), when it does not go through `Config.Redacted` or `Config.schema(Schema.Redacted…(…), name)`;
 - a field of `Schema.Struct({…})` or `Schema.Class<X>("X")({…})` whose name is a `secretFields` entry or ends with it capitalized (`password` matches `dbPassword`), declared with a `Schema.*` constant such as `Schema.String`, also through `.pipe(…)`, `.check(…)`, `.annotate(…)` or `Schema.optional`/`optionalKey`/`NullOr`/`UndefinedOr`/`NullishOr`, with no `Schema.Redacted…` along the way.
 
 **Exemptions and blind spots**: a naming heuristic: secrets with other names slip through, non-secrets with these names must be suppressed. Fields declared with a named schema (`accessToken: AccessToken`) are not inspected; other constructors (`Schema.TaggedClass`, `Schema.TaggedStruct`, …) are not seen. `process.env` read outside `Config`: see `process-env` and `process-env-in-effect` (effecttsgo).
@@ -603,13 +603,13 @@ const createEvent = Effect.fn("events.create")(function* (request: Request) {
 })
 ```
 
-**Trigger**: `async`, `await` and `.then(` in a function that builds Effects: an Effect generator, or a function using an `Effect.*` member. A `test`/`it` callback (`.only`, `.each(…)` and the like included) or a `beforeAll`/`afterAll`/`beforeEach`/`afterEach` hook is reported once, on the callback, when more than one of its `await`s, or any `.then(`, involves Effect: has an `Effect.*` member in its expression, nested callbacks and `Effect.run*` included.
+**Trigger**: `async`, `await` and `.then(` in a function that builds Effects: an Effect generator, or a function using an `Effect.*` member. A `test`/`it` callback (`.only`, `.each(…)` and the like included) or a `beforeAll`/`afterAll`/`beforeEach`/`afterEach` hook, and in test files any other function except an Effect generator, is reported once, on the function, when more than one of its `await`s, or any `.then(`, involves Effect: has an `Effect.*` member in its expression, nested callbacks and `Effect.run*` included.
 
-**Exemptions and blind spots**: `Effect.run*` alone does not make a function effectful: it is how an async boundary hands over to Effect, and where it may appear is decided by [`run-only-in-runner`](#run-only-in-runner). An `async` function that renders JSX itself, not only in nested callbacks, is a Server Component: how it turns failures into UI is left to the application. A test or hook may await promise-based fixtures (a container, an identity provider), then one Effect program, and assert on its result. A step that reaches Effect only through a helper (`await run(seed)`) is not counted.
+**Exemptions and blind spots**: `Effect.run*` alone does not make a function effectful: it is how an async boundary hands over to Effect, and where it may appear is decided by [`run-only-in-runner`](#run-only-in-runner). An `async` function that renders JSX itself, not only in nested callbacks, is a Server Component: how it turns failures into UI is left to the application. A test, hook or test helper may await promise-based fixtures (a container, an identity provider), then one Effect program, and assert on its result. A step that reaches Effect only through a helper (`await run(seed)`) is not counted.
 
 **Why**: errors travel on two channels, exceptions and Effect, and neither sees them all.
 
-- **Pattern**: P24 · **Options**: none · **Fix**: none · **Severity**: `error`
+- **Pattern**: P24 · **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `error`
 
 ### `error-handling-in-effect-fn-handler`
 
@@ -636,9 +636,9 @@ const createEvent = Effect.fn("events.create")(
 )
 ```
 
-**Trigger**: inside a generator passed to `Effect.gen`/`Effect.fn`, nested callbacks included, calls to `Effect.catch*` (`catch`, `catchAll`, `catchTag`, `catchTags`, `catchIf`, `catchCause`, `catchDefect`, `catchReason`, …), `either`, `result`, `exit`, `match*` and `sandbox`.
+**Trigger**: inside a generator passed to `Effect.gen`/`Effect.fn`, callbacks passed to `Effect.*` combinators included, calls to `Effect.catch*` (`catch`, `catchAll`, `catchTag`, `catchTags`, `catchIf`, `catchCause`, `catchDefect`, `catchReason`, …), `either`, `result`, `exit`, `match*` and `sandbox`.
 
-**Exemptions and blind spots**: pipeables of a nested `Effect.fn`. Test files, where the failure is the outcome under observation (`yield* Effect.result(op)` then `expect`). A `.pipe(Effect.catch…)` appended to an `Effect.gen` escapes; [`prefer-effect-fn`](#prefer-effect-fn) closes that gap.
+**Exemptions and blind spots**: pipeables of a nested `Effect.fn`. Handlers inside the callback of an iteration (`forEach`, `filter`, `reduce`, `partition`, `validate`, `findFirst`, …): they handle each element on its own, and in the pipeables the first failure would stop the rest. Functions the generator only defines, such as an `HttpApiBuilder` handler or a service method: they are programs of their own. Test files, where the failure is the outcome under observation (`yield* Effect.result(op)` then `expect`). A `catch`, `catchTag`, `catchTags`, `catchIf` or `catchFilter` whose handlers only die (`Effect.die` passed directly or as the sole return): it is a selective `orDie`, declaring the case untracked rather than handling it; a die behind a wrapper or a condition is still reported. A `.pipe(Effect.catch…)` appended to an `Effect.gen` escapes; [`prefer-effect-fn`](#prefer-effect-fn) closes that gap.
 
 **Why**: translation becomes a single exhaustive point instead of catches scattered along the flow.
 
@@ -673,9 +673,9 @@ const createEvent = Effect.fn("events.create")(
 )
 ```
 
-**Trigger**: `new T(…)`, `T.method(…)` and `T(…)` inside an Effect generator, nested callbacks included, when `T` is a transport type.
+**Trigger**: `new T(…)`, `T.method(…)` and `T(…)` inside an Effect generator, callbacks passed to `Effect.*` combinators included, when `T` is a transport type.
 
-**Exemptions and blind spots**: pipeables of `Effect.fn`, where the conversion must live. `return yield* new Unauthenticated(…)` is a declared failure. An early `return` of a domain value that actually signals an error is indistinguishable from a success.
+**Exemptions and blind spots**: pipeables of `Effect.fn`, where the conversion must live. Functions the generator only defines, such as an HTTP handler it registers. `return yield* new Unauthenticated(…)` is a declared failure. An early `return` of a domain value that actually signals an error is indistinguishable from a success.
 
 **Why**: an early `return new Response(…)` on the happy path is an error branch disguised as success, and escapes exhaustive translation.
 
@@ -699,9 +699,9 @@ export const POST = (request: Request) =>
 const runBoundary = (effect: Effect.Effect<Response, never, never>) => Effect.runPromise(effect)
 ```
 
-**Trigger**: `Effect.runPromise`, `runSync`, `runFork`, `runCallback` and `NodeRuntime.runMain`/`BunRuntime.runMain` whose argument is neither `… satisfies Effect.Effect<A, never>` nor a parameter declared with that type.
+**Trigger**: `Effect.runPromise`, `runSync`, `runFork` and `runCallback` whose argument is not `… satisfies Effect.Effect<A, never>`, a parameter declared with that type, or a program ending in `Effect.result`/`Effect.exit` (`Effect.result(program)`, `program.pipe(…, Effect.result)`).
 
-**Exemptions and blind spots**: the `*Exit` variants, which return failures as values; runners inside an `async` function that renders JSX itself, a Server Component, which hands failures to React rather than to an HTTP response; test files, where a rejected run fails the test with the error. The rule checks the shape; `tsc` gives the guarantee.
+**Exemptions and blind spots**: the `*Exit` variants, which return failures as values; `NodeRuntime.runMain`/`BunRuntime.runMain`, which log the Cause and exit with code 1, the right outcome for a process that cannot start; runners inside an `async` function that renders JSX itself, a Server Component, which hands failures to React rather than to an HTTP response; test files, where a rejected run fails the test with the error. The rule checks the shape; `tsc` gives the guarantee.
 
 **Why**: `Effect.runPromise` turns any error left over into a rejected promise, a generic 500. With `never`, a new untranslated error does not compile, and `R = never` forces all Layers to be provided.
 
@@ -747,7 +747,7 @@ const printMissing = Effect.gen(function* () { … }).pipe(Effect.provide(missin
 
 **Trigger**: `Effect.provide` applied to `Effect.gen(…)` or to `Effect.fn(…)(…)`, in all three forms: with `.pipe`, as an `Effect.fn` pipeable, data-first.
 
-**Exemptions and blind spots**: test files. A context captured in an enclosing generator with `const ctx = yield* Effect.context<R>()` (also followed by `.pipe(…)`) and handed back to a method of the Layer being built: the caller chose the adapters when it built the Layer. A context obtained through a helper (`yield* contextWithoutSpan()`) is still reported. `provide` on a named program is allowed; `strict-effect-provide` (effecttsgo) reports it too.
+**Exemptions and blind spots**: test files. A program passed directly to `Effect.run*`, also through `.pipe(…)` or data-first `Effect.*` combinators (`Effect.runPromise(Effect.gen(…).pipe(Effect.provide(layer), Effect.result))`): it is already being dispatched; through any other function it is still reported. A context captured in an enclosing generator with `const ctx = yield* Effect.context<R>()` (also followed by `.pipe(…)`) and handed back to a method of the Layer being built: the caller chose the adapters when it built the Layer. A context obtained through a helper (`yield* contextWithoutSpan()`) is still reported. `provide` on a named program is allowed; `strict-effect-provide` (effecttsgo) reports it too.
 
 **Why**: a program that provides its own Layers can no longer be wired to different adapters by its caller.
 
@@ -872,7 +872,7 @@ export const findPrice = (id: PriceId): Effect.Effect<Price, PriceNotFound> =>
 
 **Exemptions and blind spots**: module-level declarations with `export` (`export const`, `export function`, `export default`), unless `checkExported` is on; methods of an exported object, functions an exported function returns, and `export { f }` lists are still checked. Recursion, and returns of different shapes that need unifying (`Effect.succeed` and `Effect.fail`), recognized from the shape of the `return`s. An `import type { Effect }` used as `Effect<…>` slips through.
 
-**Why**: the error and requirement channels collect what comes from everything the function calls; an error or a service added deep down would change every caller's annotation. An exported signature is the module's contract, like a named type: there the annotation makes such a change visible where it is published.
+**Why**: the error and requirement channels collect what comes from everything the function calls; an error or a service added deep down would change every caller's annotation. An exported signature is the module's contract, like a named type: there the annotation makes such a change visible where it is published. To check a returned object against a named type, annotate the callback that builds it (`Effect.map(CurrentSession, (session): OrganizationContext => ({ … }))`) or use `satisfies`.
 
 - **Pattern**: P33 · **Options**: `checkExported`, default `false`: also checks exported declarations · **Fix**: suggestion that removes the annotation · **Severity**: `warn`
 

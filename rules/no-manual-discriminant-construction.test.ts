@@ -43,6 +43,14 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
                 options: eventDiscriminants,
             },
             'Schema.encodeSync(Ready)({ _tag: "Ready", value: 1 })',
+            // Expected shapes in assertions, also nested.
+            'expect(outcome).toMatchObject({ _tag: "Failure", failure: { _tag: "NotReady" } })',
+            'expect(refusals).not.toEqual([{ _tag: "Failure" }])',
+            'expect(created).toEqual(expect.objectContaining({ _tag: "Ready" }))',
+            // Serialized or declared raw: no constructor builds the wire form.
+            'JSON.stringify({ _tag: "NotReady", checks: [] })',
+            'const answering = (status: number, body: unknown) => respond(status, JSON.stringify(body)); answering(503, { _tag: "NotReady" })',
+            'function answering(status: number, body: unknown = null) { return respond(status, body) }; answering(503, [{ _tag: "NotReady" }])',
         ],
         invalid: [
             // Ported from `anti-slop-no-manual-tagged-construction`, which this rule replaces.
@@ -53,6 +61,11 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
             {
                 code: 'const value = { ["_tag"]: "Ready" };',
                 errors: [{ messageId: "manualConstruction" }],
+            },
+            // The input under test is a value, even inside an assertion.
+            {
+                code: 'expect(describeOutcome({ _tag: "Ready" })).toBe("ready")',
+                errors: [constructionOf("_tag")],
             },
             {
                 code: 'const event: PaymentStartedEvent = { eventType: "PaymentStarted", id, payment }',
@@ -76,6 +89,19 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
             },
             {
                 code: 'Schema.is(Ready)({ _tag: "Ready" })',
+                errors: [constructionOf("_tag")],
+            },
+            // Only a parameter declared `unknown` in the file marks the argument as raw.
+            {
+                code: 'const answering = (status: number, body: Readiness) => respond(status, body); answering(503, { _tag: "NotReady" })',
+                errors: [constructionOf("_tag")],
+            },
+            {
+                code: 'import { answering } from "./fake-api"; answering(503, { _tag: "NotReady" })',
+                errors: [constructionOf("_tag")],
+            },
+            {
+                code: 'const answering = (body: unknown) => respond(body); { const answering = (body: Readiness) => respond(body); answering({ _tag: "NotReady" }) }',
                 errors: [constructionOf("_tag")],
             },
         ],

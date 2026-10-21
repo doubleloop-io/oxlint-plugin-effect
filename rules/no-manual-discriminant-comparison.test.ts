@@ -72,5 +72,32 @@ new RuleTester().run("no-manual-discriminant-comparison", noManualDiscriminantCo
             options: eventDiscriminants,
             errors: [comparisonOn("type")],
         },
+        {
+            code: 'if (started._tag === "Failure") return unavailable(started.failure)',
+            errors: [
+                {
+                    messageId: "effectVariantComparison",
+                    data: {
+                        tag: "Failure",
+                        owner: "`Result`/`Exit`",
+                        guard: "`Result.isFailure` or `Exit.isFailure`",
+                        remedy: remedyFor("_tag"),
+                    },
+                },
+            ],
+        },
+        {
+            code: '"None" === found._tag',
+            errors: [{ messageId: "effectVariantComparison" }],
+        },
+        {
+            code: 'switch (answer._tag) { case "Success": return show(answer.success) }',
+            errors: [{ messageId: "manualSwitch" }],
+        },
+        {
+            code: 'const confirmed = event.type === "Success"',
+            options: eventDiscriminants,
+            errors: [comparisonOn("type")],
+        },
     ],
 })

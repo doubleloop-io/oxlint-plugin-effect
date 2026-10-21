@@ -1,6 +1,6 @@
-import { defineRule, type ESTree } from "@oxlint/plugins"
+import { defineRule, type ESTree, type Scope, type SourceCode } from "@oxlint/plugins"
 
-import { calleeOf } from "../shared/effect-ast.ts"
+import { calleeOf, isFunctionNode } from "../shared/effect-ast.ts"
 import {
     configuredDiscriminants,
     discriminantsSchema,
@@ -45,8 +45,55 @@ const isSchemaCodecApplication = (call: ESTree.CallExpression) => {
     return method !== undefined && (method.startsWith("decode") || method.startsWith("encode"))
 }
 
-// A literal nested in a pattern or in a codec input belongs to it as much as the outermost one.
-const isPatternOrCodecInput = (node: ESTree.ObjectExpression) => {
+// `expect(x).toMatchObject(…)`, `expect(x).not.toEqual(…)`, `expect.objectContaining(…)`: the
+// literal describes the expected shape, and a partial match has no constructor to call.
+const isAssertionExpectation = (call: ESTree.CallExpression) => {
+    if (call.callee.type !== "MemberExpression") return false
+    let link: ESTree.Node = call.callee
+    while (link.type === "MemberExpression" || link.type === "CallExpression") {
+        link = link.type === "MemberExpression" ? link.object : link.callee
+    }
+    return link.type === "Identifier" && link.name === "expect"
+}
+
+// `JSON.stringify({ _tag: "NotReady" })`: the literal is the serialized form, which no constructor builds.
+const isJsonSerialization = (call: ESTree.CallExpression) => calleeOf(call, "JSON") === "stringify"
+
+const declaredFunction = (name: string, scope: Scope | null) => {
+    for (let current = scope; current; current = current.upper) {
+        const definition = current.set.get(name)?.defs[0]
+        if (definition === undefined) continue
+        const declared =
+            definition.node.type === "VariableDeclarator" ? definition.node.init : definition.node
+        return isFunctionNode(declared) ? declared : undefined
+    }
+    return undefined
+}
+
+// `readinessAgainst(503, { _tag: "NotReady" })` with `readinessAgainst` declared in the file as
+// `(status: number, body: unknown) => …`: the author declared the argument raw data, such as the
+// body a fake HTTP server answers with. Without types, a function imported from elsewhere is not seen.
+const isUnknownArgument = (
+    call: ESTree.CallExpression,
+    argument: ESTree.Node,
+    sourceCode: SourceCode,
+) => {
+    if (call.callee.type !== "Identifier") return false
+    const index = call.arguments.findIndex((candidate) => candidate === argument)
+    if (call.arguments.slice(0, index).some((candidate) => candidate.type === "SpreadElement")) {
+        return false
+    }
+    const fn = declaredFunction(call.callee.name, sourceCode.getScope(call))
+    const parameter = fn?.params[index]
+    const binding = parameter?.type === "AssignmentPattern" ? parameter.left : parameter
+    return (
+        binding?.type === "Identifier" &&
+        binding.typeAnnotation?.typeAnnotation.type === "TSUnknownKeyword"
+    )
+}
+
+// A literal nested in a pattern, in an expectation or in raw input belongs to it as much as the outermost one.
+const isPatternExpectationOrRawInput = (node: ESTree.ObjectExpression, sourceCode: SourceCode) => {
     let child: ESTree.Node = node
     let current = node.parent
     while (
@@ -62,7 +109,10 @@ const isPatternOrCodecInput = (node: ESTree.ObjectExpression) => {
         current.arguments.some((argument) => argument === child) &&
         (isMatchPatternCall(current) ||
             isTsPatternWithCall(current) ||
-            isSchemaCodecApplication(current))
+            isAssertionExpectation(current) ||
+            isSchemaCodecApplication(current) ||
+            isJsonSerialization(current) ||
+            isUnknownArgument(current, child, sourceCode))
     )
 }
 
@@ -97,7 +147,7 @@ export const noManualDiscriminantConstructionRule = defineRule({
                     if (property.type !== "Property" || !isStringLiteral(property.value)) continue
                     const discriminant = propertyName(property)
                     if (discriminant === undefined || !discriminants.has(discriminant)) continue
-                    if (isPatternOrCodecInput(node)) return
+                    if (isPatternExpectationOrRawInput(node, context.sourceCode)) return
                     context.report({
                         node: property,
                         messageId: "manualConstruction",

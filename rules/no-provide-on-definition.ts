@@ -1,6 +1,7 @@
 import { defineRule, type ESTree } from "@oxlint/plugins"
 
 import { calleeOf, isEffectFnApplication } from "../shared/effect-ast.ts"
+import { runnerName } from "../shared/effect-runners.ts"
 import { filePatternsSchema } from "../shared/file-globs.ts"
 import { isTestFile } from "../shared/test-files.ts"
 
@@ -59,6 +60,36 @@ const providedDefinition = (provide: ESTree.CallExpression) => {
     return parent.arguments.includes(provide) && isProgramDefinition(pipeReceiver(parent))
 }
 
+const isRunnerCall = (node: ESTree.Node | null): node is ESTree.CallExpression =>
+    node?.type === "CallExpression" &&
+    node.callee.type === "MemberExpression" &&
+    runnerName(node.callee) !== undefined
+
+// The expression a `.pipe(…)` or a data-first `Effect.*` combinator builds around `node`.
+const enclosingProgram = (node: ESTree.Node) => {
+    const { parent } = node
+    if (parent?.type === "MemberExpression" && parent.object === node) {
+        const call = parent.parent
+        return call?.type === "CallExpression" && pipeReceiver(call) === node ? call : undefined
+    }
+    return parent?.type === "CallExpression" &&
+        parent.arguments.some((argument) => argument === node) &&
+        (pipeReceiver(parent) !== undefined || calleeOf(parent, "Effect") !== undefined) &&
+        !isRunnerCall(parent)
+        ? parent
+        : undefined
+}
+
+// A program handed straight to `Effect.run*` has no caller to wire it: it is being dispatched.
+const isDispatchedInline = (provide: ESTree.CallExpression) => {
+    let program: ESTree.Node = provide
+    for (let outer = enclosingProgram(program); outer; outer = enclosingProgram(program)) {
+        program = outer
+    }
+    const { parent } = program
+    return isRunnerCall(parent) && parent.arguments.some((argument) => argument === program)
+}
+
 // A program that provides its own layers can no longer be wired differently by its caller:
 // the dispatch that picks the adapters is where `Effect.provide` belongs.
 export const noProvideOnDefinitionRule = defineRule({
@@ -92,7 +123,11 @@ export const noProvideOnDefinitionRule = defineRule({
                 if (inTestFile || calleeOf(node, "Effect") !== "provide") return
                 // A Layer that captures its context with `Effect.context()` hands it back to each
                 // method: the caller already chose the adapters when it built the Layer.
-                if (providedDefinition(node) && !isCapturedContext(providedValue(node))) {
+                if (
+                    providedDefinition(node) &&
+                    !isCapturedContext(providedValue(node)) &&
+                    !isDispatchedInline(node)
+                ) {
                     context.report({ node, messageId: "provideOnDefinition" })
                 }
             },

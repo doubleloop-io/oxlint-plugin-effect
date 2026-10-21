@@ -25,11 +25,7 @@ const isRedactedSchema = (node: ESTree.Node | undefined) =>
 
 const isRedactedConfig = (node: ESTree.CallExpression) => {
     const name = calleeOf(node, "Config")
-    return (
-        name === "redacted" ||
-        (name === "schema" && isRedactedSchema(node.arguments[0])) ||
-        calleeOf(node.parent, "Config") === "redacted"
-    )
+    return name === "Redacted" || (name === "schema" && isRedactedSchema(node.arguments[0]))
 }
 
 const isRedactedReference = (node: ESTree.Node) =>
@@ -91,7 +87,7 @@ export const redactedSecretNamesRule = defineRule({
         },
         messages: {
             notRedacted:
-                "`{{name}}` looks like a secret: read it with `Config.redacted` or `Config.schema(Schema.Redacted(...), name)`.",
+                "`{{name}}` looks like a secret: read it with `Config.Redacted` or `Config.schema(Schema.Redacted(...), name)`.",
             fieldNotRedacted:
                 "`{{name}}` looks like a secret: declare it as `Schema.Redacted(...)` so it stays out of logs.",
         },

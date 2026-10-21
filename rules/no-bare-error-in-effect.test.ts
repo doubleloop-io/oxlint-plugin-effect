@@ -8,6 +8,12 @@ new RuleTester().run("no-bare-error-in-effect", noBareErrorInEffectRule, {
         "const missing = Effect.fail(new TabNotFound({ name }))",
         'const parsed = Effect.try({ try: () => { throw new Error("boom") }, catch: toParseError })',
         'function parse(text) { throw new Error("boom") }',
+        { code: 'const failing = Effect.fail("boom")', filename: "src/readiness.test.ts" },
+        {
+            code: 'const failing = Effect.fail("boom")',
+            filename: "src/readiness.check.ts",
+            options: [{ testFiles: ["**/*.check.ts"] }],
+        },
     ],
     invalid: [
         {
@@ -20,6 +26,17 @@ new RuleTester().run("no-bare-error-in-effect", noBareErrorInEffectRule, {
         },
         {
             code: 'const missing = Effect.fail("tab not found")',
+            errors: [{ messageId: "primitiveFailure" }],
+        },
+        {
+            code: 'Effect.gen(function* () { throw new Error("boom") })',
+            filename: "src/readiness.test.ts",
+            errors: [{ messageId: "throwInGenerator" }],
+        },
+        {
+            code: 'const failing = Effect.fail("boom")',
+            filename: "src/readiness.test.ts",
+            options: [{ testFiles: ["**/*.check.ts"] }],
             errors: [{ messageId: "primitiveFailure" }],
         },
         {

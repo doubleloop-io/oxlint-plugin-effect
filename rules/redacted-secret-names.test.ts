@@ -7,10 +7,9 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
     redactedSecretNamesRule,
     {
         valid: [
-            'const token = Config.redacted("API_TOKEN")',
+            'const token = Config.Redacted("API_TOKEN")',
             'const key = Config.schema(Schema.Redacted(NonBlank), "GOOGLE_SERVICE_ACCOUNT_JSON")',
-            'const key = Config.redacted(Config.string("API_KEY"))',
-            'const sheet = Config.string("SHEET_ID")',
+            'const sheet = Config.String("SHEET_ID")',
             "const Session = Schema.Struct({ accessToken: Schema.Redacted(Schema.String) })",
             "const Session = Schema.Struct({ accessToken: Schema.RedactedFromValue(Schema.String) })",
             "const Session = Schema.Struct({ accessToken: Schema.String.pipe(Schema.Redacted) })",
@@ -28,7 +27,7 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
         ],
         invalid: [
             {
-                code: 'const key = Config.string("API_KEY")',
+                code: 'const key = Config.String("API_KEY")',
                 errors: [{ messageId: "notRedacted", data: { name: "API_KEY" } }],
             },
             {
@@ -38,7 +37,7 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
                 ],
             },
             {
-                code: 'const password = Config.nonEmptyString("DB_PASSWORD")',
+                code: 'const password = Config.NonEmptyString("DB_PASSWORD")',
                 errors: [{ messageId: "notRedacted", data: { name: "DB_PASSWORD" } }],
             },
             {

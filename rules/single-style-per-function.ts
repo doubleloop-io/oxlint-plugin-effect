@@ -6,6 +6,8 @@ import {
     memberOf,
     type FunctionNode,
 } from "../shared/effect-ast.ts"
+import { filePatternsSchema } from "../shared/file-globs.ts"
+import { isTestFile } from "../shared/test-files.ts"
 
 type PromiseStep = {
     readonly node: ESTree.AwaitExpression | ESTree.CallExpression
@@ -52,6 +54,12 @@ const interleavesEffectSteps = (frame: Frame) => {
     )
 }
 
+const reportFor = {
+    test: "asyncEffectTest",
+    hook: "asyncEffectHook",
+    helper: "asyncEffectHelper",
+} as const
+
 export const singleStylePerFunctionRule = defineRule({
     meta: {
         type: "problem",
@@ -67,12 +75,27 @@ export const singleStylePerFunctionRule = defineRule({
                 "This test chains promises around Effect: await a single program and assert on its result, or make its body one Effect with `it.effect` from `@effect/vitest`.",
             asyncEffectHook:
                 "This hook chains promises around Effect: await a single program, lifting the promises into it with `Effect.tryPromise({ try, catch })`, or build the fixture as a Layer with `layer` from `@effect/vitest`.",
+            asyncEffectHelper:
+                "This test helper chains promises around Effect: await a single program, lifting the promises into it with `Effect.tryPromise({ try, catch })`.",
         },
+        schema: [
+            {
+                type: "object",
+                properties: { testFiles: filePatternsSchema },
+                additionalProperties: false,
+            },
+        ],
     },
     createOnce(context) {
         const frames: Array<Frame> = []
         const current = () => frames.at(-1)
         const openSteps: Array<PromiseStep> = []
+        let inTestFile = false
+
+        // In a test file a helper such as `probe` or `captureLines` is a promise/Effect boundary
+        // like the test that calls it, so it gets the same allowance.
+        const roleOf = (fn: FunctionNode) =>
+            testRoleOf(fn) ?? (inTestFile && !isEffectGenerator(fn) ? "helper" : undefined)
 
         const enter = (fn: FunctionNode) => {
             frames.push({
@@ -93,13 +116,10 @@ export const singleStylePerFunctionRule = defineRule({
             const frame = frames.pop()
             if (frame === undefined) return
             // One report per test or hook: the remedy is its shape, not each promise in it.
-            const role = testRoleOf(frame.fn)
+            const role = roleOf(frame.fn)
             if (role !== undefined) {
                 if (interleavesEffectSteps(frame))
-                    context.report({
-                        node: frame.fn,
-                        messageId: role === "test" ? "asyncEffectTest" : "asyncEffectHook",
-                    })
+                    context.report({ node: frame.fn, messageId: reportFor[role] })
                 return
             }
             if (!frame.effectful || isServerComponent(frame.fn, frame.rendersJsx)) return
@@ -114,6 +134,9 @@ export const singleStylePerFunctionRule = defineRule({
         }
 
         return {
+            before() {
+                inTestFile = isTestFile(context)
+            },
             ArrowFunctionExpression: enter,
             FunctionExpression: enter,
             FunctionDeclaration: enter,

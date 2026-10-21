@@ -3,6 +3,7 @@ import { defineRule, type ESTree } from "@oxlint/plugins"
 import {
     calleeOf,
     isServerComponent,
+    memberOf,
     nearestFunction,
     type FunctionNode,
 } from "../shared/effect-ast.ts"
@@ -16,12 +17,12 @@ type Frame = {
 }
 
 // The *Exit runners hand failures back as values, so an open error channel cannot leak there.
+// `NodeRuntime.runMain`/`BunRuntime.runMain` are boundaries too: they log the Cause and exit with
+// code 1, which is the right outcome for a process failing to start (a ConfigError, a busy port).
 const effectRunners = new Set(["runPromise", "runSync", "runFork", "runCallback"])
-const runtimes = ["NodeRuntime", "BunRuntime"]
 
 const isRunnerCall = (node: ESTree.CallExpression) =>
-    effectRunners.has(calleeOf(node, "Effect") ?? "") ||
-    runtimes.some((runtime) => calleeOf(node, runtime) === "runMain")
+    effectRunners.has(calleeOf(node, "Effect") ?? "")
 
 const isEffectTypeName = (name: ESTree.TSTypeName) =>
     (name.type === "Identifier" && name.name === "Effect") ||
@@ -46,9 +47,26 @@ const parameterType = (identifier: ESTree.IdentifierReference) => {
     return undefined
 }
 
+// They turn every failure into a success value, so whatever comes before cannot leak.
+const failureToValue = new Set(["result", "exit"])
+
+const isPipeCall = (node: ESTree.CallExpression) =>
+    node.callee.type === "MemberExpression" &&
+    !node.callee.computed &&
+    node.callee.property.type === "Identifier" &&
+    node.callee.property.name === "pipe"
+
+// `Effect.result(program)` or `program.pipe(…, Effect.result)`.
+const endsWithFailureToValue = (node: ESTree.CallExpression) => {
+    const last = isPipeCall(node) ? node.arguments.at(-1) : undefined
+    const step = last === undefined ? calleeOf(node, "Effect") : memberOf(last, "Effect")
+    return failureToValue.has(step ?? "")
+}
+
 const hasClosedErrorChannel = (node: ESTree.Argument | undefined) => {
     if (node?.type === "TSSatisfiesExpression") return isClosedEffectType(node.typeAnnotation)
     if (node?.type === "Identifier") return isClosedEffectType(parameterType(node))
+    if (node?.type === "CallExpression") return endsWithFailureToValue(node)
     return false
 }
 

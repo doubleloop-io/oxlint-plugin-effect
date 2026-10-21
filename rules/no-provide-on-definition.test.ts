@@ -40,6 +40,9 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
                 capturedContext,
                 "run: (x) => Effect.provide(Effect.gen(function* () {}), ctx)",
             ),
+            "await Effect.runPromise(Effect.gen(function* () {}).pipe(Effect.provide(FetchHttpClient.layer), Effect.result))",
+            "Effect.runFork(Effect.provide(Effect.gen(function* () {}), appLayer))",
+            "Effect.runPromise(Effect.result(Effect.gen(function* () {}).pipe(Effect.provide(appLayer))))",
             inLayer(
                 "Effect.context<Repo>().pipe(Effect.map(Context.omit(Tracer.ParentSpan)))",
                 'run: Effect.fn("run")(function* (x) {}, Effect.provide(ctx))',
@@ -79,6 +82,10 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
             },
             {
                 code: 'const summary = Effect.fn("summary")(function* () {}, Effect.provide(fillLayer))',
+                errors: [{ messageId: "provideOnDefinition" }],
+            },
+            {
+                code: "Effect.runPromise(withRetry(Effect.gen(function* () {}).pipe(Effect.provide(appLayer))))",
                 errors: [{ messageId: "provideOnDefinition" }],
             },
             {
