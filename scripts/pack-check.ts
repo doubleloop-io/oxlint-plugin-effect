@@ -5,9 +5,9 @@ import { join } from "node:path"
 
 import { npmPack } from "./npm-pack.ts"
 
-// Internal project names and local paths must never reach the public tarball. The list only
-// protects from the names it holds: add new internal projects here.
-const denylist = ["/Users/"]
+// Absolute paths of the build machine, such as those a source map can carry, must never reach
+// the public tarball.
+const localPathMarkers = ["/Users/", "/home/"]
 
 // Mirrors `files` in package.json; npm adds package.json on its own.
 const allowedFiles = ["package.json", "RULES.md", "README.md", "LICENSE", "LICENSE.anti-slop"]
@@ -17,8 +17,8 @@ const isAllowed = (path: string) =>
     allowedFiles.includes(path) ||
     allowedDirectories.some((directory) => path.startsWith(directory))
 
-const findDenied = (content: string) =>
-    denylist.filter((name) => content.toLowerCase().includes(name.toLowerCase()))
+const findLocalPaths = (content: string) =>
+    localPathMarkers.filter((marker) => content.includes(marker))
 
 const workDir = await mkdtemp(join(tmpdir(), "pack-check-"))
 const problems: string[] = []
@@ -29,8 +29,8 @@ try {
 
     for (const { path } of files) {
         if (!isAllowed(path)) problems.push(`${path}: outside \`files\``)
-        const denied = findDenied(await readFile(join(workDir, "package", path), "utf8"))
-        if (denied.length > 0) problems.push(`${path}: contains ${denied.join(", ")}`)
+        const localPaths = findLocalPaths(await readFile(join(workDir, "package", path), "utf8"))
+        if (localPaths.length > 0) problems.push(`${path}: contains ${localPaths.join(", ")}`)
     }
 
     try {
