@@ -4,9 +4,7 @@ An oxlint plugin that enforces a catalog of patterns for Effect 4 code.
 
 The rules are written and tested against Effect 4. On an Effect 3 codebase most of them do not recognize the APIs and stay silent: silence there is not compliance.
 
-## Install `@effect/tsgo` first
-
-[`@effect/tsgo`](https://github.com/Effect-TS/tsgo) is the official Effect language service on top of the TypeScript Go compiler; its `effecttsgo` oxlint presets ship more than 100 type-aware rules. This plugin is meant to be used alongside them: its rules target what those presets do not check. Set it up with its [Oxlint Setup guide](https://github.com/Effect-TS/tsgo/blob/main/docs/README.md) and put its `extends` **before** this plugin's preset, which does not include it.
+It complements the type-aware rules of [`@effect/tsgo`](#alongside-effecttsgo): it does not need them, and it checks what they do not.
 
 ## Installation
 
@@ -54,7 +52,7 @@ To pick rules without the preset, load the plugin by package name and list the r
 Two options tell the rules where your files are. Their defaults fit a Node CLI; on another layout (Next.js, a monorepo) set them before reading the warnings.
 
 - `entryFiles`: the files allowed to run Effects and import adapters. Default `**/main.ts`, `**/cli.ts`, `**/bin/**`. Used by `run-only-in-runner` and `adapter-import-boundary`.
-- `testFiles`: the test files, exempt from the rules that tests legitimately break and the only files `prefer-effect-vitest` checks. Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. Used by `run-only-in-runner`, `prefer-effect-vitest`, `adapter-import-boundary`, `no-effect-promise`, `provide-named-layer`, `no-provide-on-definition`, `error-handling-in-effect-fn-handler`, `all-errors-handled-at-boundary` and `anti-slop-no-service-constructor-imports`.
+- `testFiles`: the test files, exempt from the rules that tests legitimately break and the only files `prefer-effect-vitest` checks. Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. The rules that use it are listed in [File options](RULES.md#file-options).
 
 Set an option only where its default does not fit. It **replaces** the default instead of extending it, and every rule that uses it must get the same value. With `oxlint.config.ts`, declare it once and override the rules that use it after `extends`:
 
@@ -77,7 +75,7 @@ The package exports the defaults as `defaultEntryFiles` and `defaultTestFiles`: 
 
 The other options and every default are in [Default configuration](#default-configuration).
 
-### Alongside `@effect/tsgo` (optional)
+### Alongside `@effect/tsgo`
 
 [`@effect/tsgo`](https://github.com/Effect-TS/tsgo) is the official Effect language service on top of the TypeScript Go compiler; its `effecttsgo` oxlint presets add more than 100 type-aware rules. This plugin does not need it, and its rules target what those presets do not check, so the two complement each other. To use both, follow its [Oxlint Setup guide](https://github.com/Effect-TS/tsgo/blob/main/docs/README.md) and put its preset in `extends` **before** `all`:
 
@@ -107,7 +105,7 @@ What each rule reports and why is in [`RULES.md`](RULES.md).
 | Error channel        | [`no-bare-error-in-effect`](RULES.md#no-bare-error-in-effect), [`try-object-form`](RULES.md#try-object-form), [`no-effect-promise`](RULES.md#no-effect-promise), [`no-parameterless-catch-all`](RULES.md#no-parameterless-catch-all), [`error-handling-in-effect-fn-handler`](RULES.md#error-handling-in-effect-fn-handler), [`anti-slop-no-manual-effect-error-tag`](RULES.md#anti-slop-no-manual-effect-error-tag) |
 | Tagged values        | [`no-manual-discriminant-comparison`](RULES.md#no-manual-discriminant-comparison), [`no-manual-discriminant-construction`](RULES.md#no-manual-discriminant-construction)                                                                                                                                                                                                                                             |
 | Services & Layers    | [`service-port-shape-only`](RULES.md#service-port-shape-only), [`service-key-matches-name`](RULES.md#service-key-matches-name), [`service-built-with-of`](RULES.md#service-built-with-of), [`provide-named-layer`](RULES.md#provide-named-layer), [`no-provide-on-definition`](RULES.md#no-provide-on-definition), [`anti-slop-no-service-constructor-imports`](RULES.md#anti-slop-no-service-constructor-imports)   |
-| Runtime & entrypoint | [`run-only-in-runner`](RULES.md#run-only-in-runner), [`all-errors-handled-at-boundary`](RULES.md#all-errors-handled-at-boundary)                                                                                                                                                                                                                                                                                     |
+| Runtime & entrypoint | [`run-only-in-runner`](RULES.md#run-only-in-runner), [`prefer-effect-vitest`](RULES.md#prefer-effect-vitest), [`all-errors-handled-at-boundary`](RULES.md#all-errors-handled-at-boundary)                                                                                                                                                                                                                            |
 | Design & boundaries  | [`adapter-import-boundary`](RULES.md#adapter-import-boundary), [`no-transport-types-in-generator`](RULES.md#no-transport-types-in-generator)                                                                                                                                                                                                                                                                         |
 | Effectful functions  | [`prefer-effect-fn`](RULES.md#prefer-effect-fn), [`untraced-recursion`](RULES.md#untraced-recursion), [`single-style-per-function`](RULES.md#single-style-per-function)                                                                                                                                                                                                                                              |
 | Code shape           | [`no-nested-match`](RULES.md#no-nested-match), [`no-yielded-match`](RULES.md#no-yielded-match), [`no-inline-yield-star`](RULES.md#no-inline-yield-star), [`no-effect-return-type`](RULES.md#no-effect-return-type), [`no-asymmetric-match-handlers`](RULES.md#no-asymmetric-match-handlers), [`anti-slop-prefer-effect-match`](RULES.md#anti-slop-prefer-effect-match)                                               |
@@ -151,12 +149,11 @@ export default defineConfig({
     // Every rule at `warn`, to measure noise without blocking.
     rules: {
         // Error channel
-        "dl-effect/no-bare-error-in-effect": "warn",
+        "dl-effect/no-bare-error-in-effect": ["warn", { testFiles }],
         "dl-effect/try-object-form": "warn",
         "dl-effect/no-effect-promise": ["warn", { testFiles }],
         "dl-effect/no-parameterless-catch-all": "warn",
         "dl-effect/error-handling-in-effect-fn-handler": ["warn", { testFiles }],
-        "dl-effect/all-errors-handled-at-boundary": ["warn", { testFiles }],
         "dl-effect/anti-slop-no-manual-effect-error-tag": "warn",
         // Tagged values
         "dl-effect/no-manual-discriminant-comparison": ["warn", { discriminants }],
@@ -171,14 +168,14 @@ export default defineConfig({
         // Runtime & entrypoint
         "dl-effect/run-only-in-runner": ["warn", { entryFiles, testFiles }],
         "dl-effect/prefer-effect-vitest": ["warn", { testFiles }],
-        "dl-effect/all-errors-handled-at-boundary": "warn",
+        "dl-effect/all-errors-handled-at-boundary": ["warn", { testFiles }],
         // Design & boundaries
         "dl-effect/adapter-import-boundary": ["warn", { entryFiles, testFiles }],
         "dl-effect/no-transport-types-in-generator": ["warn", { transportTypes }],
         // Effectful functions
         "dl-effect/prefer-effect-fn": "warn",
         "dl-effect/untraced-recursion": "warn",
-        "dl-effect/single-style-per-function": "warn",
+        "dl-effect/single-style-per-function": ["warn", { testFiles }],
         // Code shape
         "dl-effect/no-nested-match": "warn",
         "dl-effect/no-yielded-match": "warn",

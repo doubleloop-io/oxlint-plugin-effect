@@ -1,13 +1,13 @@
 # Library principles
 
-The criteria by which a rule enters, changes or leaves `dl-effect`. They apply to every new or modified rule and to every pattern triage. Written on 2026-10-15.
+The criteria by which a rule enters, changes or leaves `dl-effect`. They apply to every new or modified rule and to every candidate pattern. Written on 2026-10-15.
 
 ## Small core, very few false positives
 
 A rule that reports correct code teaches people to ignore reports, including those of the other rules. A missed case is better than a false positive.
 
 - A rule enters only if its expected false positives are rare and recognizable from syntax, so the rule itself can exempt them.
-- Doubt about usefulness is not enough: a pattern that helps "sometimes" stays out. `maybe` items do not become rules until a new fact moves them.
+- Doubt about usefulness is enough to leave a pattern out: one that helps "sometimes" does not become a rule until new evidence shows it helps consistently.
 - A name heuristic (`token`, `type`, …) enters only with a narrow or empty default, which consumers who want it can widen through an option.
 - Exemptions belong in the rule, not in the consumer's disable comments: if a legitimate case needs an `oxlint-disable`, the rule must be narrowed.
 - Severity comes from measurement on a real codebase: a rule stays at `warn` until it produces zero noise.
@@ -22,7 +22,7 @@ A pattern already reported by `@effect/tsgo` does not become a rule. If effectts
 
 ## Effect 4
 
-Rules recognize Effect 4 APIs only.
+Rules are written and tested against Effect 4. Some also recognize a few v3 names (`catchAll`, `Effect.Service`, `Context.Tag`), but Effect 3 is not supported.
 
 ## Anti-slop unchanged
 

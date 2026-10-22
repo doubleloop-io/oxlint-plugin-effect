@@ -34,7 +34,7 @@ the compliant form
 
 **Why**: one or two sentences.
 
-- **Pattern**: Pxx · **Options**: … · **Fix**: … · **Severity**: `error`
+- **Options**: … · **Fix**: … · **Severity**: `error`
 ````
 
 The heading and the back link below it are enforced by `rules-md.test.ts`.
@@ -53,6 +53,6 @@ The heading and the back link below it are enforced by `rules-md.test.ts`.
 - **Every fact in one place.** What applies to several rules (common limits, `entryFiles`, `testFiles`) lives in the opening sections and rules link to it.
 - **Sibling rules** (same pattern): the second has Intent, Trigger, Exemptions and metadata, and links to the first for the example and Why instead of repeating them.
 - **No source citations** (`AGENTS.md`, JSDoc, `ai-docs/`), no rule history, no numeric comparisons with effecttsgo: they do not belong in the catalog.
-- **No pattern guides.** How to structure tests without `@effect/vitest`, how to write a test runner: those are patterns, not rules, and go in the pattern catalog.
+- **No pattern guides.** How to structure tests without `@effect/vitest`, how to write a test runner: those are patterns, not rules, and do not belong in the catalog.
 - **No repetition across fields.** If Why repeats the Intent, drop Why; if the Trigger repeats the example, shorten the Trigger.
 - **Size**: if a section exceeds about thirty lines, the rule is probably too broad or the text explains things that do not belong to it.
