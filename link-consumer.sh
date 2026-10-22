@@ -56,4 +56,14 @@ for target in "${targets[@]}"; do
     ln -sfn "$checkout" "$target"
     echo "collegato: $target -> $checkout"
 done
+
+# Il symlink da solo non basta: conta che il consumer risolva il plugin nel dist del checkout.
+for target in "${targets[@]}"; do
+    package="$(dirname "$(dirname "$(dirname "$target")")")"
+    resolved="$(cd "$package" && node -p 'require.resolve("@doubleloop-io/oxlint-plugin-effect")' 2>&1)" || true
+    if [[ $resolved != "$checkout/dist/index.js" ]]; then
+        echo "errore: da $package il plugin non si risolve in $checkout/dist/index.js: $resolved" >&2
+        exit 1
+    fi
+done
 echo "per scollegare: $0 unlink $consumer"
