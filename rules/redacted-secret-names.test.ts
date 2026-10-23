@@ -10,6 +10,9 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
             'const token = Config.Redacted("API_TOKEN")',
             'const key = Config.schema(Schema.Redacted(NonBlank), "GOOGLE_SERVICE_ACCOUNT_JSON")',
             'const sheet = Config.String("SHEET_ID")',
+            // Effect 3.
+            'const token = Config.redacted("API_TOKEN")',
+            'const token = Config.redacted(Config.string("API_TOKEN"))',
             "const Session = Schema.Struct({ accessToken: Schema.Redacted(Schema.String) })",
             "const Session = Schema.Struct({ accessToken: Schema.RedactedFromValue(Schema.String) })",
             "const Session = Schema.Struct({ accessToken: Schema.String.pipe(Schema.Redacted) })",
@@ -54,6 +57,21 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
                     { messageId: "fieldNotRedacted", data: { name: "apiKey" } },
                     { messageId: "fieldNotRedacted", data: { name: "dbPassword" } },
                     { messageId: "fieldNotRedacted", data: { name: "clientSecret" } },
+                ],
+            },
+            {
+                code: 'const key = Config.string("API_KEY")',
+                errors: [{ messageId: "notRedacted", data: { name: "API_KEY" } }],
+            },
+            {
+                // Effect 3 wrappers and annotations.
+                code: `const Login = Schema.Struct({
+    password: Schema.optionalWith(Schema.String, { exact: true }),
+    apiKey: Schema.String.annotations({ description: "key" }),
+})`,
+                errors: [
+                    { messageId: "fieldNotRedacted", data: { name: "password" } },
+                    { messageId: "fieldNotRedacted", data: { name: "apiKey" } },
                 ],
             },
             {

@@ -16,16 +16,28 @@ const defaultSecretFields = [
     "idToken",
 ]
 
-const nullableWrappers = new Set(["optional", "optionalKey", "NullOr", "UndefinedOr", "NullishOr"])
-const chainMethods = new Set(["pipe", "check", "annotate"])
+// `optionalWith` and `annotations` are the Effect 3 names.
+const nullableWrappers = new Set([
+    "optional",
+    "optionalKey",
+    "optionalWith",
+    "NullOr",
+    "UndefinedOr",
+    "NullishOr",
+])
+const chainMethods = new Set(["pipe", "check", "annotate", "annotations"])
 
 const isRedactedSchema = (node: ESTree.Node | undefined) =>
     node?.type === "CallExpression" &&
     (memberOf(node.callee, "Schema")?.startsWith("Redacted") ?? false)
 
-const isRedactedConfig = (node: ESTree.CallExpression) => {
+// Effect 3 spells it `Config.redacted`, which also wraps a config: `Config.redacted(Config.string(…))`.
+const isRedactedConfig = (node: ESTree.Node | null) => {
     const name = calleeOf(node, "Config")
-    return name === "Redacted" || (name === "schema" && isRedactedSchema(node.arguments[0]))
+    if (name === "Redacted" || name === "redacted") return true
+    return (
+        name === "schema" && node?.type === "CallExpression" && isRedactedSchema(node.arguments[0])
+    )
 }
 
 const isRedactedReference = (node: ESTree.Node) =>
@@ -87,7 +99,7 @@ export const redactedSecretNamesRule = defineRule({
         },
         messages: {
             notRedacted:
-                "`{{name}}` looks like a secret: read it with `Config.Redacted` or `Config.schema(Schema.Redacted(...), name)`.",
+                "`{{name}}` looks like a secret: read it with `Config.Redacted` (Effect 3: `Config.redacted`) or `Config.schema(Schema.Redacted(...), name)`.",
             fieldNotRedacted:
                 "`{{name}}` looks like a secret: declare it as `Schema.Redacted(...)` so it stays out of logs.",
         },
@@ -105,7 +117,8 @@ export const redactedSecretNamesRule = defineRule({
         let secretFields: ReadonlyArray<string> = defaultSecretFields
 
         const checkConfig = (node: ESTree.CallExpression) => {
-            if (calleeOf(node, "Config") === undefined || isRedactedConfig(node)) return
+            if (calleeOf(node, "Config") === undefined) return
+            if (isRedactedConfig(node) || isRedactedConfig(node.parent)) return
             for (const argument of node.arguments) {
                 if (
                     argument.type === "Literal" &&

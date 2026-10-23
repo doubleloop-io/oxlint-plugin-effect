@@ -936,8 +936,8 @@ const Session = Schema.Struct({ userId: UserId, accessToken: Schema.Redacted(Sch
 
 **Trigger**:
 
-- a literal name read with `Config.*` that ends with `KEY`, `SECRET`, `TOKEN`, `PASSWORD`, `CREDENTIAL`, `CREDENTIALS` or `_JSON` (service account keys often travel as inline JSON), when it does not go through `Config.Redacted` or `Config.schema(Schema.Redacted…(…), name)`;
-- a field of `Schema.Struct({…})` or `Schema.Class<X>("X")({…})` whose name is a `secretFields` entry or ends with it capitalized (`password` matches `dbPassword`), declared with a `Schema.*` constant such as `Schema.String`, also through `.pipe(…)`, `.check(…)`, `.annotate(…)` or `Schema.optional`/`optionalKey`/`NullOr`/`UndefinedOr`/`NullishOr`, with no `Schema.Redacted…` along the way.
+- a literal name read with `Config.*` that ends with `KEY`, `SECRET`, `TOKEN`, `PASSWORD`, `CREDENTIAL`, `CREDENTIALS` or `_JSON` (service account keys often travel as inline JSON), when it does not go through `Config.Redacted`, the v3 `Config.redacted` (also wrapping a config, `Config.redacted(Config.string(name))`), or `Config.schema(Schema.Redacted…(…), name)`;
+- a field of `Schema.Struct({…})` or `Schema.Class<X>("X")({…})` whose name is a `secretFields` entry or ends with it capitalized (`password` matches `dbPassword`), declared with a `Schema.*` constant such as `Schema.String`, also through `.pipe(…)`, `.check(…)`, `.annotate(…)`/`.annotations(…)` or `Schema.optional`/`optionalKey`/`optionalWith`/`NullOr`/`UndefinedOr`/`NullishOr`, with no `Schema.Redacted…` along the way.
 
 **Exemptions and blind spots**: a naming heuristic: secrets with other names slip through, non-secrets with these names must be suppressed. Fields declared with a named schema (`accessToken: AccessToken`) are not inspected; other constructors (`Schema.TaggedClass`, `Schema.TaggedStruct`, …) are not seen. `process.env` read outside `Config`: see `process-env` and `process-env-in-effect` (effecttsgo).
 
