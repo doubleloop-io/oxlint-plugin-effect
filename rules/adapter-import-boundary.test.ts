@@ -12,6 +12,14 @@ void test("a directory is an adapter when a file builds a Layer, whatever the bi
     assert.ok(buildsLayer("export const repo = Layer.scoped(Repo, acquire)"))
 })
 
+void test("an Effect 3 Effect.Service makes a directory an adapter", () => {
+    assert.ok(
+        buildsLayer(
+            'export class Repo extends Effect.Service<Repo>()("Repo", { effect: make }) {}',
+        ),
+    )
+})
+
 void test("composing existing Layers does not make a directory an adapter", () => {
     assert.ok(
         !buildsLayer("const fillLayer = Layer.mergeAll(FileRaceList.layer, GoogleSheet.layer)"),

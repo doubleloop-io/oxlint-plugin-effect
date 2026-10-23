@@ -37,7 +37,12 @@ const LAYER_CONSTRUCTORS = [
 // Like the other rules, names are matched literally: `import * as L from "effect/Layer"` escapes.
 const LAYER_CONSTRUCTION = new RegExp(`\\bLayer\\.(?:${LAYER_CONSTRUCTORS.join("|")})\\s*\\(`, "u")
 
-export const buildsLayer = (source: string) => LAYER_CONSTRUCTION.test(source)
+// An Effect 3 `Effect.Service` always carries its implementation and the `Default` layer built
+// from it, so a file that declares one is an adapter even without a `Layer.*` call.
+const EFFECT_SERVICE = /\bEffect\.Service\s*[<(]/u
+
+export const buildsLayer = (source: string) =>
+    LAYER_CONSTRUCTION.test(source) || EFFECT_SERVICE.test(source)
 
 // Test files are skipped so a fixture layer cannot promote a domain directory to an adapter.
 const isSource = (entry: string) => entry.endsWith(".ts") && !entry.endsWith(".test.ts")
