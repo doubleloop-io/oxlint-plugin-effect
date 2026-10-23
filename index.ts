@@ -10,7 +10,6 @@ import { antiSlopPreferEffectMatchRule } from "./rules/anti-slop-prefer-effect-m
 import { errorHandlingInEffectFnHandlerRule } from "./rules/error-handling-in-effect-fn-handler.ts"
 import { exportedSchemaIdentifierRule } from "./rules/exported-schema-identifier.ts"
 import { noAsymmetricMatchHandlersRule } from "./rules/no-asymmetric-match-handlers.ts"
-import { noBareErrorInEffectRule } from "./rules/no-bare-error-in-effect.ts"
 import { noEffectPromiseRule } from "./rules/no-effect-promise.ts"
 import { noEffectReturnTypeRule } from "./rules/no-effect-return-type.ts"
 import { noInlineSchemaCodecRule } from "./rules/no-inline-schema-codec.ts"
@@ -20,6 +19,7 @@ import { noManualDiscriminantConstructionRule } from "./rules/no-manual-discrimi
 import { noNestedMatchRule } from "./rules/no-nested-match.ts"
 import { noParameterlessCatchAllRule } from "./rules/no-parameterless-catch-all.ts"
 import { noProvideOnDefinitionRule } from "./rules/no-provide-on-definition.ts"
+import { noThrowOrPrimitiveFailureRule } from "./rules/no-throw-or-primitive-failure.ts"
 import { noTransportTypesInGeneratorRule } from "./rules/no-transport-types-in-generator.ts"
 import { noYieldedMatchRule } from "./rules/no-yielded-match.ts"
 import { preferEffectFnRule } from "./rules/prefer-effect-fn.ts"
@@ -53,7 +53,7 @@ const dlEffectPlugin = eslintCompatPlugin({
         "error-handling-in-effect-fn-handler": errorHandlingInEffectFnHandlerRule,
         "exported-schema-identifier": exportedSchemaIdentifierRule,
         "no-asymmetric-match-handlers": noAsymmetricMatchHandlersRule,
-        "no-bare-error-in-effect": noBareErrorInEffectRule,
+        "no-throw-or-primitive-failure": noThrowOrPrimitiveFailureRule,
         "no-effect-promise": noEffectPromiseRule,
         "no-effect-return-type": noEffectReturnTypeRule,
         "no-inline-schema-codec": noInlineSchemaCodecRule,

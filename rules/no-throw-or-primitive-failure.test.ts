@@ -1,8 +1,8 @@
 import { RuleTester } from "oxlint/plugins-dev"
 
-import { noBareErrorInEffectRule } from "./no-bare-error-in-effect.ts"
+import { noThrowOrPrimitiveFailureRule } from "./no-throw-or-primitive-failure.ts"
 
-new RuleTester().run("no-bare-error-in-effect", noBareErrorInEffectRule, {
+new RuleTester().run("no-throw-or-primitive-failure", noThrowOrPrimitiveFailureRule, {
     valid: [
         "Effect.gen(function* () { return yield* new TabNotFound({ name }) })",
         "const missing = Effect.fail(new TabNotFound({ name }))",

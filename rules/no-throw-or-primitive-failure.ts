@@ -6,7 +6,7 @@ import { isTestFile } from "../shared/test-files.ts"
 
 // Only the two forms the effecttsgo preset misses: `Effect.fail(new Error(…))` and
 // `extends Error` are already reported by global-error-in-effect-failure and extends-native-error.
-export const noBareErrorInEffectRule = defineRule({
+export const noThrowOrPrimitiveFailureRule = defineRule({
     meta: {
         type: "problem",
         docs: {
