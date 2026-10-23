@@ -22,7 +22,7 @@ A pattern already reported by `@effect/tsgo` does not become a rule. If effectts
 
 ## Effect 4
 
-Rules are written and tested against Effect 4. Some also recognize a few v3 names (`catchAll`, `Effect.Service`, `Context.Tag`), but Effect 3 is not supported.
+Rules are written and tested against Effect 4. Where a v3 API has the same intent, a rule recognizes its v3 name too, with a test.
 
 ## Anti-slop unchanged
 
