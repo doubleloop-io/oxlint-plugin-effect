@@ -65,6 +65,18 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
                 ],
             },
             {
+                // Effect 3.
+                code: inGenerator(
+                    "return yield* Either.match(parsed, { onLeft: usageError, onRight: fill })",
+                ),
+                errors: [
+                    {
+                        messageId: "yieldedMatch",
+                        data: { module: "Either", guard: "Either.isLeft" },
+                    },
+                ],
+            },
+            {
                 // The fail/succeed exemption is the `Effect.fromOption` shape only: Result has none.
                 code: `const run = Effect.gen(function* () {
     return yield* Result.match(parsed, { onFailure: (e) => Effect.fail(e), onSuccess: Effect.succeed })

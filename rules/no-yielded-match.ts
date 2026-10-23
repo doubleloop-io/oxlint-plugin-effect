@@ -9,7 +9,12 @@ import {
 } from "../shared/effect-ast.ts"
 import { handlersOf, nestedBranches } from "../shared/match-ast.ts"
 
-const guards = { Option: "Option.isNone", Result: "Result.isFailure" } as const
+// `Either` is the Effect 3 name of `Result`.
+const guards = {
+    Option: "Option.isNone",
+    Result: "Result.isFailure",
+    Either: "Either.isLeft",
+} as const
 
 type MatchedModule = keyof typeof guards
 
@@ -17,6 +22,7 @@ const matchedModule = (node: ESTree.Node | undefined): MatchedModule | undefined
     if (node?.type !== "CallExpression") return undefined
     if (memberOf(node.callee, "Option") === "match") return "Option"
     if (memberOf(node.callee, "Result") === "match") return "Result"
+    if (memberOf(node.callee, "Either") === "match") return "Either"
     return undefined
 }
 
@@ -74,7 +80,7 @@ export const noYieldedMatchRule = defineRule({
         type: "suggestion",
         docs: {
             description:
-                "Inside an Effect generator, return early on the empty or failed case instead of yielding an `Option.match`/`Result.match`.",
+                "Inside an Effect generator, return early on the empty or failed case instead of yielding an `Option.match`/`Result.match` (Effect 3: `Either.match`).",
         },
         messages: {
             yieldedMatch:

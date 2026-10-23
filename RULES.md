@@ -752,7 +752,7 @@ const save = Effect.fn("save")(function* (id: PolicyId) {
 })
 ```
 
-**Trigger**: `yield*` of `Option.match(x, {…})` or `Result.match(x, {…})`, or of a `x.pipe(…)`/`pipe(x, …)` ending in `Option.match({…})`/`Result.match({…})`, in the generator of `Effect.gen` or `Effect.fn`.
+**Trigger**: `yield*` of `Option.match(x, {…})` or `Result.match(x, {…})` (v3: `Either.match`), or of a `x.pipe(…)`/`pipe(x, …)` ending in one of them, in the generator of `Effect.gen` or `Effect.fn`.
 
 **Exemptions and blind spots**: an `Option.match` with `onNone` → `Effect.fail(…)` and `onSome` → `Effect.succeed`: see `option-match-to-from-option` (effecttsgo). A handler that `no-nested-match` reports. Matches not yielded directly (assigned first, or inside `Effect.flatMap`) slip through.
 
