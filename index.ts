@@ -7,7 +7,6 @@ import { allErrorsHandledAtBoundaryRule } from "./rules/all-errors-handled-at-bo
 import { antiSlopNoManualEffectErrorTagRule } from "./rules/anti-slop-no-manual-effect-error-tag.ts"
 import { antiSlopNoServiceConstructorImportsRule } from "./rules/anti-slop-no-service-constructor-imports.ts"
 import { antiSlopPreferEffectMatchRule } from "./rules/anti-slop-prefer-effect-match.ts"
-import { errorHandlingInEffectFnHandlerRule } from "./rules/error-handling-in-effect-fn-handler.ts"
 import { exportedSchemaIdentifierRule } from "./rules/exported-schema-identifier.ts"
 import { noAsymmetricMatchHandlersRule } from "./rules/no-asymmetric-match-handlers.ts"
 import { noEffectPromiseRule } from "./rules/no-effect-promise.ts"
@@ -31,6 +30,7 @@ import { serviceBuiltWithOfRule } from "./rules/service-built-with-of.ts"
 import { serviceKeyMatchesNameRule } from "./rules/service-key-matches-name.ts"
 import { servicePortShapeOnlyRule } from "./rules/service-port-shape-only.ts"
 import { singleStylePerFunctionRule } from "./rules/single-style-per-function.ts"
+import { splitSuccessPathFromErrorHandlingRule } from "./rules/split-success-path-from-error-handling.ts"
 import { tryObjectFormRule } from "./rules/try-object-form.ts"
 import { untracedRecursionRule } from "./rules/untraced-recursion.ts"
 
@@ -50,7 +50,7 @@ const dlEffectPlugin = eslintCompatPlugin({
         "anti-slop-prefer-effect-match": antiSlopPreferEffectMatchRule,
         "adapter-import-boundary": adapterImportBoundaryRule,
         "all-errors-handled-at-boundary": allErrorsHandledAtBoundaryRule,
-        "error-handling-in-effect-fn-handler": errorHandlingInEffectFnHandlerRule,
+        "split-success-path-from-error-handling": splitSuccessPathFromErrorHandlingRule,
         "exported-schema-identifier": exportedSchemaIdentifierRule,
         "no-asymmetric-match-handlers": noAsymmetricMatchHandlersRule,
         "no-throw-or-primitive-failure": noThrowOrPrimitiveFailureRule,

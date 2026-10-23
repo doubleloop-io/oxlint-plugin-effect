@@ -122,7 +122,7 @@ const isInsideIterationCallback = (node: ESTree.Node) => {
     return false
 }
 
-export const errorHandlingInEffectFnHandlerRule = defineRule({
+export const splitSuccessPathFromErrorHandlingRule = defineRule({
     meta: {
         type: "suggestion",
         docs: {

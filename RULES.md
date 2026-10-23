@@ -10,7 +10,7 @@ The plugin's 31 rules.
 | [`try-object-form`](#try-object-form)                                                   | `error`  |
 | [`no-effect-promise`](#no-effect-promise)                                               | `warn`   |
 | [`no-parameterless-catch-all`](#no-parameterless-catch-all)                             | `error`  |
-| [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler)           | `warn`   |
+| [`split-success-path-from-error-handling`](#split-success-path-from-error-handling)     | `warn`   |
 | [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag)         | —        |
 | [`no-manual-discriminant-comparison`](#no-manual-discriminant-comparison)               | —        |
 | [`no-manual-discriminant-construction`](#no-manual-discriminant-construction)           | —        |
@@ -51,7 +51,7 @@ The `all` preset enables them all at `warn`. The Severity column is the level at
 When the reason for an exclusion is part of the rule, the rule itself recognizes the files, through an option that **replaces** the defaults (it does not extend them). Globs are matched against the path relative to oxlint's working directory, with `/` on every platform.
 
 - **`entryFiles`**, used by [`run-only-in-runner`](#run-only-in-runner) and [`adapter-import-boundary`](#adapter-import-boundary). Default `**/main.ts`, `**/cli.ts`, `**/bin/**`. `index.ts` is excluded on purpose: it is usually a barrel, and exempting it would let adapters reach the rest of the application through re-exports.
-- **`testFiles`**, used by [`run-only-in-runner`](#run-only-in-runner), [`adapter-import-boundary`](#adapter-import-boundary), [`no-effect-promise`](#no-effect-promise), [`provide-named-layer`](#provide-named-layer), [`no-provide-on-definition`](#no-provide-on-definition), [`error-handling-in-effect-fn-handler`](#error-handling-in-effect-fn-handler), [`no-throw-or-primitive-failure`](#no-throw-or-primitive-failure), [`single-style-per-function`](#single-style-per-function), [`all-errors-handled-at-boundary`](#all-errors-handled-at-boundary) and [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports). Those rules skip test files, except `no-throw-or-primitive-failure`, which skips only primitive failures there, and `single-style-per-function`, which treats their helpers like tests; [`prefer-effect-vitest`](#prefer-effect-vitest) checks only them. Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. A helper directory such as `src/testing/` does not count as tests: it is support code.
+- **`testFiles`**, used by [`run-only-in-runner`](#run-only-in-runner), [`adapter-import-boundary`](#adapter-import-boundary), [`no-effect-promise`](#no-effect-promise), [`provide-named-layer`](#provide-named-layer), [`no-provide-on-definition`](#no-provide-on-definition), [`split-success-path-from-error-handling`](#split-success-path-from-error-handling), [`no-throw-or-primitive-failure`](#no-throw-or-primitive-failure), [`single-style-per-function`](#single-style-per-function), [`all-errors-handled-at-boundary`](#all-errors-handled-at-boundary) and [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports). Those rules skip test files, except `no-throw-or-primitive-failure`, which skips only primitive failures there, and `single-style-per-function`, which treats their helpers like tests; [`prefer-effect-vitest`](#prefer-effect-vitest) checks only them. Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. A helper directory such as `src/testing/` does not count as tests: it is support code.
 
 The defaults come from a Node CLI. On another layout (Next.js, a monorepo) they must be reconfigured before reading the warnings, and every rule sharing an option must be reconfigured:
 
@@ -170,7 +170,7 @@ Effect.orElseSucceed(() => fallback)
 
 - **Options**: none · **Fix**: none · **Severity**: `error`
 
-### `error-handling-in-effect-fn-handler`
+### `split-success-path-from-error-handling`
 
 <sup>[↑ rules index](#rules-index)</sup>
 
