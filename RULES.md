@@ -890,7 +890,7 @@ export const EventBusEvents = Schema.Union([Created, Deleted]).annotate({
 
 **Why**: without an `identifier`, decoding errors, JSON Schema and arbitraries describe the schema by its structure instead of its name.
 
-- **Options**: none · **Fix**: suggestion that corrects the `identifier`, or two that add it, `v4:` with `.annotate(…)` and `v3:` with `.annotations(…)` · **Severity**: —
+- **Options**: none · **Fix**: suggestion that corrects the `identifier`, or two that add it, `v3:` with `.annotations(…)` and `v4:` with `.annotate(…)` · **Severity**: —
 
 ### `no-inline-schema-codec`
 

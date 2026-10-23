@@ -43,7 +43,7 @@ export const serviceKeyMatchesNameRule = defineRule({
         type: "suggestion",
         docs: {
             description:
-                "Key a service class (`Context.Service`, or Effect 3 `Context.Tag`/`Effect.Service`) with its own name, alone or after a path prefix.",
+                "Key a service class with its own name, alone or after a path prefix (v3: `Context.Tag`/`Effect.Service`, v4: `Context.Service`).",
         },
         hasSuggestions: true,
         messages: {

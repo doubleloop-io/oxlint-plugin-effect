@@ -27,7 +27,7 @@ export const servicePortShapeOnlyRule = defineRule({
         type: "problem",
         docs: {
             description:
-                "Keep a `Context.Service` (Effect 3: `Context.Tag`) port a pure contract, with implementations in separate Layers.",
+                "Keep a service port a pure contract (v3: `Context.Tag`, v4: `Context.Service`), with implementations in separate Layers.",
         },
         messages: {
             makeOption:
@@ -35,7 +35,7 @@ export const servicePortShapeOnlyRule = defineRule({
             staticImplementation:
                 "Do not attach `static {{name}}` to the port: provide the implementation as a Layer in its own adapter file.",
             effectService:
-                "`Effect.Service` ties the port to its implementation: declare the port with `Context.Service` (Effect 3: `Context.Tag`) and provide the implementation as a Layer in its own adapter file.",
+                "`Effect.Service` ties the port to its implementation: declare the port shape only (v3: `Context.Tag`, v4: `Context.Service`) and provide the implementation as a Layer in its own adapter file.",
         },
     },
     createOnce(context) {

@@ -18,8 +18,8 @@ const isAnnotate = (name: string | undefined) => name === "annotate" || name ===
 
 // One suggestion per version instead of detecting the installed one: the fix stays syntax only.
 const annotateMethods = [
-    { version: "v4", method: "annotate" },
     { version: "v3", method: "annotations" },
+    { version: "v4", method: "annotate" },
 ]
 
 // `X.pipe(Schema.annotate(a))` and `X.annotate(a)`, in any order along the chain.

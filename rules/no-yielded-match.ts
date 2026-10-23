@@ -80,7 +80,7 @@ export const noYieldedMatchRule = defineRule({
         type: "suggestion",
         docs: {
             description:
-                "Inside an Effect generator, return early on the empty or failed case instead of yielding an `Option.match`/`Result.match` (Effect 3: `Either.match`).",
+                "Inside an Effect generator, return early on the empty or failed case instead of yielding a match (`Option.match`; v3: `Either.match`, v4: `Result.match`).",
         },
         messages: {
             yieldedMatch:

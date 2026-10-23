@@ -99,7 +99,7 @@ export const redactedSecretNamesRule = defineRule({
         },
         messages: {
             notRedacted:
-                "`{{name}}` looks like a secret: read it with `Config.Redacted` (Effect 3: `Config.redacted`) or `Config.schema(Schema.Redacted(...), name)`.",
+                "`{{name}}` looks like a secret: read it with `Config.schema(Schema.Redacted(...), name)` or, v3: `Config.redacted(name)`, v4: `Config.Redacted(name)`.",
             fieldNotRedacted:
                 "`{{name}}` looks like a secret: declare it as `Schema.Redacted(...)` so it stays out of logs.",
         },

@@ -39,17 +39,17 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
                         suggestions: [
                             {
                                 messageId: "addIdentifier",
-                                data: { name: "EventBusEvents", version: "v4", method: "annotate" },
-                                output: 'export const EventBusEvents = Schema.Union([Created, Deleted]).annotate({ identifier: "EventBusEvents" })',
-                            },
-                            {
-                                messageId: "addIdentifier",
                                 data: {
                                     name: "EventBusEvents",
                                     version: "v3",
                                     method: "annotations",
                                 },
                                 output: 'export const EventBusEvents = Schema.Union([Created, Deleted]).annotations({ identifier: "EventBusEvents" })',
+                            },
+                            {
+                                messageId: "addIdentifier",
+                                data: { name: "EventBusEvents", version: "v4", method: "annotate" },
+                                output: 'export const EventBusEvents = Schema.Union([Created, Deleted]).annotate({ identifier: "EventBusEvents" })',
                             },
                         ],
                     },
