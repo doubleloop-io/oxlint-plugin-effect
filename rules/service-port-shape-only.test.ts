@@ -15,6 +15,13 @@ new RuleTester().run("service-port-shape-only", servicePortShapeOnlyRule, {
             filename,
             code: 'const Retries = Context.Reference<number>("app/Retries", { defaultValue: () => 3 })',
         },
+        // Effect 3 ports.
+        {
+            filename,
+            code: 'export class Agent extends Context.Tag("app/Agent")<Agent, Shape>() {}',
+        },
+        // The variable form belongs to `service-not-as-class` (effecttsgo).
+        { filename, code: 'const Agent = Context.GenericTag<Shape>("app/Agent")' },
     ],
     invalid: [
         {
@@ -30,12 +37,12 @@ new RuleTester().run("service-port-shape-only", servicePortShapeOnlyRule, {
         {
             filename,
             code: 'class Agent extends Effect.Service<Agent>()("app/Agent", { effect: make }) {}',
-            errors: [{ messageId: "legacyService", data: { name: "Effect.Service" } }],
+            errors: [{ messageId: "effectService" }],
         },
         {
             filename,
-            code: 'const Agent = Context.GenericTag<Shape>("app/Agent")',
-            errors: [{ messageId: "legacyService", data: { name: "Context.GenericTag" } }],
+            code: 'class Agent extends Context.Tag("app/Agent")<Agent, Shape>() { static readonly Live = Layer.effect(Agent, make) }',
+            errors: [{ messageId: "staticImplementation", data: { name: "Live" } }],
         },
     ],
 })

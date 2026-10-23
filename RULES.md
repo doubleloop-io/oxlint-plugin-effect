@@ -295,7 +295,7 @@ const event = PaymentStartedEvent.make({ id, payment })
 
 <sup>[↑ rules index](#rules-index)</sup>
 
-**Intent**: a port is a shape-only `Context.Service`, with no implementation attached.
+**Intent**: a port is a shape-only `Context.Service` (v3: `Context.Tag`), with no implementation attached.
 
 ```ts
 // no
@@ -308,9 +308,9 @@ export class Agent extends Context.Service<
 >()("app/agent/Agent") {}
 ```
 
-**Trigger**: the second argument of `Context.Service<…>()(id, opts)`; a `static layer` or `static Default` member on the class; the v3 forms `Effect.Service`, `Context.Tag`, `Context.GenericTag`.
+**Trigger**: the second argument of `Context.Service<…>()(id, opts)`; a `static layer`, `static Default` or `static Live` member on a `Context.Service` or v3 `Context.Tag(id)<…>()` class; any `Effect.Service`.
 
-**Exemptions and blind spots**: a `Context.Service` assigned to a variable is not seen: see `service-not-as-class` (effecttsgo).
+**Exemptions and blind spots**: a `Context.Service` or v3 `Context.GenericTag` assigned to a variable is not seen: see `service-not-as-class` (effecttsgo). Statics with other names slip through.
 
 **Why**: `make` and a static layer tie the port to a default implementation, while the port must stay a contract any adapter can satisfy. It is a convention, not Effect's idiom: Effect's own docs put `static readonly layer` on the service.
 
