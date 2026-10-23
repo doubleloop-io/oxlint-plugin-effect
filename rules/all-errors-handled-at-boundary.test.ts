@@ -23,6 +23,8 @@ new RuleTester().run("all-errors-handled-at-boundary", allErrorsHandledAtBoundar
             code: "const started = await Effect.runPromise(program.pipe(Effect.provide(layer), Effect.result))",
         },
         { filename, code: "const exit = await Effect.runPromise(program.pipe(Effect.exit))" },
+        // Effect 3.
+        { filename, code: "const answer = await Effect.runPromise(Effect.either(program))" },
         {
             filename: "src/app/events/page.tsx",
             code: "export default async function EventPage() { const answer = await Effect.runPromise(Effect.result(loadEvent)); return <EventView answer={answer} /> }",

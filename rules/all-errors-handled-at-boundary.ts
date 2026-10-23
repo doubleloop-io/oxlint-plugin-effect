@@ -48,7 +48,8 @@ const parameterType = (identifier: ESTree.IdentifierReference) => {
 }
 
 // They turn every failure into a success value, so whatever comes before cannot leak.
-const failureToValue = new Set(["result", "exit"])
+// `either` is the Effect 3 name of `result`.
+const failureToValue = new Set(["result", "either", "exit"])
 
 const isPipeCall = (node: ESTree.CallExpression) =>
     node.callee.type === "MemberExpression" &&
