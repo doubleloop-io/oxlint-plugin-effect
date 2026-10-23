@@ -2,7 +2,7 @@
 
 An oxlint plugin that enforces a catalog of patterns for Effect 4 code.
 
-The rules are written and tested against Effect 4. Where an Effect 3 API has the same intent, most rules recognize its v3 name too; see [Common limits](RULES.md#common-limits) for the ones that still assume v4.
+The rules are written and tested against Effect 4. Where an Effect 3 API has the same intent, the rules recognize its v3 name too: each rule's Trigger in [`RULES.md`](RULES.md) names them.
 
 It complements the type-aware rules of [`@effect/tsgo`](#alongside-effecttsgo): it does not need them, and it checks what they do not.
 

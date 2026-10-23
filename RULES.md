@@ -42,9 +42,9 @@ The `all` preset enables them all at `warn`. The **Severity** at the end of each
 
 ## Common limits
 
-- **Syntax only**: no rule uses type information. Only two rules look past the file: [`adapter-import-boundary`](#adapter-import-boundary), to find which directories are adapters, and [`prefer-effect-vitest`](#prefer-effect-vitest), to find whether `@effect/vitest` is installed.
+- **Syntax only**: no rule uses type information. Only three rules look past the file: [`adapter-import-boundary`](#adapter-import-boundary), to find which directories are adapters, [`prefer-effect-vitest`](#prefer-effect-vitest), to find whether `@effect/vitest` is installed, and [`exported-schema-identifier`](#exported-schema-identifier), to word its fix for the installed `effect`.
 - **Literal names**: `Effect.gen` is recognized, `import { Effect as E }` or `import * as L from "effect/Layer"` slip through. On code that uses aliases, silence is not compliance.
-- **Effect 4**: the rules are written against v4. Where a v3 API has the same intent, they recognize its v3 name too (`catchAll`, `Either`, `Context.Tag`, `Config.redacted`, …), and the Trigger names it. [`service-port-shape-only`](#service-port-shape-only) and [`exported-schema-identifier`](#exported-schema-identifier) still assume v4.
+- **Effect 4**: the rules are written against v4. Where a v3 API has the same intent, they recognize its v3 name too (`catchAll`, `Either`, `Context.Tag`, `Config.redacted`, …), and the Trigger names it.
 
 ## File options
 
