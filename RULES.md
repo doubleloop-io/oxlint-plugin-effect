@@ -335,7 +335,7 @@ export class GeocodingApis extends Context.Service<GeocodingApis, Shape>()(
 ) {}
 ```
 
-**Trigger**: `class X extends Context.Service<…>()("key")` with a literal key that is neither `"X"` nor ends with `"/X"`.
+**Trigger**: `class X extends Context.Service<…>()("key")`, or the v3 `Context.Tag("key")<…>()` and `Effect.Service<X>()("key", …)`, with a literal key that is neither `"X"` nor ends with `"/X"`.
 
 **Exemptions and blind spots**: keys that are not literals (variables, templates with expressions). A `Context.Service` assigned to a variable is not seen: see `service-not-as-class` (effecttsgo). `deterministic-keys` (effecttsgo) with the `default` or `package-identifier` formula produces keys this rule accepts; with `default-hashed` the two contradict each other: enable only one.
 

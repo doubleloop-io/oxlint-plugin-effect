@@ -2,11 +2,18 @@ import { defineRule, type ESTree } from "@oxlint/plugins"
 
 import { calleeOf } from "../shared/effect-ast.ts"
 
-// `class X extends Context.Service<X, Shape>()(key)`: the outer call carries the key.
-const contextServiceKey = (superClass: ESTree.Expression | null) =>
-    superClass?.type === "CallExpression" && calleeOf(superClass.callee, "Context") === "Service"
-        ? superClass.arguments[0]
+// `class X extends Context.Service<X, Shape>()(key)` and Effect 3 `Effect.Service<X>()(key, …)`:
+// the outer call carries the key. Effect 3 `Context.Tag(key)<X, Shape>()`: the inner one does.
+const serviceKey = (superClass: ESTree.Expression | null) => {
+    if (superClass?.type !== "CallExpression") return undefined
+    const factory = superClass.callee
+    if (calleeOf(factory, "Context") === "Service" || calleeOf(factory, "Effect") === "Service") {
+        return superClass.arguments[0]
+    }
+    return factory.type === "CallExpression" && calleeOf(factory, "Context") === "Tag"
+        ? factory.arguments[0]
         : undefined
+}
 
 const literalKey = (node: ESTree.Node | undefined) => {
     if (node?.type === "Literal" && typeof node.value === "string") return node.value
@@ -36,7 +43,7 @@ export const serviceKeyMatchesNameRule = defineRule({
         type: "suggestion",
         docs: {
             description:
-                "Key a `Context.Service` class with its own name, alone or after a path prefix.",
+                "Key a service class (`Context.Service`, or Effect 3 `Context.Tag`/`Effect.Service`) with its own name, alone or after a path prefix.",
         },
         hasSuggestions: true,
         messages: {
@@ -47,7 +54,7 @@ export const serviceKeyMatchesNameRule = defineRule({
     },
     createOnce(context) {
         const checkClass = (node: ESTree.Class) => {
-            const keyNode = contextServiceKey(node.superClass)
+            const keyNode = serviceKey(node.superClass)
             const key = literalKey(keyNode)
             const name = className(node)
             if (keyNode === undefined || key === undefined || name === undefined) return

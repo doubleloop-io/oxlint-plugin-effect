@@ -20,8 +20,32 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
             // Only the class form: the variable form belongs to `service-not-as-class` (effecttsgo).
             'const Database = Context.Service<Shape>("Db")',
             'class NotFound extends Schema.TaggedError<NotFound>()("NotFoundError", {}) {}',
+            // Effect 3.
+            'class Database extends Context.Tag("app/db/Database")<Database, Shape>() {}',
+            'class Database extends Effect.Service<Database>()("Database", { effect: make }) {}',
+            'const Database = Context.GenericTag<Shape>("Db")',
         ],
         invalid: [
+            {
+                code: 'class Database extends Context.Tag("app/db/Db")<Database, Shape>() {}',
+                errors: [
+                    {
+                        messageId: "keyMismatch",
+                        data: { key: "app/db/Db", name: "Database" },
+                        suggestions: [
+                            {
+                                messageId: "useKey",
+                                data: { expected: "app/db/Database" },
+                                output: 'class Database extends Context.Tag("app/db/Database")<Database, Shape>() {}',
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                code: 'class Database extends Effect.Service<Database>()("Db", { effect: make }) {}',
+                errors: [{ messageId: "keyMismatch", data: { key: "Db", name: "Database" } }],
+            },
             {
                 code: geocodingApis('"GeocodingAPIs"'),
                 errors: [
