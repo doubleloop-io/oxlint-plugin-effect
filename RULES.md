@@ -657,7 +657,7 @@ export const scan = Effect.fn("scan")(function* (root: Node) {
 // no
 export const POST = async (request: Request) => {
     const form = await request.formData()
-    const created = await Effect.runPromise(Effect.either(createEvent(form)))
+    const created = await Effect.runPromise(Effect.result(createEvent(form)))
     // …
 }
 
