@@ -4,41 +4,41 @@ The plugin's 31 rules.
 
 ## Rules index
 
-| Rule                                                                                    | Severity |
-| --------------------------------------------------------------------------------------- | -------- |
-| [`no-throw-or-primitive-failure`](#no-throw-or-primitive-failure)                       | `error`  |
-| [`try-object-form`](#try-object-form)                                                   | `error`  |
-| [`no-effect-promise`](#no-effect-promise)                                               | `warn`   |
-| [`no-parameterless-catch-all`](#no-parameterless-catch-all)                             | `error`  |
-| [`split-success-path-from-error-handling`](#split-success-path-from-error-handling)     | `warn`   |
-| [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag)         | —        |
-| [`no-manual-discriminant-comparison`](#no-manual-discriminant-comparison)               | —        |
-| [`no-manual-discriminant-construction`](#no-manual-discriminant-construction)           | —        |
-| [`service-port-shape-only`](#service-port-shape-only)                                   | `error`  |
-| [`service-key-matches-name`](#service-key-matches-name)                                 | —        |
-| [`service-built-with-of`](#service-built-with-of)                                       | —        |
-| [`provide-named-layer`](#provide-named-layer)                                           | `error`  |
-| [`no-provide-on-definition`](#no-provide-on-definition)                                 | `error`  |
-| [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports) | —        |
-| [`run-only-in-runner`](#run-only-in-runner)                                             | `error`  |
-| [`prefer-effect-vitest`](#prefer-effect-vitest)                                         | —        |
-| [`all-errors-handled-at-boundary`](#all-errors-handled-at-boundary)                     | `warn`   |
-| [`adapter-import-boundary`](#adapter-import-boundary)                                   | `error`  |
-| [`no-transport-types-in-generator`](#no-transport-types-in-generator)                   | `error`  |
-| [`prefer-effect-fn`](#prefer-effect-fn)                                                 | `warn`   |
-| [`untraced-recursion`](#untraced-recursion)                                             | `warn`   |
-| [`single-style-per-function`](#single-style-per-function)                               | `error`  |
-| [`no-nested-match`](#no-nested-match)                                                   | `warn`   |
-| [`no-yielded-match`](#no-yielded-match)                                                 | —        |
-| [`no-inline-yield-star`](#no-inline-yield-star)                                         | `warn`   |
-| [`no-effect-return-type`](#no-effect-return-type)                                       | `warn`   |
-| [`no-asymmetric-match-handlers`](#no-asymmetric-match-handlers)                         | `warn`   |
-| [`anti-slop-prefer-effect-match`](#anti-slop-prefer-effect-match)                       | —        |
-| [`exported-schema-identifier`](#exported-schema-identifier)                             | —        |
-| [`no-inline-schema-codec`](#no-inline-schema-codec)                                     | —        |
-| [`redacted-secret-names`](#redacted-secret-names)                                       | `warn`   |
+| Rule                                                                                    |
+| --------------------------------------------------------------------------------------- |
+| [`no-throw-or-primitive-failure`](#no-throw-or-primitive-failure)                       |
+| [`try-object-form`](#try-object-form)                                                   |
+| [`no-effect-promise`](#no-effect-promise)                                               |
+| [`no-parameterless-catch-all`](#no-parameterless-catch-all)                             |
+| [`split-success-path-from-error-handling`](#split-success-path-from-error-handling)     |
+| [`anti-slop-no-manual-effect-error-tag`](#anti-slop-no-manual-effect-error-tag)         |
+| [`no-manual-discriminant-comparison`](#no-manual-discriminant-comparison)               |
+| [`no-manual-discriminant-construction`](#no-manual-discriminant-construction)           |
+| [`service-port-shape-only`](#service-port-shape-only)                                   |
+| [`service-key-matches-name`](#service-key-matches-name)                                 |
+| [`service-built-with-of`](#service-built-with-of)                                       |
+| [`provide-named-layer`](#provide-named-layer)                                           |
+| [`no-provide-on-definition`](#no-provide-on-definition)                                 |
+| [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports) |
+| [`run-only-in-runner`](#run-only-in-runner)                                             |
+| [`prefer-effect-vitest`](#prefer-effect-vitest)                                         |
+| [`all-errors-handled-at-boundary`](#all-errors-handled-at-boundary)                     |
+| [`adapter-import-boundary`](#adapter-import-boundary)                                   |
+| [`no-transport-types-in-generator`](#no-transport-types-in-generator)                   |
+| [`prefer-effect-fn`](#prefer-effect-fn)                                                 |
+| [`untraced-recursion`](#untraced-recursion)                                             |
+| [`single-style-per-function`](#single-style-per-function)                               |
+| [`no-nested-match`](#no-nested-match)                                                   |
+| [`no-yielded-match`](#no-yielded-match)                                                 |
+| [`no-inline-yield-star`](#no-inline-yield-star)                                         |
+| [`no-effect-return-type`](#no-effect-return-type)                                       |
+| [`no-asymmetric-match-handlers`](#no-asymmetric-match-handlers)                         |
+| [`anti-slop-prefer-effect-match`](#anti-slop-prefer-effect-match)                       |
+| [`exported-schema-identifier`](#exported-schema-identifier)                             |
+| [`no-inline-schema-codec`](#no-inline-schema-codec)                                     |
+| [`redacted-secret-names`](#redacted-secret-names)                                       |
 
-The `all` preset enables them all at `warn`. The Severity column is the level at which each rule produced no false positives on a real Effect 4 codebase: a data point about its stability, not a recommendation. `—` means not measured yet.
+The `all` preset enables them all at `warn`. The **Severity** at the end of each section is the level at which the rule produced no false positives on a real Effect 4 codebase: a data point about its stability, not a recommendation. `—` means not measured yet.
 
 ## Common limits
 
