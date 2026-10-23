@@ -150,7 +150,7 @@ Effect.tryPromise({ try: () => client.connect(), catch: toConnectionError })
 
 <sup>[↑ rules index](#rules-index)</sup>
 
-**Intent**: errors are caught by tag; a catch-all never ignores what it catches.
+**Intent**: errors are caught by tag; a fallback that ignores the error is spelled `orElseSucceed`/`orElse`, never a catch-all with an ignored parameter.
 
 ```ts
 // no
@@ -159,6 +159,8 @@ Effect.catch(() => Effect.succeed(fallback))
 // yes
 Effect.catchTag("AgentTimeout", () => Effect.succeed(skip))
 Effect.catchTag(["ParseError", "ReservedPortError"], () => Effect.succeed(3000))
+
+// yes: every failure truly means the same fallback
 Effect.orElseSucceed(() => fallback)
 ```
 
