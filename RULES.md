@@ -410,7 +410,9 @@ Missing: () => printMissing.pipe(Effect.provide(missingLayer)),
 // no
 const printMissing = Effect.gen(function* () { … }).pipe(Effect.provide(missingLayer))
 
-// yes: see provide-named-layer
+// yes: the program stays unprovided, its caller provides
+const printMissing = Effect.gen(function* () { … })
+Missing: () => printMissing.pipe(Effect.provide(missingLayer)),
 ```
 
 **Trigger**: `Effect.provide` applied to `Effect.gen(…)` or to `Effect.fn(…)(…)`, in all three forms: with `.pipe`, as an `Effect.fn` pipeable, data-first.
