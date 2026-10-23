@@ -1,6 +1,24 @@
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+
 import { RuleTester } from "oxlint/plugins-dev"
 
 import { exportedSchemaIdentifierRule } from "./exported-schema-identifier.ts"
+
+const projectWithEffect = (version: string) => {
+    const root = mkdtempSync(join(tmpdir(), "exported-schema-identifier-"))
+    mkdirSync(join(root, "node_modules", "effect"), { recursive: true })
+    writeFileSync(
+        join(root, "node_modules", "effect", "package.json"),
+        JSON.stringify({ name: "effect", version }),
+    )
+    return root
+}
+
+const effect3 = projectWithEffect("3.19.0")
+const effect4 = projectWithEffect("4.0.0")
+const filename = "src/events.ts"
 
 const paymentError = (annotation: string) =>
     `export const PaymentRegisteredError = Schema.Struct({
@@ -25,9 +43,14 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
             'export class Invoice extends Schema.Class<Invoice>("Invoice")({ id: Schema.String }) {}',
             'export const PriceId = Schema.String.pipe(Schema.brand("PriceId"))',
             "export const decodeEvents = Schema.decodeUnknownEffect(Events)",
+            // Effect 3.
+            paymentError('.annotations({ identifier: "PaymentRegisteredError" })'),
+            paymentError('.pipe(Schema.annotations({ identifier: "PaymentRegisteredError" }))'),
         ],
         invalid: [
             {
+                cwd: effect4,
+                filename,
                 code: "export const EventBusEvents = Schema.Union([Created, Deleted])",
                 errors: [
                     {
@@ -36,12 +59,34 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
                         suggestions: [
                             {
                                 messageId: "addIdentifier",
-                                data: { name: "EventBusEvents" },
+                                data: { name: "EventBusEvents", method: "annotate" },
                                 output: 'export const EventBusEvents = Schema.Union([Created, Deleted]).annotate({ identifier: "EventBusEvents" })',
                             },
                         ],
                     },
                 ],
+            },
+            {
+                // The fix follows the installed Effect: `annotate` was `annotations` in Effect 3.
+                cwd: effect3,
+                filename,
+                code: "export const EventBusEvents = Schema.Union(Created, Deleted)",
+                errors: [
+                    {
+                        messageId: "missingIdentifier",
+                        suggestions: [
+                            {
+                                messageId: "addIdentifier",
+                                data: { name: "EventBusEvents", method: "annotations" },
+                                output: 'export const EventBusEvents = Schema.Union(Created, Deleted).annotations({ identifier: "EventBusEvents" })',
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                code: paymentError('.annotations({ title: "Payment" })'),
+                errors: [{ messageId: "missingIdentifier" }],
             },
             {
                 code: paymentError(""),

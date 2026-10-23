@@ -1,6 +1,9 @@
+import { resolve } from "node:path"
+
 import { defineRule, type ESTree } from "@oxlint/plugins"
 
 import { calleeOf } from "../shared/effect-ast.ts"
+import { installedEffectMajor } from "../shared/effect-version.ts"
 
 // `Schema.Class` and `Schema.TaggedError` carry their name already.
 const anonymousSchemas = new Set(["Struct", "Union", "Array"])
@@ -13,6 +16,9 @@ const chainedMethod = (node: ESTree.Node) =>
         ? { name: node.callee.property.name, receiver: node.callee.object, call: node }
         : undefined
 
+// `annotations` is the Effect 3 name of `annotate`.
+const isAnnotate = (name: string | undefined) => name === "annotate" || name === "annotations"
+
 // `X.pipe(Schema.annotate(a))` and `X.annotate(a)`, in any order along the chain.
 const annotationsOf = (init: ESTree.Node) => {
     const annotations: Array<ESTree.Node> = []
@@ -20,11 +26,11 @@ const annotationsOf = (init: ESTree.Node) => {
     while (calleeOf(current, "Schema") === undefined) {
         const link = chainedMethod(current)
         if (link === undefined) return undefined
-        if (link.name === "annotate") annotations.push(...link.call.arguments)
+        if (isAnnotate(link.name)) annotations.push(...link.call.arguments)
         else if (link.name === "pipe") {
             for (const argument of link.call.arguments) {
                 if (
-                    calleeOf(argument, "Schema") === "annotate" &&
+                    isAnnotate(calleeOf(argument, "Schema")) &&
                     argument.type === "CallExpression"
                 ) {
                     annotations.push(...argument.arguments)
@@ -67,11 +73,21 @@ export const exportedSchemaIdentifierRule = defineRule({
                 'Annotate `{{name}}` with `identifier: "{{name}}"`, so errors, JSON Schema and arbitraries name it.',
             wrongIdentifier:
                 'The `identifier` of `{{name}}` is `{{identifier}}`: use `"{{name}}"`, the name the schema is imported by.',
-            addIdentifier: 'Append `.annotate({ identifier: "{{name}}" })`.',
+            addIdentifier: 'Append `.{{method}}({ identifier: "{{name}}" })`.',
             renameIdentifier: 'Use `"{{name}}"` as identifier.',
         },
     },
     createOnce(context) {
+        // Looked up on the first report of a file only: most files have nothing to fix.
+        let annotateMethod: string | undefined
+        const annotateMethodOfFile = () => {
+            annotateMethod ??=
+                installedEffectMajor(resolve(context.cwd, context.filename)) === 3
+                    ? "annotations"
+                    : "annotate"
+            return annotateMethod
+        }
+
         const check = (declarator: ESTree.VariableDeclarator) => {
             const { id, init } = declarator
             if (id.type !== "Identifier" || !init) return
@@ -80,6 +96,7 @@ export const exportedSchemaIdentifierRule = defineRule({
             const name = id.name
             const identifier = identifierOf(annotations)
             if (identifier === undefined) {
+                const method = annotateMethodOfFile()
                 context.report({
                     node: id,
                     messageId: "missingIdentifier",
@@ -87,9 +104,12 @@ export const exportedSchemaIdentifierRule = defineRule({
                     suggest: [
                         {
                             messageId: "addIdentifier",
-                            data: { name },
+                            data: { name, method },
                             fix: (fixer) =>
-                                fixer.insertTextAfter(init, `.annotate({ identifier: "${name}" })`),
+                                fixer.insertTextAfter(
+                                    init,
+                                    `.${method}({ identifier: "${name}" })`,
+                                ),
                         },
                     ],
                 })
@@ -113,6 +133,9 @@ export const exportedSchemaIdentifierRule = defineRule({
         }
 
         return {
+            before() {
+                annotateMethod = undefined
+            },
             // Internal fragments, reused through `.fields`, never reach an error message alone.
             ExportNamedDeclaration(node) {
                 if (node.declaration?.type !== "VariableDeclaration") return
