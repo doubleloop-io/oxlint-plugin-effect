@@ -125,7 +125,16 @@ const release = async (bump: string) => {
         `published ${name}@${version}, but the push failed; finish with:\n  git ${push.join(" ")}`,
         () => run("git", push),
     )
-    console.log(`released ${name}@${version} as ${[publishTag, ...otherTags].join(", ")}`)
+    // With web-based 2FA, npm accepts the change but applies it minutes later, or rarely never.
+    console.log(
+        [
+            `\nrequested ${name}@${version} as ${[publishTag, ...otherTags].join(", ")}; pushed the commit and tag v${version}.`,
+            "npm can take a few minutes to show it: check with pnpm release.",
+            "If it never shows up, publish again from the tag:",
+            `  git checkout v${version} && pnpm build-and-pack && pnpm publish --tag ${publishTag} --no-git-checks && git checkout main`,
+            ...otherTags.map((tag) => `  npm dist-tag add ${name}@${version} ${tag}`),
+        ].join("\n"),
+    )
 }
 
 const bump = process.argv[2]
