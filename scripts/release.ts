@@ -2,13 +2,22 @@ import { execFileSync } from "node:child_process"
 import { readFile } from "node:fs/promises"
 
 import { distTagsFor } from "./dist-tags.ts"
+import { releaseProblems, usage } from "./release-checks.ts"
+
+// A failure this script explains itself; any other error is a bug and keeps its stack trace.
+class ReleaseFailure extends Error {}
 
 const run = (command: string, args: string[]) => {
     execFileSync(command, args, { stdio: "inherit" })
 }
 
-const output = (command: string, args: string[]) =>
-    execFileSync(command, args, { encoding: "utf8" }).trim()
+const step = (failure: string, action: () => void) => {
+    try {
+        action()
+    } catch (cause) {
+        throw new ReleaseFailure(failure, { cause })
+    }
+}
 
 const readManifest = async () => {
     const manifest: unknown = JSON.parse(
@@ -22,14 +31,28 @@ const readManifest = async () => {
         !("version" in manifest) ||
         typeof manifest.version !== "string"
     ) {
-        throw new Error("package.json has no name or version")
+        throw new ReleaseFailure("package.json has no name or version")
     }
     return { name: manifest.name, version: manifest.version }
 }
 
+const npmView = (name: string, field: string) => {
+    try {
+        const viewed: unknown = JSON.parse(
+            execFileSync("npm", ["view", name, field, "--json"], {
+                encoding: "utf8",
+                stdio: ["ignore", "pipe", "pipe"],
+            }),
+        )
+        return viewed
+    } catch (cause) {
+        throw new ReleaseFailure(`cannot read the ${field} of ${name} from npm`, { cause })
+    }
+}
+
 // `npm view --json` prints a bare string instead of an array when one version is published.
 const publishedVersions = (name: string) => {
-    const versions: unknown = JSON.parse(output("npm", ["view", name, "versions", "--json"]))
+    const versions = npmView(name, "versions")
     const list = typeof versions === "string" ? [versions] : versions
     if (!Array.isArray(list) || !list.every((version) => typeof version === "string")) {
         throw new Error(`unexpected \`npm view versions\` output: ${JSON.stringify(versions)}`)
@@ -37,22 +60,9 @@ const publishedVersions = (name: string) => {
     return list
 }
 
-const assertReleasableHead = () => {
-    if (output("git", ["branch", "--show-current"]) !== "main") {
-        throw new Error("release from main")
-    }
-    if (output("git", ["status", "--porcelain"]) !== "") {
-        throw new Error("the working tree is not clean")
-    }
-    run("git", ["fetch", "origin", "main"])
-    if (output("git", ["rev-parse", "HEAD"]) !== output("git", ["rev-parse", "origin/main"])) {
-        throw new Error("main differs from origin/main")
-    }
-}
-
 // npm 11 prints the dist-tags object, npm 12 an array holding it.
 const publishedDistTags = (name: string) => {
-    const viewed: unknown = JSON.parse(output("npm", ["view", name, "dist-tags", "--json"]))
+    const viewed = npmView(name, "dist-tags")
     const tags = Array.isArray(viewed) && viewed.length === 1 ? viewed[0] : viewed
     const unexpected = new Error(
         `unexpected \`npm view dist-tags\` output: ${JSON.stringify(viewed)}`,
@@ -69,35 +79,60 @@ const printStatus = async () => {
     const rows = [["package.json", version] as const, ...publishedDistTags(name)]
     const width = Math.max(...rows.map(([label]) => label.length))
     for (const [label, value] of rows) console.log(`${label.padEnd(width)}  ${value}`)
-    console.log(
-        "\nusage: pnpm release <prerelease | preminor | patch | minor | major | x.y.z[-rc.n]>",
-    )
+    console.log(`\n${usage}`)
 }
 
 const release = async (bump: string) => {
-    assertReleasableHead()
     const { name } = await readManifest()
     const published = publishedVersions(name)
-    run("pnpm", ["build-and-pack"])
+    const problems = releaseProblems(bump, published)
+    if (problems.length > 0) {
+        throw new ReleaseFailure(
+            `cannot release, nothing was changed:\n${problems.map((problem) => `- ${problem}`).join("\n")}`,
+        )
+    }
 
-    run("npm", ["version", bump, "--preid", "rc", "--message", "Release %s"])
+    step("pnpm build-and-pack failed, nothing was changed", () => {
+        run("pnpm", ["build-and-pack"])
+    })
+    step("npm version failed: check git status and git tag before retrying", () => {
+        run("npm", ["version", bump, "--preid", "rc", "--message", "Release %s"])
+    })
     const { version } = await readManifest()
     const [publishTag = "latest", ...otherTags] = distTagsFor(version, published)
 
     try {
-        // assertReleasableHead already ran the git checks, which would now see main ahead of origin.
+        // releaseProblems already ran the git checks, which would now see main ahead of origin.
         run("pnpm", ["publish", "--tag", publishTag, "--no-git-checks"])
-    } catch (error) {
+    } catch (cause) {
         // Nothing reached the registry: drop the bump so a retry starts from the same commit.
         run("git", ["tag", "--delete", `v${version}`])
         run("git", ["reset", "--keep", "HEAD~1"])
-        throw error
+        throw new ReleaseFailure(`publishing ${version} failed, the version bump was undone`, {
+            cause,
+        })
     }
 
-    for (const tag of otherTags) run("npm", ["dist-tag", "add", `${name}@${version}`, tag])
-    run("git", ["push", "--atomic", "origin", "main", `v${version}`])
+    const push = ["push", "--atomic", "origin", "main", `v${version}`]
+    for (const tag of otherTags) {
+        const tagArgs = ["dist-tag", "add", `${name}@${version}`, tag]
+        step(
+            `published ${name}@${version} as ${publishTag}, but tagging it ${tag} failed; finish with:\n  npm ${tagArgs.join(" ")}\n  git ${push.join(" ")}`,
+            () => run("npm", tagArgs),
+        )
+    }
+    step(
+        `published ${name}@${version}, but the push failed; finish with:\n  git ${push.join(" ")}`,
+        () => run("git", push),
+    )
     console.log(`released ${name}@${version} as ${[publishTag, ...otherTags].join(", ")}`)
 }
 
 const bump = process.argv[2]
-await (bump === undefined ? printStatus() : release(bump))
+try {
+    await (bump === undefined ? printStatus() : release(bump))
+} catch (error) {
+    if (!(error instanceof ReleaseFailure)) throw error
+    console.error(`\n${error.message}`)
+    process.exitCode = 1
+}
