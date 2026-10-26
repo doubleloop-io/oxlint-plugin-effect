@@ -38,7 +38,7 @@ The plugin's 31 rules.
 | [`no-inline-schema-codec`](#no-inline-schema-codec)                                     |
 | [`redacted-secret-names`](#redacted-secret-names)                                       |
 
-The `all` preset enables them all at `warn`. The **Severity** at the end of each section is the level at which the rule produced no false positives on a real Effect 4 codebase: a data point about its stability, not a recommendation. `—` means not measured yet.
+The `all` preset enables them all at `warn`.
 
 ## Common limits
 
@@ -97,7 +97,11 @@ Effect.fail(new SheetTabNotFoundError({ spreadsheetId, message: "tab not found" 
 
 **Why**: the typed error channel discriminates only on tags. A `throw` in the generator becomes a defect, outside the error channel.
 
-- **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `error`
+**Options**:
+
+- `testFiles`: see [File options](#file-options).
+
+**Fix**: none
 
 ### `try-object-form`
 
@@ -122,7 +126,9 @@ Effect.tryPromise({
 
 **Why**: the thunk form types the error as `Cause.UnknownError` (`UnknownException` in v3), which no caller can handle by tag.
 
-- **Options**: none · **Fix**: none · **Severity**: `error`
+**Options**: none
+
+**Fix**: none
 
 ### `no-effect-promise`
 
@@ -144,7 +150,11 @@ Effect.tryPromise({ try: () => client.connect(), catch: toConnectionError })
 
 **Why**: `Effect.promise` turns a rejection into a defect.
 
-- **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `warn`
+**Options**:
+
+- `testFiles`: see [File options](#file-options).
+
+**Fix**: none
 
 ### `no-parameterless-catch-all`
 
@@ -170,7 +180,9 @@ Effect.orElseSucceed(() => fallback)
 
 **Why**: a catch-all that ignores its parameter also swallows the errors added later, which `catchTag` would leave visible in the type.
 
-- **Options**: none · **Fix**: none · **Severity**: `error`
+**Options**: none
+
+**Fix**: none
 
 ### `split-success-path-from-error-handling`
 
@@ -203,7 +215,11 @@ const createEvent = Effect.fn("events.create")(
 
 **Why**: translation becomes a single exhaustive point instead of catches scattered along the flow.
 
-- **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `warn`
+**Options**:
+
+- `testFiles`: see [File options](#file-options).
+
+**Fix**: none
 
 ### `anti-slop-no-manual-effect-error-tag`
 
@@ -225,7 +241,9 @@ program.pipe(Effect.catchTag("NotFound", () => recover))
 
 **Why**: a hand-written dispatch keeps the caught errors in the type even when handled, and silently misses tags added later.
 
-- **Options**: none · **Fix**: none · **Severity**: —
+**Options**: none
+
+**Fix**: none
 
 ## Tagged values
 
@@ -259,7 +277,11 @@ Match.value(payment).pipe(
 
 **Why**: `Match.tagsExhaustive`, `Match.discriminatorsExhaustive` and `$match` fail to compile when a variant is added; a comparison or a `switch` does not.
 
-- **Options**: `discriminants`, replaces the default `["_tag"]`; add the fields your unions discriminate on (`type`, `kind`) · **Fix**: none · **Severity**: —
+**Options**:
+
+- `discriminants`: default `["_tag"]`, replaced by the configured list. Add the fields your unions discriminate on (`type`, `kind`).
+
+**Fix**: none
 
 ### `no-manual-discriminant-construction`
 
@@ -287,7 +309,11 @@ const event = PaymentStartedEvent.make({ id, payment })
 
 **Why**: a literal skips the constructor, so it carries none of the class's prototype, equality or validation, and drifts silently when the type changes.
 
-- **Options**: `discriminants`, shared with [`no-manual-discriminant-comparison`](#no-manual-discriminant-comparison), default `["_tag"]` · **Fix**: none · **Severity**: —
+**Options**:
+
+- `discriminants`: shared with [`no-manual-discriminant-comparison`](#no-manual-discriminant-comparison), default `["_tag"]`.
+
+**Fix**: none
 
 ## Services and Layers
 
@@ -314,7 +340,9 @@ export class Agent extends Context.Service<
 
 **Why**: `make` and a static layer tie the port to a default implementation, while the port must stay a contract any adapter can satisfy. It is a convention, not Effect's idiom: Effect's own docs put `static readonly layer` on the service.
 
-- **Options**: none · **Fix**: none · **Severity**: `error`
+**Options**: none
+
+**Fix**: none
 
 ### `service-key-matches-name`
 
@@ -341,7 +369,9 @@ export class GeocodingApis extends Context.Service<GeocodingApis, Shape>()(
 
 **Why**: the key is the service's identity in errors, traces and `Context` lookups; a key that drifts from the name, as after a rename, makes it hard to find the class behind a message.
 
-- **Options**: none · **Fix**: suggestion that replaces the last segment of the key with the class name · **Severity**: —
+**Options**: none
+
+**Fix**: suggestion that replaces the last segment of the key with the class name
 
 ### `service-built-with-of`
 
@@ -375,7 +405,9 @@ export const RepoLive = Layer.effect(
 
 **Why**: `T.of` names the service the object implements and keeps it checked against the shape if the literal moves out of the Layer; one form for every Layer.
 
-- **Options**: none · **Fix**: suggestion that wraps the literal in `T.of(…)` · **Severity**: —
+**Options**: none
+
+**Fix**: suggestion that wraps the literal in `T.of(…)`
 
 ### `provide-named-layer`
 
@@ -398,7 +430,11 @@ Missing: () => printMissing.pipe(Effect.provide(missingLayer)),
 
 **Why**: an inline Layer cannot be reused and hides which adapters a branch chooses. When branches need different Layers, there is one `provide` per branch, all in the dispatch: a single Layer with every service would build adapters the command does not use.
 
-- **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `error`
+**Options**:
+
+- `testFiles`: see [File options](#file-options).
+
+**Fix**: none
 
 ### `no-provide-on-definition`
 
@@ -421,7 +457,11 @@ Missing: () => printMissing.pipe(Effect.provide(missingLayer)),
 
 **Why**: a program that provides its own Layers can no longer be wired to different adapters by its caller.
 
-- **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `error`
+**Options**:
+
+- `testFiles`: see [File options](#file-options).
+
+**Fix**: none
 
 ### `anti-slop-no-service-constructor-imports`
 
@@ -447,7 +487,11 @@ Effect.gen(function* () {
 
 **Why**: calling the constructor wires its dependencies by hand, and its requirements stop propagating to the composition root.
 
-- **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: —
+**Options**:
+
+- `testFiles`: see [File options](#file-options).
+
+**Fix**: none
 
 ## Runtime and entry point
 
@@ -476,7 +520,12 @@ NodeRuntime.runMain(
 
 **Why**: logger, Layers and defect handling are configured in one place.
 
-- **Options**: `entryFiles`, `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `error`
+**Options**:
+
+- `entryFiles`: see [File options](#file-options).
+- `testFiles`: see [File options](#file-options).
+
+**Fix**: none
 
 ### `prefer-effect-vitest`
 
@@ -502,7 +551,11 @@ effect("…", () => authorize({ role: "Manager" }).pipe(Effect.provide(sheetWith
 
 **Why**: the test runtime brings `TestClock` and a scope per test, and fixtures provided as Layers replace services where the code reads them.
 
-- **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: —
+**Options**:
+
+- `testFiles`: see [File options](#file-options).
+
+**Fix**: none
 
 ### `all-errors-handled-at-boundary`
 
@@ -528,7 +581,11 @@ const runBoundary = (effect: Effect.Effect<Response, never, never>) => Effect.ru
 
 **Why**: `Effect.runPromise` turns any error left over into a rejected promise, a generic 500. With `never`, a new untranslated error does not compile, and `R = never` forces all Layers to be provided.
 
-- **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `warn`
+**Options**:
+
+- `testFiles`: see [File options](#file-options).
+
+**Fix**: none
 
 ## Design and boundaries
 
@@ -552,7 +609,12 @@ import { Calendar } from "../calendar/Calendar.ts"
 
 **Why**: the adapter can be replaced without touching its consumers.
 
-- **Options**: `entryFiles`, `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `error`
+**Options**:
+
+- `entryFiles`: see [File options](#file-options).
+- `testFiles`: see [File options](#file-options).
+
+**Fix**: none
 
 ### `no-transport-types-in-generator`
 
@@ -589,7 +651,11 @@ const createEvent = Effect.fn("events.create")(
 
 **Why**: an early `return new Response(…)` on the happy path is an error branch disguised as success, and escapes exhaustive translation.
 
-- **Options**: `transportTypes`, replaces the default `["Response", "NextResponse"]`; add your own transport DTOs · **Fix**: none · **Severity**: `error`
+**Options**:
+
+- `transportTypes`: default `["Response", "NextResponse"]`, replaced by the configured list. Add your own transport DTOs.
+
+**Fix**: none
 
 ## Effectful functions
 
@@ -620,7 +686,9 @@ const refresh = Effect.gen(function* () { … }).pipe(Effect.withSpan("refresh")
 
 **Why**: named stack traces and spans without wrapper functions. Combinators passed as arguments run inside the function's span and receive its arguments: `(effect, name) => effect.pipe(…)`.
 
-- **Options**: none · **Fix**: none · **Severity**: `warn`
+**Options**: none
+
+**Fix**: none
 
 ### `untraced-recursion`
 
@@ -649,7 +717,9 @@ export const scan = Effect.fn("scan")(function* (root: Node) {
 
 **Why**: with `Effect.fn` every level opens a span nested in the previous one.
 
-- **Options**: none · **Fix**: none · **Severity**: `warn`
+**Options**: none
+
+**Fix**: none
 
 ### `single-style-per-function`
 
@@ -681,7 +751,11 @@ const createEvent = Effect.fn("events.create")(function* (request: Request) {
 
 **Why**: errors travel on two channels, exceptions and Effect, and neither sees them all.
 
-- **Options**: `testFiles` ([File options](#file-options)) · **Fix**: none · **Severity**: `error`
+**Options**:
+
+- `testFiles`: see [File options](#file-options).
+
+**Fix**: none
 
 ## Code shape
 
@@ -725,7 +799,9 @@ const run = Effect.fn("run")(function* (argv: ReadonlyArray<string>) {
 
 **Why**: two nested levels of choice hide which branch is the normal one.
 
-- **Options**: none · **Fix**: none · **Severity**: `warn`
+**Options**: none
+
+**Fix**: none
 
 ### `no-yielded-match`
 
@@ -758,7 +834,9 @@ const save = Effect.fn("save")(function* (id: PolicyId) {
 
 **Why**: the match splits the generator into two equal-weight branches; a guard clause leaves one main path of `yield*`.
 
-- **Options**: none · **Fix**: none · **Severity**: —
+**Options**: none
+
+**Fix**: none
 
 ### `no-inline-yield-star`
 
@@ -785,7 +863,9 @@ function* () {
 
 **Why**: with several `yield*`s in one expression the order of effects can only be inferred from precedence. One `const` per effect makes the order the reading order and names the intermediate value.
 
-- **Options**: none · **Fix**: autofix · **Severity**: `warn`
+**Options**: none
+
+**Fix**: autofix
 
 ### `no-effect-return-type`
 
@@ -810,7 +890,11 @@ export const findPrice = (id: PriceId): Effect.Effect<Price, PriceNotFound> =>
 
 **Why**: the error and requirement channels collect what comes from everything the function calls; an error or a service added deep down would change every caller's annotation. An exported signature is the module's contract, like a named type: there the annotation makes such a change visible where it is published. To check a returned object against a named type, annotate the callback that builds it (`Effect.map(CurrentSession, (session): OrganizationContext => ({ … }))`) or use `satisfies`.
 
-- **Options**: `checkExported`, default `false`: also checks exported declarations · **Fix**: suggestion that removes the annotation · **Severity**: `warn`
+**Options**:
+
+- `checkExported`: default `false`. Also checks exported declarations.
+
+**Fix**: suggestion that removes the annotation
 
 ### `no-asymmetric-match-handlers`
 
@@ -838,7 +922,9 @@ Option.match(only, {
 
 **Why**: a branch saying _what_ next to one showing _how_ forces the reader to switch level halfway through the choice.
 
-- **Options**: none · **Fix**: none · **Severity**: `warn`
+**Options**: none
+
+**Fix**: none
 
 ### `anti-slop-prefer-effect-match`
 
@@ -864,7 +950,9 @@ const label = Match.value(kind).pipe(
 
 **Why**: a ternary chain hides which value is the fallback and cannot be made exhaustive.
 
-- **Options**: none · **Fix**: none · **Severity**: —
+**Options**: none
+
+**Fix**: none
 
 ## Schema
 
@@ -890,7 +978,9 @@ export const EventBusEvents = Schema.Union([Created, Deleted]).annotate({
 
 **Why**: without an `identifier`, decoding errors, JSON Schema and arbitraries describe the schema by its structure instead of its name.
 
-- **Options**: none · **Fix**: suggestion that corrects the `identifier`, or two that add it, `v3:` with `.annotations(…)` and `v4:` with `.annotate(…)` · **Severity**: —
+**Options**: none
+
+**Fix**: suggestion that corrects the `identifier`, or two that add it, `v3:` with `.annotations(…)` and `v4:` with `.annotate(…)`
 
 ### `no-inline-schema-codec`
 
@@ -914,7 +1004,9 @@ const toPayment = (raw: unknown) => decodePaymentResponse(raw)
 
 **Why**: a named codec says what it decodes at the call site and is built once, instead of at every call.
 
-- **Options**: none · **Fix**: none · **Severity**: —
+**Options**: none
+
+**Fix**: none
 
 ## Config and secrets
 
@@ -943,4 +1035,8 @@ const Session = Schema.Struct({ userId: UserId, accessToken: Schema.Redacted(Sch
 
 **Why**: a `Redacted` value does not end up in logs or `toString`.
 
-- **Options**: `secretFields`, default `["password", "secret", "apiKey", "accessToken", "refreshToken", "idToken"]` (no generic `token`), replaced by the configured list; `Config` names are fixed · **Fix**: none · **Severity**: `warn`
+**Options**:
+
+- `secretFields`: default `["password", "secret", "apiKey", "accessToken", "refreshToken", "idToken"]` (no generic `token`), replaced by the configured list. `Config` names are fixed.
+
+**Fix**: none

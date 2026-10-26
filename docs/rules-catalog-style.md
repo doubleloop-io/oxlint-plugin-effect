@@ -34,7 +34,11 @@ the compliant form
 
 **Why**: one or two sentences.
 
-- **Options**: … · **Fix**: … · **Severity**: `error`
+**Options**:
+
+- `optionName`: default `…`. What changing it does.
+
+**Fix**: none
 ````
 
 The heading and the back link below it are enforced by `rules-md.test.ts`.
@@ -46,12 +50,13 @@ The heading and the back link below it are enforced by `rules-md.test.ts`.
 - **Trigger**: the reported syntactic forms, precise enough to predict whether a given piece of code fires.
 - **Exemptions and blind spots**: deliberate exemptions (entry, test, release) with their reason in half a sentence; then the cases that slip through (aliases, mutual recursion, requirements that need types). The reader must know that the rule's silence does not mean compliance. If another rule or diagnostic covers the gap, one line: "See `leaking-requirements` (effecttsgo)." Omit the field when there is nothing to say.
 - **Why**: the concrete cost of breaking the norm. One or two sentences.
-- **Metadata**: one line. `Options` names the options and links to [File options](../RULES.md#file-options) when shared; an option specific to the rule states its default. `Fix`: `none`, `autofix` or `suggestion`; the conditions under which the fix does not apply go in Exemptions and blind spots.
+- **Options**: a bold label like Intent, not a heading. One bullet per option: a shared one links to [File options](../RULES.md#file-options), one specific to the rule states its default. A rule without options has `**Options**: none` on one line.
+- **Fix**: `none`, `autofix` or `suggestion`; the conditions under which the fix does not apply go in Exemptions and blind spots.
 
 ## Redundancy and verbosity
 
 - **Every fact in one place.** What applies to several rules (common limits, `entryFiles`, `testFiles`) lives in the opening sections and rules link to it.
-- **Sibling rules** (same pattern): the second has Intent, Trigger, Exemptions and metadata, and links to the first for the example and Why instead of repeating them.
+- **Sibling rules** (same pattern): the second has Intent, Trigger, Exemptions, Options and Fix, and links to the first for the example and Why instead of repeating them.
 - **No source citations** (`AGENTS.md`, JSDoc, `ai-docs/`), no rule history, no numeric comparisons with effecttsgo: they do not belong in the catalog.
 - **No pattern guides.** How to structure tests without `@effect/vitest`, how to write a test runner: those are patterns, not rules, and do not belong in the catalog.
 - **No repetition across fields.** If Why repeats the Intent, drop Why; if the Trigger repeats the example, shorten the Trigger.
