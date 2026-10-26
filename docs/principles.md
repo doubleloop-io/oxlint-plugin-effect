@@ -28,6 +28,6 @@ Rules are written and tested against Effect 4. Where a v3 API has the same inten
 
 `anti-slop-*` rules are not modified, so they stay resyncable with `dmmulroy/anti-slop`. When a dl-effect rule covers the same case more strongly, the anti-slop rule is retired.
 
-## Local style as an option
+## Local style as configuration
 
-When two forms are both correct and the choice belongs to a codebase, the difference becomes a rule option (precedents: `entryFiles`, `transportTypes`), not a rule that forbids one of them.
+When two forms are both correct and the choice belongs to a codebase, the difference becomes configuration, not a rule that forbids one of them: a rule option when it concerns one rule (`transportTypes`), a setting when it concerns the whole project (`entryFiles`).

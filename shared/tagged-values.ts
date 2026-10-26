@@ -1,6 +1,7 @@
 import type { ESTree } from "@oxlint/plugins"
 
 import { calleeOf } from "./effect-ast.ts"
+import { projectSetting } from "./settings.ts"
 
 const equalityOperators = new Set(["==", "===", "!=", "!=="])
 const broadEffectCatchMethods = new Set(["catch", "catchAll", "catchIf"])
@@ -56,22 +57,10 @@ export const propertyName = (property: ESTree.ObjectProperty) => {
 
 // The fields that discriminate a closed union: `_tag` for Effect's tagged values, plus whatever
 // the codebase uses (`type`, `kind`). Shared by the rules on comparison and construction.
-const defaultDiscriminants = ["_tag"]
+export const defaultDiscriminants = ["_tag"] as const
 
-export const discriminantsSchema = {
-    type: "array",
-    items: { type: "string" },
-    uniqueItems: true,
-} as const
-
-export const configuredDiscriminants = (options: ReadonlyArray<unknown>) => {
-    const [first] = options
-    if (typeof first !== "object" || first === null || !("discriminants" in first)) {
-        return new Set(defaultDiscriminants)
-    }
-    const names = first.discriminants
-    return new Set(Array.isArray(names) ? names.filter((name) => typeof name === "string") : [])
-}
+export const configuredDiscriminants = (settings: Readonly<Record<string, unknown>>) =>
+    new Set(projectSetting(settings, "discriminants") ?? defaultDiscriminants)
 
 export const discriminantOf = (
     node: ESTree.Node | null | undefined,

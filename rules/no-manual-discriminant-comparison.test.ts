@@ -5,7 +5,7 @@ import {
     remedyFor,
 } from "./no-manual-discriminant-comparison.ts"
 
-const eventDiscriminants = [{ discriminants: ["_tag", "type", "eventType"] }]
+const eventDiscriminants = { "dl-effect": { discriminants: ["_tag", "type", "eventType"] } }
 
 const comparisonOn = (discriminant: string) => ({
     messageId: "manualComparison" as const,
@@ -31,10 +31,10 @@ new RuleTester().run("no-manual-discriminant-comparison", noManualDiscriminantCo
         'const isPaid = event.type === "paid"',
         {
             code: 'if (value.status === "Ready") handleReady(value);',
-            options: eventDiscriminants,
+            settings: eventDiscriminants,
         },
-        { code: "event.type === expected", options: eventDiscriminants },
-        { code: 'value._tag === "Ready"', options: [{ discriminants: ["type"] }] },
+        { code: "event.type === expected", settings: eventDiscriminants },
+        { code: 'value._tag === "Ready"', settings: { "dl-effect": { discriminants: ["type"] } } },
     ],
     invalid: [
         // Ported from `anti-slop-no-manual-tag-comparison`, which this rule replaces.
@@ -49,7 +49,7 @@ new RuleTester().run("no-manual-discriminant-comparison", noManualDiscriminantCo
         },
         {
             code: paymentSwitch,
-            options: eventDiscriminants,
+            settings: eventDiscriminants,
             errors: [
                 {
                     messageId: "manualSwitch",
@@ -59,17 +59,17 @@ new RuleTester().run("no-manual-discriminant-comparison", noManualDiscriminantCo
         },
         {
             code: 'const price = payment.type === "card" ? fromCard(payment) : fromTransfer(payment)',
-            options: eventDiscriminants,
+            settings: eventDiscriminants,
             errors: [comparisonOn("type")],
         },
         {
             code: 'if (event["eventType"] === "OrderConfirmed") return confirm(event)',
-            options: eventDiscriminants,
+            settings: eventDiscriminants,
             errors: [comparisonOn("eventType")],
         },
         {
             code: 'Effect.catch((error) => error.type === "timeout" ? retry : Effect.fail(error))',
-            options: eventDiscriminants,
+            settings: eventDiscriminants,
             errors: [comparisonOn("type")],
         },
         {
@@ -96,7 +96,7 @@ new RuleTester().run("no-manual-discriminant-comparison", noManualDiscriminantCo
         },
         {
             code: 'const confirmed = event.type === "Success"',
-            options: eventDiscriminants,
+            settings: eventDiscriminants,
             errors: [comparisonOn("type")],
         },
     ],

@@ -26,7 +26,7 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
             {
                 code: providedGen,
                 filename: "src/commands/missing.check.ts",
-                options: [{ testFiles: ["**/*.check.ts"] }],
+                settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
             },
             inLayer(
                 capturedContext,

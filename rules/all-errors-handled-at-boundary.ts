@@ -7,7 +7,6 @@ import {
     nearestFunction,
     type FunctionNode,
 } from "../shared/effect-ast.ts"
-import { filePatternsSchema } from "../shared/file-globs.ts"
 import { isTestFile } from "../shared/test-files.ts"
 
 type Frame = {
@@ -82,13 +81,7 @@ export const allErrorsHandledAtBoundaryRule = defineRule({
             openErrorChannel:
                 "Close the error channel before running: `program satisfies Effect.Effect<A, never>`, or a runner parameter typed `Effect.Effect<A, never, never>`.",
         },
-        schema: [
-            {
-                type: "object",
-                properties: { testFiles: filePatternsSchema },
-                additionalProperties: false,
-            },
-        ],
+        schema: [],
     },
     createOnce(context) {
         const frames: Array<Frame> = []

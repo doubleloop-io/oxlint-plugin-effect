@@ -18,7 +18,7 @@ new RuleTester().run(
             {
                 filename: "src/issue-service.check.ts",
                 code: 'import { makeIssueService } from "./issue-service.ts";',
-                options: [{ testFiles: ["**/*.check.ts"] }],
+                settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
             },
             {
                 filename: "src/runtime.ts",
@@ -52,7 +52,7 @@ new RuleTester().run(
                 // `testFiles` replaces the defaults, so a `.test.ts` outside the new globs is checked.
                 filename: "src/issue-service.test.ts",
                 code: 'import { makeIssueService } from "./issue-service.ts";',
-                options: [{ testFiles: ["**/*.check.ts"] }],
+                settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
                 errors: [
                     { messageId: "serviceConstructorImport", data: { name: "makeIssueService" } },
                 ],

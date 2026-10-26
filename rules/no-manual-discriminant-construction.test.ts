@@ -5,7 +5,7 @@ import {
     remedyFor,
 } from "./no-manual-discriminant-construction.ts"
 
-const eventDiscriminants = [{ discriminants: ["_tag", "type", "eventType"] }]
+const eventDiscriminants = { "dl-effect": { discriminants: ["_tag", "type", "eventType"] } }
 
 const constructionOf = (discriminant: string) => ({
     messageId: "manualConstruction" as const,
@@ -25,22 +25,25 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
             "({ _tag: tag, value });",
             // Only `_tag` by default.
             'const payment = { type: "card", amount }',
-            { code: 'const order = { status: "paid", amount }', options: eventDiscriminants },
+            { code: 'const order = { status: "paid", amount }', settings: eventDiscriminants },
             {
                 code: "ResPaymentDeclinedEvent.make({ id: command.paymentId, eventType })",
-                options: eventDiscriminants,
+                settings: eventDiscriminants,
             },
-            { code: 'const value = { _tag: "Ready" }', options: [{ discriminants: ["type"] }] },
+            {
+                code: 'const value = { _tag: "Ready" }',
+                settings: { "dl-effect": { discriminants: ["type"] } },
+            },
             // Patterns and codec inputs, also nested.
             'Match.when({ payment: { _tag: "Card" } }, fromCard)',
             {
                 code: 'match(payment).with({ type: "card" }, fromCard).with({ type: "transfer" }, fromTransfer).exhaustive()',
-                options: eventDiscriminants,
+                settings: eventDiscriminants,
             },
             'Schema.decodeUnknownSync(Ready)({ _tag: "Ready", value: 1 })',
             {
                 code: 'Schema.decodeUnknownEffect(Events)([{ eventType: "OrderConfirmed", id }])',
-                options: eventDiscriminants,
+                settings: eventDiscriminants,
             },
             'Schema.encodeSync(Ready)({ _tag: "Ready", value: 1 })',
             // Expected shapes in assertions, also nested.
@@ -69,18 +72,18 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
             },
             {
                 code: 'const event: PaymentStartedEvent = { eventType: "PaymentStarted", id, payment }',
-                options: eventDiscriminants,
+                settings: eventDiscriminants,
                 errors: [constructionOf("eventType")],
             },
             {
                 code: 'const toPayment = (amount) => ({ type: "transfer", amount })',
-                options: eventDiscriminants,
+                settings: eventDiscriminants,
                 errors: [constructionOf("type")],
             },
             // Only the arguments of the pattern or codec call are exempt.
             {
                 code: 'match(payment).with({ type: "card" }, () => ({ type: "settled", amount }))',
-                options: eventDiscriminants,
+                settings: eventDiscriminants,
                 errors: [constructionOf("type")],
             },
             {

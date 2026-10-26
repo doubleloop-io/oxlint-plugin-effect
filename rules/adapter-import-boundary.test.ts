@@ -52,7 +52,7 @@ new RuleTester().run("adapter-import-boundary", rule, {
         {
             code: 'import { GoogleSheet } from "./sheet/google/GoogleSheet.ts"',
             filename: "src/start.ts",
-            options: [{ entryFiles: ["**/start.ts"] }],
+            settings: { "dl-effect": { entryFiles: ["**/start.ts"] } },
         },
         {
             code: 'import { RaceList } from "../races/RaceList.ts"',
@@ -77,7 +77,7 @@ new RuleTester().run("adapter-import-boundary", rule, {
         {
             code: 'import { GoogleSheet } from "./google/GoogleSheet.ts"',
             filename: "src/sheet/GoogleSheet.check.ts",
-            options: [{ testFiles: ["**/*.check.ts"] }],
+            settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
         },
         // A nested directory that builds no Layer is domain code, whatever its depth.
         {
@@ -110,7 +110,7 @@ new RuleTester().run("adapter-import-boundary", rule, {
         {
             code: 'import { GoogleSheet } from "../sheet/google/GoogleSheet.ts"',
             filename: "src/plan/planRow.test.ts",
-            options: [{ testFiles: ["**/*.check.ts"] }],
+            settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
             errors: [{ messageId: "adapterOutsideEntry", data: { adapter: "src/sheet/google" } }],
         },
     ],

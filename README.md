@@ -49,29 +49,38 @@ To pick rules without the preset, load the plugin by package name and list the r
 
 ### Configuration options
 
-Two options tell the rules where your files are. Their defaults fit a Node CLI; on another layout (Next.js, a monorepo) set them before reading the warnings.
+Three settings describe your project, not a rule, so they are declared once under `settings["dl-effect"]` and every rule that uses them reads them from there. Their defaults fit a Node CLI; on another layout (Next.js, a monorepo) set them before reading the warnings.
 
-- `entryFiles`: the files allowed to run Effects and import adapters. Default `**/main.ts`, `**/cli.ts`, `**/bin/**`. Used by `run-only-in-runner` and `adapter-import-boundary`.
-- `testFiles`: the test files, exempt from the rules that tests legitimately break and the only files `prefer-effect-vitest` checks. Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. The rules that use it are listed in [File options](RULES.md#file-options).
+- `entryFiles`: the files allowed to run Effects and import adapters. Default `**/main.ts`, `**/cli.ts`, `**/bin/**`.
+- `testFiles`: the test files, exempt from the rules that tests legitimately break and the only files `prefer-effect-vitest` checks. Default `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`.
+- `discriminants`: the fields that discriminate a closed union. Default `_tag`; add the ones your unions use, such as `type` or `kind`.
 
-Set an option only where its default does not fit. It **replaces** the default instead of extending it, and every rule that uses it must get the same value. With `oxlint.config.ts`, declare it once and override the rules that use it after `extends`:
+The rules that use each one are listed in [Shared settings](RULES.md#shared-settings). Set one only where its default does not fit: it **replaces** the default instead of extending it. An unknown key or a value that is not an array of strings stops the lint with an error, so a typo is never silently ignored.
 
 ```ts
 import dlEffectAll from "@doubleloop-io/oxlint-plugin-effect/presets/all"
 import { defineConfig } from "oxlint"
 
-const entryFiles = ["apps/web/src/app/**/route.ts", "apps/web/src/runtime.ts"]
-
 export default defineConfig({
     extends: [dlEffectAll],
-    rules: {
-        "dl-effect/run-only-in-runner": ["warn", { entryFiles }],
-        "dl-effect/adapter-import-boundary": ["warn", { entryFiles }],
+    settings: {
+        "dl-effect": { entryFiles: ["apps/web/src/app/**/route.ts", "apps/web/src/runtime.ts"] },
     },
 })
 ```
 
-The package exports the defaults as `defaultEntryFiles` and `defaultTestFiles`: spread them to extend a default (`testFiles: [...defaultTestFiles, "e2e/**"]`), or reuse them in your own `overrides`. With `.oxlintrc.json` the overrides go under `rules`, repeating each list in every rule.
+```json
+{
+    "extends": ["./node_modules/@doubleloop-io/oxlint-plugin-effect/dist/presets/all.json"],
+    "settings": {
+        "dl-effect": { "entryFiles": ["apps/web/src/app/**/route.ts", "apps/web/src/runtime.ts"] }
+    }
+}
+```
+
+The package exports the defaults as `defaultEntryFiles`, `defaultTestFiles` and `defaultDiscriminants`: spread them to extend a default (`testFiles: [...defaultTestFiles, "e2e/**"]`).
+
+Settings belong to the config that lints: oxlint does not inherit them from a preset in `extends`, and rejects them in `overrides`. For a value that differs by group of files, use `overrides` on the rules instead.
 
 The other options and every default are in [Default configuration](#default-configuration).
 
@@ -114,31 +123,18 @@ What each rule reports and why is in [`RULES.md`](RULES.md).
 
 ### Absorbed from anti-slop
 
-The `anti-slop-*` rules come from the five Effect rules of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop) (plugin `anti-slop-effect`, commit [`c44ef22`](https://github.com/dmmulroy/anti-slop/tree/c44ef22ca116d0ba62a3ff663a0bd13a3f3fa40b/src/effect)), ported into this plugin; its generic TypeScript rules stay out. `no-manual-tag-comparison` and `no-manual-tagged-construction` are retired: [`no-manual-discriminant-comparison`](RULES.md#no-manual-discriminant-comparison) and [`no-manual-discriminant-construction`](RULES.md#no-manual-discriminant-construction) cover them with their default. In the others, detection logic and messages are unchanged; [`anti-slop-no-service-constructor-imports`](RULES.md#anti-slop-no-service-constructor-imports) recognizes test files through the shared [`testFiles`](RULES.md#file-options) option instead of its own `*.test.*`/`*.spec.*` check. Do not enable the `anti-slop-effect` plugin alongside this one: every finding would be reported twice. The original code is MIT-licensed: see [`LICENSE.anti-slop`](LICENSE.anti-slop).
+The `anti-slop-*` rules come from the five Effect rules of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop) (plugin `anti-slop-effect`, commit [`c44ef22`](https://github.com/dmmulroy/anti-slop/tree/c44ef22ca116d0ba62a3ff663a0bd13a3f3fa40b/src/effect)), ported into this plugin; its generic TypeScript rules stay out. `no-manual-tag-comparison` and `no-manual-tagged-construction` are retired: [`no-manual-discriminant-comparison`](RULES.md#no-manual-discriminant-comparison) and [`no-manual-discriminant-construction`](RULES.md#no-manual-discriminant-construction) cover them with their default. In the others, detection logic and messages are unchanged; [`anti-slop-no-service-constructor-imports`](RULES.md#anti-slop-no-service-constructor-imports) recognizes test files through the shared [`testFiles`](RULES.md#shared-settings) setting instead of its own `*.test.*`/`*.spec.*` check. Do not enable the `anti-slop-effect` plugin alongside this one: every finding would be reported twice. The original code is MIT-licensed: see [`LICENSE.anti-slop`](LICENSE.anti-slop).
 
 ## Default configuration
 
-`all` is equivalent to the config below, with every option spelled out at its default. File options **replace** the defaults instead of extending them, and every rule sharing an option must get the same value: see [File options](RULES.md#file-options).
+`all` is equivalent to the config below, with every setting and option spelled out at its default. Both **replace** the defaults instead of extending them: see [Shared settings](RULES.md#shared-settings).
 
 ```ts
 import { defineConfig } from "oxlint"
 
-// Files allowed to run Effects (Effect.run*, runMain, ManagedRuntime.make) and to import
-// adapters. `index.ts` is left out on purpose: as a barrel it would let adapters leak
-// through re-exports.
-const entryFiles = ["**/main.ts", "**/cli.ts", "**/bin/**"]
-
-// Files exempt from the rules that tests legitimately break. Helper directories such as
-// `src/testing/` are support code, not tests, so they are not matched.
-const testFiles = ["**/*.test.*", "**/*.spec.*", "**/__tests__/**", "**/test/**", "**/tests/**"]
-
 // Constructors that must not appear inside an Effect generator: the conversion to the
 // transport belongs in the second argument of Effect.fn. Add your own transport DTOs.
 const transportTypes = ["Response", "NextResponse"]
-
-// Fields that discriminate a closed union, compared or switched on only through an exhaustive
-// match and set only by a constructor. Add the ones your unions use, such as `type` or `kind`.
-const discriminants = ["_tag"]
 
 // Schema fields holding a secret: a field matches an entry or ends with it capitalized
 // (`password` matches `dbPassword`). No generic `token`: `nextPageToken` is not a secret.
@@ -146,36 +142,57 @@ const secretFields = ["password", "secret", "apiKey", "accessToken", "refreshTok
 
 export default defineConfig({
     jsPlugins: ["@doubleloop-io/oxlint-plugin-effect"],
+    settings: {
+        "dl-effect": {
+            // Files allowed to run Effects (Effect.run*, runMain, ManagedRuntime.make) and to
+            // import adapters. `index.ts` is left out on purpose: as a barrel it would let
+            // adapters leak through re-exports.
+            entryFiles: ["**/main.ts", "**/cli.ts", "**/bin/**"],
+            // Files exempt from the rules that tests legitimately break. Helper directories such
+            // as `src/testing/` are support code, not tests, so they are not matched.
+            testFiles: [
+                "**/*.test.*",
+                "**/*.spec.*",
+                "**/__tests__/**",
+                "**/test/**",
+                "**/tests/**",
+            ],
+            // Fields that discriminate a closed union, compared or switched on only through an
+            // exhaustive match and set only by a constructor. Add the ones your unions use, such
+            // as `type` or `kind`.
+            discriminants: ["_tag"],
+        },
+    },
     // Every rule at `warn`, to measure noise without blocking.
     rules: {
         // Error channel
-        "dl-effect/no-throw-or-primitive-failure": ["warn", { testFiles }],
+        "dl-effect/no-throw-or-primitive-failure": "warn",
         "dl-effect/try-object-form": "warn",
-        "dl-effect/no-effect-promise": ["warn", { testFiles }],
+        "dl-effect/no-effect-promise": "warn",
         "dl-effect/no-parameterless-catch-all": "warn",
-        "dl-effect/split-success-path-from-error-handling": ["warn", { testFiles }],
+        "dl-effect/split-success-path-from-error-handling": "warn",
         "dl-effect/anti-slop-no-manual-effect-error-tag": "warn",
         // Tagged values
-        "dl-effect/no-manual-discriminant-comparison": ["warn", { discriminants }],
-        "dl-effect/no-manual-discriminant-construction": ["warn", { discriminants }],
+        "dl-effect/no-manual-discriminant-comparison": "warn",
+        "dl-effect/no-manual-discriminant-construction": "warn",
         // Services & Layers
         "dl-effect/service-port-shape-only": "warn",
         "dl-effect/service-key-matches-name": "warn",
         "dl-effect/service-built-with-of": "warn",
-        "dl-effect/provide-named-layer": ["warn", { testFiles }],
-        "dl-effect/no-provide-on-definition": ["warn", { testFiles }],
-        "dl-effect/anti-slop-no-service-constructor-imports": ["warn", { testFiles }],
+        "dl-effect/provide-named-layer": "warn",
+        "dl-effect/no-provide-on-definition": "warn",
+        "dl-effect/anti-slop-no-service-constructor-imports": "warn",
         // Runtime & entrypoint
-        "dl-effect/run-only-in-runner": ["warn", { entryFiles, testFiles }],
-        "dl-effect/prefer-effect-vitest": ["warn", { testFiles }],
-        "dl-effect/all-errors-handled-at-boundary": ["warn", { testFiles }],
+        "dl-effect/run-only-in-runner": "warn",
+        "dl-effect/prefer-effect-vitest": "warn",
+        "dl-effect/all-errors-handled-at-boundary": "warn",
         // Design & boundaries
-        "dl-effect/adapter-import-boundary": ["warn", { entryFiles, testFiles }],
+        "dl-effect/adapter-import-boundary": "warn",
         "dl-effect/no-transport-types-in-generator": ["warn", { transportTypes }],
         // Effectful functions
         "dl-effect/prefer-effect-fn": "warn",
         "dl-effect/untraced-recursion": "warn",
-        "dl-effect/single-style-per-function": ["warn", { testFiles }],
+        "dl-effect/single-style-per-function": "warn",
         // Code shape
         "dl-effect/no-nested-match": "warn",
         "dl-effect/no-yielded-match": "warn",
@@ -192,7 +209,7 @@ export default defineConfig({
 })
 ```
 
-To change one option, extend `all` and override only the rules that use it.
+To change a setting, declare it in `settings`; to change a rule option, extend `all` and override only that rule.
 
 ## Versioning
 

@@ -32,7 +32,7 @@ new RuleTester().run(
             {
                 code: "Effect.gen(function* () { const outcome = yield* Effect.result(verify(token)) })",
                 filename: "src/oidc/token-verifier.check.ts",
-                options: [{ testFiles: ["**/*.check.ts"] }],
+                settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
             },
         ],
         invalid: [
@@ -63,7 +63,7 @@ new RuleTester().run(
             {
                 code: "Effect.gen(function* () { const outcome = yield* Effect.result(verify(token)) })",
                 filename: "src/oidc/token-verifier.test.ts",
-                options: [{ testFiles: ["**/*.check.ts"] }],
+                settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
                 errors: [{ messageId: "handlerInGenerator", data: { name: "result" } }],
             },
         ],

@@ -1,7 +1,6 @@
 import { defineRule } from "@oxlint/plugins"
 
 import { calleeOf, isEffectGenerator, nearestFunction } from "../shared/effect-ast.ts"
-import { filePatternsSchema } from "../shared/file-globs.ts"
 import { isTestFile } from "../shared/test-files.ts"
 
 // Only the two forms the effecttsgo preset misses: `Effect.fail(new Error(…))` and
@@ -19,13 +18,7 @@ export const noThrowOrPrimitiveFailureRule = defineRule({
             primitiveFailure:
                 "Fail with a tagged error (`Data.TaggedError` or `Schema.TaggedError`), not a primitive value.",
         },
-        schema: [
-            {
-                type: "object",
-                properties: { testFiles: filePatternsSchema },
-                additionalProperties: false,
-            },
-        ],
+        schema: [],
     },
     createOnce(context) {
         let inTestFile = false

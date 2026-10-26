@@ -1,3 +1,4 @@
 {
-    "extends": ["./node_modules/@doubleloop-io/oxlint-plugin-effect/dist/presets/all.json"]
+    "extends": ["./node_modules/@doubleloop-io/oxlint-plugin-effect/dist/presets/all.json"],
+    "settings": { "dl-effect": { "testFiles": ["**/*.test.*", "**/*.spec.*"] } }
 }

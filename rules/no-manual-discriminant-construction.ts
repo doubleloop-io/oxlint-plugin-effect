@@ -1,12 +1,7 @@
 import { defineRule, type ESTree, type Scope, type SourceCode } from "@oxlint/plugins"
 
 import { calleeOf, isFunctionNode } from "../shared/effect-ast.ts"
-import {
-    configuredDiscriminants,
-    discriminantsSchema,
-    isStringLiteral,
-    propertyName,
-} from "../shared/tagged-values.ts"
+import { configuredDiscriminants, isStringLiteral, propertyName } from "../shared/tagged-values.ts"
 
 export const remedyFor = (discriminant: string) =>
     discriminant === "_tag"
@@ -127,20 +122,14 @@ export const noManualDiscriminantConstructionRule = defineRule({
             manualConstruction:
                 "An object literal with a literal `{{discriminant}}` skips the variant's constructor: use {{remedy}}.",
         },
-        schema: [
-            {
-                type: "object",
-                properties: { discriminants: discriminantsSchema },
-                additionalProperties: false,
-            },
-        ],
+        schema: [],
     },
     createOnce(context) {
         let discriminants = new Set<string>()
 
         return {
             before() {
-                discriminants = configuredDiscriminants(context.options)
+                discriminants = configuredDiscriminants(context.settings)
             },
             ObjectExpression(node) {
                 for (const property of node.properties) {

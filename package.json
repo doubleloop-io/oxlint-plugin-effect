@@ -34,7 +34,7 @@
         "format:check": "oxfmt --check",
         "typecheck": "tsc --noEmit",
         "lint": "oxlint --deny-warnings",
-        "test": "node --test rules-md.test.ts rules/*.test.ts",
+        "test": "node --test rules-md.test.ts rules/*.test.ts shared/*.test.ts",
         "check": "pnpm format:check && pnpm typecheck && pnpm lint && pnpm test",
         "build": "rm -rf dist && tsc -p tsconfig.build.json && node presets/all-json.ts",
         "build:w": "node --watch-path=index.ts --watch-path=rules --watch-path=presets --watch-path=shared --watch-path=tsconfig.build.json scripts/build.ts",

@@ -12,13 +12,13 @@ new RuleTester().run("run-only-in-runner", runOnlyInRunnerRule, {
         {
             code: "NodeRuntime.runMain(program)",
             filename: "src/start.ts",
-            options: [{ entryFiles: ["**/start.ts"] }],
+            settings: { "dl-effect": { entryFiles: ["**/start.ts"] } },
         },
         { code: "const done = Effect.runPromise(program)", filename: "src/event.test.ts" },
         {
             code: "const done = Effect.runPromise(program)",
             filename: "src/event.check.ts",
-            options: [{ testFiles: ["**/*.check.ts"] }],
+            settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
         },
     ],
     invalid: [
@@ -38,7 +38,7 @@ new RuleTester().run("run-only-in-runner", runOnlyInRunnerRule, {
         {
             code: "NodeRuntime.runMain(program)",
             filename: "src/main.ts",
-            options: [{ entryFiles: ["**/start.ts"] }],
+            settings: { "dl-effect": { entryFiles: ["**/start.ts"] } },
             errors: [{ messageId: "runOutsideEntry", data: { name: "NodeRuntime.runMain" } }],
         },
         {
@@ -53,7 +53,7 @@ new RuleTester().run("run-only-in-runner", runOnlyInRunnerRule, {
         {
             code: "const done = Effect.runPromise(program)",
             filename: "src/event.test.ts",
-            options: [{ testFiles: ["**/*.check.ts"] }],
+            settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
             errors: [{ messageId: "runOutsideEntry", data: { name: "Effect.runPromise" } }],
         },
     ],

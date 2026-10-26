@@ -12,7 +12,7 @@ new RuleTester().run("no-throw-or-primitive-failure", noThrowOrPrimitiveFailureR
         {
             code: 'const failing = Effect.fail("boom")',
             filename: "src/readiness.check.ts",
-            options: [{ testFiles: ["**/*.check.ts"] }],
+            settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
         },
     ],
     invalid: [
@@ -36,7 +36,7 @@ new RuleTester().run("no-throw-or-primitive-failure", noThrowOrPrimitiveFailureR
         {
             code: 'const failing = Effect.fail("boom")',
             filename: "src/readiness.test.ts",
-            options: [{ testFiles: ["**/*.check.ts"] }],
+            settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
             errors: [{ messageId: "primitiveFailure" }],
         },
         {

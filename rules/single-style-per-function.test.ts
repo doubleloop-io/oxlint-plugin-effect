@@ -72,7 +72,7 @@ new RuleTester().run("single-style-per-function", singleStylePerFunctionRule, {
         },
         {
             filename: "src/events.test.ts",
-            options: [{ testFiles: ["**/*.check.ts"] }],
+            settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
             code: "const captureLines = async (effect) => { const lines = []; await Effect.runPromise(effect.pipe(Effect.scoped)); return lines }",
             errors: [{ messageId: "asyncEffect" }, { messageId: "promiseStep" }],
         },

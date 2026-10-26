@@ -3,7 +3,6 @@ import { defineRule, type ESTree } from "@oxlint/plugins"
 import {
     configuredDiscriminants,
     discriminantOf,
-    discriminantsSchema,
     isEqualityComparison,
     isInsideBroadEffectHandler,
     isStringLiteral,
@@ -43,13 +42,7 @@ export const noManualDiscriminantComparisonRule = defineRule({
             manualSwitch:
                 "A `switch` on `{{discriminant}}` still compiles when a variant is added: use {{remedy}}.",
         },
-        schema: [
-            {
-                type: "object",
-                properties: { discriminants: discriminantsSchema },
-                additionalProperties: false,
-            },
-        ],
+        schema: [],
     },
     createOnce(context) {
         let discriminants = new Set<string>()
@@ -80,7 +73,7 @@ export const noManualDiscriminantComparisonRule = defineRule({
 
         return {
             before() {
-                discriminants = configuredDiscriminants(context.options)
+                discriminants = configuredDiscriminants(context.settings)
             },
             BinaryExpression(node) {
                 if (!isEqualityComparison(node)) return

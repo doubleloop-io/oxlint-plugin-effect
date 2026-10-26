@@ -6,7 +6,6 @@ import {
     memberOf,
     type FunctionNode,
 } from "../shared/effect-ast.ts"
-import { filePatternsSchema } from "../shared/file-globs.ts"
 import { isTestFile } from "../shared/test-files.ts"
 
 type PromiseStep = {
@@ -78,13 +77,7 @@ export const singleStylePerFunctionRule = defineRule({
             asyncEffectHelper:
                 "This test helper chains promises around Effect: await a single program, lifting the promises into it with `Effect.tryPromise({ try, catch })`.",
         },
-        schema: [
-            {
-                type: "object",
-                properties: { testFiles: filePatternsSchema },
-                additionalProperties: false,
-            },
-        ],
+        schema: [],
     },
     createOnce(context) {
         const frames: Array<Frame> = []

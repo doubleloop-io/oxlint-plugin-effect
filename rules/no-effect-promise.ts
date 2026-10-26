@@ -1,7 +1,6 @@
 import { defineRule, type ESTree } from "@oxlint/plugins"
 
 import { calleeOf } from "../shared/effect-ast.ts"
-import { filePatternsSchema } from "../shared/file-globs.ts"
 import { isTestFile } from "../shared/test-files.ts"
 
 // Argument index of the release step, where a promise that cannot reject is the normal case.
@@ -38,13 +37,7 @@ export const noEffectPromiseRule = defineRule({
             rejectionAsDefect:
                 "`Effect.promise` turns a rejection into a defect: use `Effect.tryPromise({ try, catch })` unless the promise cannot reject.",
         },
-        schema: [
-            {
-                type: "object",
-                properties: { testFiles: filePatternsSchema },
-                additionalProperties: false,
-            },
-        ],
+        schema: [],
     },
     createOnce(context) {
         let inTestFile = false

@@ -7,7 +7,6 @@ import {
     memberOf,
     nearestFunction,
 } from "../shared/effect-ast.ts"
-import { filePatternsSchema } from "../shared/file-globs.ts"
 import { isTestFile } from "../shared/test-files.ts"
 
 // mapError, orElse and orElseSucceed stay allowed: they name a failure or give an alternative
@@ -133,13 +132,7 @@ export const splitSuccessPathFromErrorHandlingRule = defineRule({
             handlerInGenerator:
                 "Move `Effect.{{name}}` out of the generator: keep the success path in the body and handle errors in the pipeable arguments of `Effect.fn`.",
         },
-        schema: [
-            {
-                type: "object",
-                properties: { testFiles: filePatternsSchema },
-                additionalProperties: false,
-            },
-        ],
+        schema: [],
     },
     createOnce(context) {
         let inTestFile = false

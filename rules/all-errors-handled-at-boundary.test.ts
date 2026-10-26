@@ -36,7 +36,7 @@ new RuleTester().run("all-errors-handled-at-boundary", allErrorsHandledAtBoundar
         {
             filename: "src/event-creation.check.ts",
             code: "await Effect.runPromise(runMigrations(appMigrations))",
-            options: [{ testFiles: ["**/*.check.ts"] }],
+            settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
         },
     ],
     invalid: [
@@ -69,7 +69,7 @@ new RuleTester().run("all-errors-handled-at-boundary", allErrorsHandledAtBoundar
         {
             filename: "src/event-creation.integration.test.ts",
             code: "await Effect.runPromise(runMigrations(appMigrations))",
-            options: [{ testFiles: ["**/*.check.ts"] }],
+            settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
             errors: [{ messageId: "openErrorChannel" }],
         },
     ],

@@ -1,6 +1,5 @@
 import { defineRule, type ESTree } from "@oxlint/plugins"
 
-import { filePatternsSchema } from "../shared/file-globs.ts"
 import { isTestFile } from "../shared/test-files.ts"
 
 const serviceConstructorName = /^make[A-Z]/u
@@ -20,13 +19,7 @@ export const antiSlopNoServiceConstructorImportsRule = defineRule({
             serviceConstructorImport:
                 'Do not import Effect service constructor "{{name}}" into runtime code. Import the owning Layer, yield the contextual service, and allow its requirements to propagate to the composition root.',
         },
-        schema: [
-            {
-                type: "object",
-                properties: { testFiles: filePatternsSchema },
-                additionalProperties: false,
-            },
-        ],
+        schema: [],
     },
     createOnce(context) {
         let inTestFile = false

@@ -4,7 +4,6 @@ import { dirname, relative, resolve, sep } from "node:path"
 import { defineRule } from "@oxlint/plugins"
 
 import { isEntryFile } from "../shared/entry-files.ts"
-import { filePatternsSchema } from "../shared/file-globs.ts"
 import { isTestFile } from "../shared/test-files.ts"
 
 type Deps = {
@@ -86,16 +85,7 @@ export const makeAdapterImportBoundaryRule = (deps: Deps) =>
                 crossAdapter:
                     "`{{adapter}}` is another adapter: depend on its port instead and let the entry point compose the Layers.",
             },
-            schema: [
-                {
-                    type: "object",
-                    properties: {
-                        entryFiles: filePatternsSchema,
-                        testFiles: filePatternsSchema,
-                    },
-                    additionalProperties: false,
-                },
-            ],
+            schema: [],
         },
         create(context) {
             const ownDir = dirname(context.filename)

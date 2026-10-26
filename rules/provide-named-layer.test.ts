@@ -17,7 +17,7 @@ new RuleTester().run("provide-named-layer", provideNamedLayerRule, {
         {
             code: inlineMerge,
             filename: "src/commands/fill.check.ts",
-            options: [{ testFiles: ["**/*.check.ts"] }],
+            settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
         },
     ],
     invalid: [
@@ -33,7 +33,7 @@ new RuleTester().run("provide-named-layer", provideNamedLayerRule, {
         {
             code: inlineMerge,
             filename: "src/commands/fill.test.ts",
-            options: [{ testFiles: ["**/*.check.ts"] }],
+            settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
             errors: [{ messageId: "inlineLayer" }],
         },
         {

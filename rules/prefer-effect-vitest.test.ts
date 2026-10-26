@@ -31,7 +31,7 @@ new RuleTester().run("prefer-effect-vitest", preferEffectVitestRule, {
             cwd: adopting,
             filename,
             code: "const done = Effect.runPromise(program)",
-            options: [{ testFiles: ["**/*.check.ts"] }],
+            settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
         },
         { cwd: notAdopting, filename, code: "const done = Effect.runPromise(program)" },
     ],
@@ -58,7 +58,7 @@ new RuleTester().run("prefer-effect-vitest", preferEffectVitestRule, {
             cwd: adopting,
             filename: "src/event-creation.check.ts",
             code: "const done = Effect.runPromise(program)",
-            options: [{ testFiles: ["**/*.check.ts"] }],
+            settings: { "dl-effect": { testFiles: ["**/*.check.ts"] } },
             errors: [{ messageId: "runInTest", data: { name: "Effect.runPromise" } }],
         },
         // A workspace package finds `@effect/vitest` hoisted to the repository root.

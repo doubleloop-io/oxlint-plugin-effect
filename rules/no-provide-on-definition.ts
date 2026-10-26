@@ -2,7 +2,6 @@ import { defineRule, type ESTree } from "@oxlint/plugins"
 
 import { calleeOf, isEffectFnApplication } from "../shared/effect-ast.ts"
 import { runnerName } from "../shared/effect-runners.ts"
-import { filePatternsSchema } from "../shared/file-globs.ts"
 import { isTestFile } from "../shared/test-files.ts"
 
 const pipeReceiver = (call: ESTree.CallExpression) => {
@@ -103,13 +102,7 @@ export const noProvideOnDefinitionRule = defineRule({
             provideOnDefinition:
                 "Define the program without layers and apply `Effect.provide` where it is dispatched, to a named program.",
         },
-        schema: [
-            {
-                type: "object",
-                properties: { testFiles: filePatternsSchema },
-                additionalProperties: false,
-            },
-        ],
+        schema: [],
     },
     createOnce(context) {
         let inTestFile = false

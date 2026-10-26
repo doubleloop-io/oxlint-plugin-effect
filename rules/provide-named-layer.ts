@@ -1,7 +1,6 @@
 import { defineRule, type ESTree } from "@oxlint/plugins"
 
 import { calleeOf } from "../shared/effect-ast.ts"
-import { filePatternsSchema } from "../shared/file-globs.ts"
 import { isTestFile } from "../shared/test-files.ts"
 
 const matchers = new Set(["match", "$match"])
@@ -31,13 +30,7 @@ export const provideNamedLayerRule = defineRule({
             inlineLayer:
                 "Name the layer passed to `Effect.provide` (`const appLayer = Layer.mergeAll(...)`) instead of composing it inline.",
         },
-        schema: [
-            {
-                type: "object",
-                properties: { testFiles: filePatternsSchema },
-                additionalProperties: false,
-            },
-        ],
+        schema: [],
     },
     createOnce(context) {
         let inTestFile = false

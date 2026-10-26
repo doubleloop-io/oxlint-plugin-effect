@@ -35,6 +35,7 @@ import { tryObjectFormRule } from "./rules/try-object-form.ts"
 import { untracedRecursionRule } from "./rules/untraced-recursion.ts"
 
 export { defaultEntryFiles } from "./shared/entry-files.ts"
+export { defaultDiscriminants } from "./shared/tagged-values.ts"
 export { defaultTestFiles } from "./shared/test-files.ts"
 
 export const pluginName = "dl-effect"
