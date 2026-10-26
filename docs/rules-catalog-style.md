@@ -43,6 +43,11 @@ the compliant form
 
 The heading and the back link below it are enforced by `rules-md.test.ts`.
 
+## Opening sections
+
+- **Rules index**: a `Group | Rule` table in section order. The group appears only on its first row, linked to its section; every rule links to its own.
+- **Shared settings**: one bullet per setting, with two sub-bullets: `used by`, listing the rules (a short note when a rule uses the setting differently from the others; rules that use it the same way share one bullet), and `default`, with the reason for any deliberate exclusion.
+
 ## Fields
 
 - **Intent**: one sentence that makes sense on its own. It states the norm, not the mechanism ("domain code does not import the implementation", not "reports relative imports of directories…").
