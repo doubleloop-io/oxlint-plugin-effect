@@ -2,7 +2,13 @@ import { execFileSync } from "node:child_process"
 import { readFile } from "node:fs/promises"
 
 import { distTagsFor } from "./dist-tags.ts"
-import { releaseProblems, usage } from "./release-checks.ts"
+import {
+    isTagged,
+    publicationProblems,
+    releaseProblems,
+    republishCommands,
+    usage,
+} from "./release-checks.ts"
 
 // A failure this script explains itself; any other error is a bug and keeps its stack trace.
 class ReleaseFailure extends Error {}
@@ -68,17 +74,31 @@ const publishedDistTags = (name: string) => {
         `unexpected \`npm view dist-tags\` output: ${JSON.stringify(viewed)}`,
     )
     if (typeof tags !== "object" || tags === null || Array.isArray(tags)) throw unexpected
-    return Object.entries(tags).map(([tag, version]) => {
+    const entries = Object.entries(tags).map(([tag, version]) => {
         if (typeof version !== "string") throw unexpected
-        return [`npm ${tag}`, version] as const
+        return [tag, version] as const
     })
+    return Object.fromEntries(entries)
 }
 
 const printStatus = async () => {
     const { name, version } = await readManifest()
-    const rows = [["package.json", version] as const, ...publishedDistTags(name)]
+    const distTags = publishedDistTags(name)
+    const rows = [
+        ["package.json", version] as const,
+        ...Object.entries(distTags).map(([tag, tagged]) => [`npm ${tag}`, tagged] as const),
+    ]
     const width = Math.max(...rows.map(([label]) => label.length))
     for (const [label, value] of rows) console.log(`${label.padEnd(width)}  ${value}`)
+
+    const problems = publicationProblems({
+        name,
+        version,
+        tagged: isTagged(version),
+        publishedVersions: publishedVersions(name),
+        distTags,
+    })
+    for (const problem of problems) console.log(`\n! ${problem}`)
     console.log(`\n${usage}`)
 }
 
@@ -131,8 +151,9 @@ const release = async (bump: string) => {
             `\nrequested ${name}@${version} as ${[publishTag, ...otherTags].join(", ")}; pushed the commit and tag v${version}.`,
             "npm can take a few minutes to show it: check with pnpm release.",
             "If it never shows up, publish again from the tag:",
-            `  git checkout v${version} && pnpm build-and-pack && pnpm publish --tag ${publishTag} --no-git-checks && git checkout main`,
-            ...otherTags.map((tag) => `  npm dist-tag add ${name}@${version} ${tag}`),
+            ...republishCommands(name, version, [publishTag, ...otherTags]).map(
+                (command) => `  ${command}`,
+            ),
         ].join("\n"),
     )
 }

@@ -1,5 +1,7 @@
 import { execFileSync } from "node:child_process"
 
+import { distTagsFor } from "./dist-tags.ts"
+
 const bumpKeywords = ["major", "minor", "patch", "premajor", "preminor", "prepatch", "prerelease"]
 const versionPattern = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u
 
@@ -25,6 +27,52 @@ export const syncProblem = (ahead: number, behind: number) => {
     return undefined
 }
 
+// Builds from the tagged commit, since main may have moved on after the release.
+export const republishCommands = (name: string, version: string, tags: readonly string[]) => {
+    const [publishTag = "latest", ...otherTags] = tags
+    return [
+        `git checkout v${version} && pnpm build-and-pack && pnpm publish --tag ${publishTag} --no-git-checks && git checkout main`,
+        ...otherTags.map((tag) => `npm dist-tag add ${name}@${version} ${tag}`),
+    ]
+}
+
+type Publication = {
+    name: string
+    version: string
+    tagged: boolean
+    publishedVersions: readonly string[]
+    distTags: Readonly<Record<string, string>>
+}
+
+// With web-based 2FA npm applies a change minutes after accepting it, so a gap is not yet a failure.
+const pending = "a recent release may still be processing"
+
+export const publicationProblems = ({
+    name,
+    version,
+    tagged,
+    publishedVersions,
+    distTags,
+}: Publication) => {
+    if (!tagged) return []
+    const expectedTags = distTagsFor(version, publishedVersions)
+    if (!publishedVersions.includes(version)) {
+        const commands = republishCommands(name, version, expectedTags)
+        return [
+            [
+                `tag v${version} is not on npm (${pending}); if it stays missing:`,
+                ...commands.map((command) => `  ${command}`),
+            ].join("\n"),
+        ]
+    }
+    return expectedTags
+        .filter((tag) => distTags[tag] !== version)
+        .map(
+            (tag) =>
+                `npm ${tag} is not ${version} (${pending}); if it stays so:\n  npm dist-tag add ${name}@${version} ${tag}`,
+        )
+}
+
 // Each check reports its own problem, so the command's stderr would only repeat it.
 const capture = (command: string, args: string[]) => {
     try {
@@ -36,6 +84,9 @@ const capture = (command: string, args: string[]) => {
         return undefined
     }
 }
+
+export const isTagged = (version: string) =>
+    capture("git", ["rev-parse", "--verify", "--quiet", `refs/tags/v${version}`]) !== undefined
 
 const gitSyncProblem = () => {
     if (capture("git", ["fetch", "origin", "main"]) === undefined) return "cannot fetch origin/main"
