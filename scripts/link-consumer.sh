@@ -25,7 +25,7 @@ if [[ $command == unlink ]]; then
     exit 0
 fi
 
-checkout="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+checkout="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 if [[ ! -d $checkout/dist ]]; then
     echo "errore: $checkout/dist non esiste; esegui prima pnpm build" >&2
     exit 1

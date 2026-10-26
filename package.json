@@ -42,8 +42,8 @@
         "build-and-pack": "pnpm check && pnpm build && pnpm pack:check && pnpm smoke-test",
         "smoke-test": "node scripts/smoke-test.ts",
         "release": "node scripts/release.ts",
-        "consumer:link": "./link-consumer.sh link",
-        "consumer:unlink": "./link-consumer.sh unlink"
+        "consumer:link": "./scripts/link-consumer.sh link",
+        "consumer:unlink": "./scripts/link-consumer.sh unlink"
     },
     "dependencies": {
         "@oxlint/plugins": "^1.82.0"
