@@ -123,7 +123,10 @@ What each rule reports and why is in [`RULES.md`](RULES.md).
 
 ### Absorbed from anti-slop
 
-The `anti-slop-*` rules come from the five Effect rules of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop) (plugin `anti-slop-effect`, commit [`c44ef22`](https://github.com/dmmulroy/anti-slop/tree/c44ef22ca116d0ba62a3ff663a0bd13a3f3fa40b/src/effect)), ported into this plugin; its generic TypeScript rules stay out. `no-manual-tag-comparison` and `no-manual-tagged-construction` are retired: [`no-manual-discriminant-comparison`](RULES.md#no-manual-discriminant-comparison) and [`no-manual-discriminant-construction`](RULES.md#no-manual-discriminant-construction) cover them with their default. In the others, detection logic and messages are unchanged; [`anti-slop-no-service-constructor-imports`](RULES.md#anti-slop-no-service-constructor-imports) recognizes test files through the shared [`testFiles`](RULES.md#shared-settings) setting instead of its own `*.test.*`/`*.spec.*` check. Do not enable the `anti-slop-effect` plugin alongside this one: every finding would be reported twice. The original code is MIT-licensed: see [`LICENSE.anti-slop`](LICENSE.anti-slop).
+Some rules come from the Effect rules of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), MIT-licensed: see [`LICENSE.anti-slop`](LICENSE.anti-slop).
+
+- Imported: [`anti-slop-no-manual-effect-error-tag`](RULES.md#anti-slop-no-manual-effect-error-tag), [`anti-slop-no-service-constructor-imports`](RULES.md#anti-slop-no-service-constructor-imports), [`anti-slop-prefer-effect-match`](RULES.md#anti-slop-prefer-effect-match).
+- Superseded: `no-manual-tag-comparison` by [`no-manual-discriminant-comparison`](RULES.md#no-manual-discriminant-comparison), `no-manual-tagged-construction` by [`no-manual-discriminant-construction`](RULES.md#no-manual-discriminant-construction).
 
 ## Default configuration
 
