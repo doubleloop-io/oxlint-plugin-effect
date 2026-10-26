@@ -107,7 +107,7 @@ export default defineConfig({ extends: [effectTsgoRecommended, dlEffectAll] })
 
 ## Rules
 
-What each rule reports and why is in [`RULES.md`](RULES.md).
+What each rule reports and why is in [`RULES.md`](RULES.md). Report false positives and missed cases in the [GitHub issues](https://github.com/doubleloop-io/oxlint-plugin-effect/issues).
 
 | Topic                | Rules                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
