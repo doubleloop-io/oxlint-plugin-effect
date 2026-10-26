@@ -228,6 +228,7 @@ Supported oxlint is the `peerDependencies` range, `^1.82.0`; CI tests the tarbal
 - `pnpm pack:check`: checks the built preset, then the tarball `npm pack` would publish: only the files in `files`, no local absolute paths, `publint --strict`.
 - `pnpm smoke-test`: installs the tarball in `smoke-fixture/` with pnpm and checks the diagnostics of oxlint with each config form: `oxlint.config.ts` and `.oxlintrc.json` with the preset, `.oxlintrc.json` with the plugin by package name.
 - `pnpm build-and-pack`: `check`, `build`, `pack:check` and `smoke-test`; run it after every change.
+- `pnpm release <bump>`: from a clean `main` equal to `origin/main`, runs `build-and-pack`, bumps with `npm version <bump> --preid rc` (`prerelease` for the next rc, `x.y.z` for a stable), publishes, then pushes the commit and the tag. A prerelease is `next`, and also `latest` until the first stable version; a stable version is `latest`. A failed publish undoes the bump.
 - `pnpm build:w`: reruns `pnpm build`, preset included, on every change to `index.ts`, `rules/`, `presets/`, `shared/` or `tsconfig.build.json`; a failed build waits for the next change.
 - `pnpm consumer:link <consumer>`: after `pnpm build`, replaces the pnpm symlinks of the plugin in every workspace package of `<consumer>` with links to the checkout, so the consumer's own lint runs the checkout's rules; no tracked file of the consumer changes. `pnpm consumer:unlink <consumer>` restores them with `pnpm install --frozen-lockfile`, as does any `pnpm install` in the consumer.
 
