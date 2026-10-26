@@ -50,30 +50,54 @@ const assertReleasableHead = () => {
     }
 }
 
+// npm 11 prints the dist-tags object, npm 12 an array holding it.
+const publishedDistTags = (name: string) => {
+    const viewed: unknown = JSON.parse(output("npm", ["view", name, "dist-tags", "--json"]))
+    const tags = Array.isArray(viewed) && viewed.length === 1 ? viewed[0] : viewed
+    const unexpected = new Error(
+        `unexpected \`npm view dist-tags\` output: ${JSON.stringify(viewed)}`,
+    )
+    if (typeof tags !== "object" || tags === null || Array.isArray(tags)) throw unexpected
+    return Object.entries(tags).map(([tag, version]) => {
+        if (typeof version !== "string") throw unexpected
+        return [`npm ${tag}`, version] as const
+    })
+}
+
+const printStatus = async () => {
+    const { name, version } = await readManifest()
+    const rows = [["package.json", version] as const, ...publishedDistTags(name)]
+    const width = Math.max(...rows.map(([label]) => label.length))
+    for (const [label, value] of rows) console.log(`${label.padEnd(width)}  ${value}`)
+    console.log(
+        "\nusage: pnpm release <prerelease | preminor | patch | minor | major | x.y.z[-rc.n]>",
+    )
+}
+
+const release = async (bump: string) => {
+    assertReleasableHead()
+    const { name } = await readManifest()
+    const published = publishedVersions(name)
+    run("pnpm", ["build-and-pack"])
+
+    run("npm", ["version", bump, "--preid", "rc", "--message", "Release %s"])
+    const { version } = await readManifest()
+    const [publishTag = "latest", ...otherTags] = distTagsFor(version, published)
+
+    try {
+        // assertReleasableHead already ran the git checks, which would now see main ahead of origin.
+        run("pnpm", ["publish", "--tag", publishTag, "--no-git-checks"])
+    } catch (error) {
+        // Nothing reached the registry: drop the bump so a retry starts from the same commit.
+        run("git", ["tag", "--delete", `v${version}`])
+        run("git", ["reset", "--keep", "HEAD~1"])
+        throw error
+    }
+
+    for (const tag of otherTags) run("npm", ["dist-tag", "add", `${name}@${version}`, tag])
+    run("git", ["push", "--atomic", "origin", "main", `v${version}`])
+    console.log(`released ${name}@${version} as ${[publishTag, ...otherTags].join(", ")}`)
+}
+
 const bump = process.argv[2]
-if (bump === undefined) {
-    throw new Error("usage: pnpm release <prerelease | patch | minor | major | x.y.z[-rc.n]>")
-}
-
-assertReleasableHead()
-const { name } = await readManifest()
-const published = publishedVersions(name)
-run("pnpm", ["build-and-pack"])
-
-run("npm", ["version", bump, "--preid", "rc", "--message", "Release %s"])
-const { version } = await readManifest()
-const [publishTag = "latest", ...otherTags] = distTagsFor(version, published)
-
-try {
-    // assertReleasableHead already ran the git checks, which would now see main ahead of origin.
-    run("pnpm", ["publish", "--tag", publishTag, "--no-git-checks"])
-} catch (error) {
-    // Nothing reached the registry: drop the bump so a retry starts from the same commit.
-    run("git", ["tag", "--delete", `v${version}`])
-    run("git", ["reset", "--keep", "HEAD~1"])
-    throw error
-}
-
-for (const tag of otherTags) run("npm", ["dist-tag", "add", `${name}@${version}`, tag])
-run("git", ["push", "--atomic", "origin", "main", `v${version}`])
-console.log(`released ${name}@${version} as ${[publishTag, ...otherTags].join(", ")}`)
+await (bump === undefined ? printStatus() : release(bump))
