@@ -1,6 +1,6 @@
 {
     "name": "@doubleloop-io/oxlint-plugin-effect",
-    "version": "0.1.0-rc.2",
+    "version": "0.1.0",
     "description": "Oxlint rules for Effect 4 code",
     "license": "MIT",
     "repository": {
