@@ -20,8 +20,15 @@ const rulesIndex = () => {
     })
 }
 
-const sourceSection = (rule: string) => {
-    const start = rulesMarkdown.indexOf(`### \`${rule}\`\n`)
+const base = "/oxlint-plugin-effect"
+const pages = sitePages(rulesMarkdown, { base })
+const rulePages = () => pages.filter((page) => page.kind === "rule")
+
+const linkTarget = /\]\((?<href>[^)\s]+)\)/gu
+const withoutLinkTargets = (text: string) => text.replace(linkTarget, "](…)")
+
+const sourceSection = (heading: string) => {
+    const start = rulesMarkdown.indexOf(`${heading}\n`)
     const next = rulesMarkdown.slice(start + 1).search(/^##+ /mu)
     return rulesMarkdown.slice(start, next === -1 ? undefined : start + 1 + next)
 }
@@ -31,13 +38,13 @@ test("the site has exactly one page per rule section of RULES.md", () => {
         ([, rule]) => `rules/${rule}`,
     )
 
-    const pageIds = sitePages(rulesMarkdown).map(({ id }) => id)
+    const pageIds = rulePages().map(({ id }) => id)
 
     assert.deepEqual(pageIds, documentedRules)
 })
 
 test("rule pages sit in the group of their section, in the order of the rules index", () => {
-    const pages = sitePages(rulesMarkdown)
+    const pages = rulePages()
 
     assert.deepEqual(
         pages.map(({ id, group }) => ({ id, group })),
@@ -45,15 +52,42 @@ test("rule pages sit in the group of their section, in the order of the rules in
     )
 })
 
-test("every block of a rule section is on its page with its text, except the back link", () => {
-    for (const page of sitePages(rulesMarkdown)) {
-        const blocks = sourceSection(page.title)
+test("every block of a rule section is on its page with its text, except back link and link targets", () => {
+    for (const page of rulePages()) {
+        const blocks = sourceSection(`### \`${page.title}\``)
             .split("\n\n")
             .slice(1)
             .map((block) => block.trim())
             .filter((block) => block !== backLink && block !== "")
 
-        for (const block of blocks) assert.ok(page.body.includes(block), `${page.id}: ${block}`)
+        for (const block of blocks) {
+            assert.ok(
+                withoutLinkTargets(page.body).includes(withoutLinkTargets(block)),
+                `${page.id}: ${block}`,
+            )
+        }
         assert.ok(!page.body.includes(backLink), `${page.id} shows the back link`)
     }
+})
+
+for (const heading of ["Rules index", "Common limits", "Shared settings"]) {
+    test(`${heading} is a page with the text of its section, except link targets`, () => {
+        const source = sourceSection(`## ${heading}`).replace(`## ${heading}\n`, "").trim()
+
+        const page = pages.find(({ title }) => title === heading)
+
+        assert.equal(withoutLinkTargets(page?.body.trim() ?? ""), withoutLinkTargets(source))
+    })
+}
+
+test("every link between sections of RULES.md points to an existing site page", () => {
+    const routes = new Set(pages.map(({ id }) => `${base}/${id}/`))
+
+    const hrefs = pages.flatMap(({ body }) =>
+        [...body.matchAll(linkTarget)].map(({ groups }) => groups?.href ?? ""),
+    )
+
+    const internalHrefs = hrefs.filter((href) => !/^https?:/u.test(href))
+    assert.ok(internalHrefs.length > 0)
+    for (const href of internalHrefs) assert.ok(routes.has(href), `${href} is not a site page`)
 })

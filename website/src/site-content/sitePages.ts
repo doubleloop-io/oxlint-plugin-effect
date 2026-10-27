@@ -1,35 +1,80 @@
-export type SitePage = {
-    id: string
-    title: string
-    group: string
-    body: string
-}
+import { headingAnchor, type LinkRoutes, rewriteInternalLinks } from "./internalLinks.ts"
 
-type RuleSection = {
-    name: string
+export type SitePage =
+    | { kind: "rule"; id: string; title: string; group: string; body: string }
+    | { kind: "reference"; id: string; title: string; body: string }
+
+type Section = {
+    heading: string
     group: string
     lines: string[]
 }
 
-const groupHeading = /^## (?<title>.+)$/u
-const ruleHeading = /^### `(?<name>[a-z-]+)`$/u
-const sectionHeading = /^#{1,3} /u
+type RuleSection = Section & { name: string }
+
+const referencePageIds = new Map([
+    ["Rules index", "rules"],
+    ["Common limits", "common-limits"],
+    ["Shared settings", "shared-settings"],
+])
+
+const sectionHeading = /^(?<level>#{1,3}) (?<title>.+)$/u
+const ruleHeading = /^`(?<name>[a-z-]+)`$/u
 const codeFence = /^```/u
 const backLink = /^<sup>\[↑ rules index\]\(#rules-index\)<\/sup>$/u
 
 const requiredFields = ["Intent", "Trigger", "Options", "Fix"]
 const fieldLabel = /^\*\*(?<label>[^*]+)\*\*:/u
 
-export const sitePages = (rulesMarkdown: string): SitePage[] =>
-    ruleSections(rulesMarkdown).map((section) => {
-        assertFollowsCatalogTemplate(section)
-        return {
-            id: `rules/${section.name}`,
-            title: section.name,
-            group: section.group,
-            body: `${section.lines.join("\n").trim()}\n`,
-        }
-    })
+export const sitePages = (rulesMarkdown: string, { base }: { base: string }) => {
+    const allSections = sections(rulesMarkdown)
+    const sourcePages = allSections.flatMap(sourcePage)
+    const routes = linkRoutes(allSections, sourcePages)
+    return sourcePages.map(({ page, label }) => ({
+        ...page,
+        body: rewriteInternalLinks(page.body, { file: "RULES.md", section: label, base, routes }),
+    }))
+}
+
+type SourcePage = { page: SitePage; heading: string; label: string }
+
+const sourcePage = (section: Section): SourcePage[] => {
+    const { heading } = section
+    const name = ruleHeading.exec(heading)?.groups?.name
+    if (name !== undefined) {
+        return [{ page: rulePage({ ...section, name }), heading, label: `rule \`${name}\`` }]
+    }
+    const id = referencePageIds.get(heading)
+    if (id === undefined) return []
+    const page: SitePage = { kind: "reference", id, title: heading, body: body(section) }
+    return [{ page, heading, label: `section \`${heading}\`` }]
+}
+
+// A group has no page: its anchor leads to its first rule, as its heading does in RULES.md
+const linkRoutes = (allSections: Section[], sourcePages: SourcePage[]): LinkRoutes =>
+    new Map(
+        allSections.flatMap(({ heading }) => {
+            const target =
+                sourcePages.find((source) => source.heading === heading)?.page ??
+                sourcePages.find(({ page }) => page.kind === "rule" && page.group === heading)?.page
+            return target === undefined
+                ? []
+                : [[`RULES.md#${headingAnchor(heading)}`, `${target.id}/`]]
+        }),
+    )
+
+const rulePage = (section: RuleSection): SitePage => {
+    assertFollowsCatalogTemplate(section)
+    return {
+        kind: "rule",
+        id: `rules/${section.name}`,
+        title: section.name,
+        group: section.group,
+        body: body(section),
+    }
+}
+
+const body = ({ lines }: Section) => `${lines.join("\n").trim()}\n`
 
 const assertFollowsCatalogTemplate = ({ name, lines }: RuleSection) => {
     const problem = templateProblem(lines)
@@ -81,22 +126,22 @@ const proseLines = (lines: string[]) => {
     })
 }
 
-const ruleSections = (markdown: string) => {
-    const sections: RuleSection[] = []
+const sections = (markdown: string) => {
+    const found: Section[] = []
     let group = ""
-    let current: RuleSection | undefined
+    let current: Section | undefined
     let insideCodeBlock = false
     for (const line of markdown.split("\n")) {
         if (codeFence.test(line)) insideCodeBlock = !insideCodeBlock
-        const heading = insideCodeBlock ? undefined : sectionHeading.exec(line)
-        if (heading) {
-            group = groupHeading.exec(line)?.groups?.title ?? group
-            const name = ruleHeading.exec(line)?.groups?.name
-            current = name === undefined ? undefined : { name, group, lines: [] }
-            if (current) sections.push(current)
+        const heading = insideCodeBlock ? undefined : sectionHeading.exec(line)?.groups
+        if (heading?.title !== undefined) {
+            if (heading.level === "##") group = heading.title
+            current =
+                heading.level === "#" ? undefined : { heading: heading.title, group, lines: [] }
+            if (current) found.push(current)
         } else if (insideCodeBlock || !backLink.test(line)) {
             current?.lines.push(line)
         }
     }
-    return sections
+    return found
 }

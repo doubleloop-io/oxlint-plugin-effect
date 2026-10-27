@@ -8,7 +8,7 @@ export const sitePagesLoader = (): Loader => ({
     load: async ({ config, store, parseData, renderMarkdown }) => {
         const markdown = await readRulesMarkdown(config.root)
         store.clear()
-        for (const page of sitePages(markdown)) {
+        for (const page of sitePages(markdown, { base: config.base })) {
             const data = await parseData({ id: page.id, data: { title: page.title } })
             store.set({
                 id: page.id,

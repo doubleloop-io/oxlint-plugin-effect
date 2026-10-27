@@ -23,6 +23,8 @@ const wellFormedFields: RuleFields = {
     fix: "**Fix**: none",
 }
 
+const siteBase = "/site"
+
 const backLink = "<sup>[↑ rules index](#rules-index)</sup>"
 
 const ruleSection = (name: string, fields: Partial<Record<keyof RuleFields, string | null>> = {}) =>
@@ -33,6 +35,9 @@ const ruleSection = (name: string, fields: Partial<Record<keyof RuleFields, stri
 const rulesMarkdown = (...groups: string[]) =>
     ["# Rules\n", "## Rules index\n\n| Group | Rule |\n| --- | --- |\n", ...groups].join("\n")
 
+const rulePages = (markdown: string) =>
+    sitePages(markdown, { base: siteBase }).filter((page) => page.kind === "rule")
+
 const group = (title: string, ...sections: string[]) => [`## ${title}\n`, ...sections].join("\n")
 
 test("each rule section becomes a page named after the rule, in the group of its section", () => {
@@ -41,7 +46,7 @@ test("each rule section becomes a page named after the rule, in the group of its
         group("Tagged values", ruleSection("no-manual-discriminant-comparison")),
     )
 
-    const pages = sitePages(markdown)
+    const pages = rulePages(markdown)
 
     assert.deepEqual(
         pages.map(({ id, title, group }) => ({ id, title, group })),
@@ -65,7 +70,7 @@ test("a rule page carries the section body without the back link to the rules in
         ),
     )
 
-    const [page] = sitePages(markdown)
+    const [page] = rulePages(markdown)
 
     assert.equal(
         page?.body,
@@ -87,7 +92,7 @@ test("a heading-like line inside a code example stays in the rule body", () => {
         group("Error channel", ruleSection("no-effect-promise", { example })),
     )
 
-    const [page] = sitePages(markdown)
+    const [page] = rulePages(markdown)
 
     assert.match(page?.body ?? "", /## not a heading/u)
 })
@@ -103,7 +108,7 @@ for (const [field, label] of [
             group("Error channel", ruleSection("no-effect-promise", { [field]: null })),
         )
 
-        assert.throws(() => sitePages(markdown), {
+        assert.throws(() => sitePages(markdown, { base: siteBase }), {
             message: `RULES.md, rule \`no-effect-promise\`: missing **${label}**`,
         })
     })
@@ -136,7 +141,7 @@ for (const [scenario, fields, problem] of [
             group("Error channel", ruleSection("no-effect-promise", fields)),
         )
 
-        assert.throws(() => sitePages(markdown), {
+        assert.throws(() => sitePages(markdown, { base: siteBase }), {
             message: `RULES.md, rule \`no-effect-promise\`: ${problem}`,
         })
     })
@@ -153,7 +158,7 @@ test("Options followed by a list and a suggestion Fix with its detail follow the
         ),
     )
 
-    const pages = sitePages(markdown)
+    const pages = rulePages(markdown)
 
     assert.equal(pages.length, 1)
 })
@@ -166,10 +171,154 @@ test("a sibling rule may leave the example, Exemptions and Why to the rule it li
         ),
     )
 
-    const pages = sitePages(markdown)
+    const pages = rulePages(markdown)
 
     assert.deepEqual(
         pages.map(({ id }) => id),
         ["rules/try-object-form"],
     )
+})
+
+const pageById = (markdown: string, id: string) =>
+    sitePages(markdown, { base: siteBase }).find((page) => page.id === id)
+
+test("Shared settings and Common limits each become a page with the body of their section", () => {
+    const markdown = rulesMarkdown(
+        "## Common limits\n\n- **Syntax only**: no type information.\n",
+        "## Shared settings\n\nDeclared once.\n\n- **`testFiles`**: test globs.\n",
+        group("Error channel", ruleSection("no-effect-promise")),
+    )
+
+    const pages = [pageById(markdown, "common-limits"), pageById(markdown, "shared-settings")]
+
+    assert.deepEqual(pages, [
+        {
+            kind: "reference",
+            id: "common-limits",
+            title: "Common limits",
+            body: "- **Syntax only**: no type information.\n",
+        },
+        {
+            kind: "reference",
+            id: "shared-settings",
+            title: "Shared settings",
+            body: "Declared once.\n\n- **`testFiles`**: test globs.\n",
+        },
+    ])
+})
+
+test("the rules index becomes the page at the root of the rules", () => {
+    const markdown = [
+        "# Rules\n",
+        "## Rules index\n\n| Group | Rule |\n| --- | --- |\n\nAll at `warn`.\n",
+        group("Error channel", ruleSection("no-effect-promise")),
+    ].join("\n")
+
+    const page = pageById(markdown, "rules")
+
+    assert.deepEqual(page, {
+        kind: "reference",
+        id: "rules",
+        title: "Rules index",
+        body: "| Group | Rule |\n| --- | --- |\n\nAll at `warn`.\n",
+    })
+})
+
+test("a link to a rule section points to the page of that rule", () => {
+    const markdown = rulesMarkdown(
+        group(
+            "Error channel",
+            ruleSection("no-effect-promise"),
+            ruleSection("try-object-form", {
+                intent: "**Intent**: like [`no-effect-promise`](#no-effect-promise).",
+            }),
+        ),
+    )
+
+    const page = pageById(markdown, "rules/try-object-form")
+
+    assert.ok(page?.body.includes("like [`no-effect-promise`](/site/rules/no-effect-promise/)."))
+})
+
+test("a link to Shared settings or Common limits points to its page", () => {
+    const markdown = rulesMarkdown(
+        "## Common limits\n\n- **Syntax only**.\n",
+        "## Shared settings\n\n- **`testFiles`**.\n",
+        group(
+            "Error channel",
+            ruleSection("no-effect-promise", {
+                options: "**Options**:\n\n- `testFiles`: [shared setting](#shared-settings).",
+                exemptions: "**Exemptions and blind spots**: see [limits](#common-limits).",
+            }),
+        ),
+    )
+
+    const page = pageById(markdown, "rules/no-effect-promise")
+
+    assert.ok(page?.body.includes("[shared setting](/site/shared-settings/)"))
+    assert.ok(page?.body.includes("[limits](/site/common-limits/)"))
+})
+
+test("a link to a group points to the first rule of that group", () => {
+    const markdown = rulesMarkdown(
+        group("Error channel", ruleSection("no-effect-promise"), ruleSection("try-object-form")),
+    ).replace("| --- | --- |\n", "| --- | --- |\n| [Error channel](#error-channel) | |\n")
+
+    const page = pageById(markdown, "rules")
+
+    assert.ok(page?.body.includes("[Error channel](/site/rules/no-effect-promise/)"))
+})
+
+test("a link to the rules index points to the rules index page", () => {
+    const markdown = rulesMarkdown(
+        "## Shared settings\n\nListed in the [rules index](#rules-index).\n",
+        group("Error channel", ruleSection("no-effect-promise")),
+    )
+
+    const page = pageById(markdown, "shared-settings")
+
+    assert.ok(page?.body.includes("[rules index](/site/rules/)"))
+})
+
+test("a link that names RULES.md resolves like a link within it", () => {
+    const markdown = rulesMarkdown(
+        "## Shared settings\n\nRead by [`no-effect-promise`](RULES.md#no-effect-promise).\n",
+        group("Error channel", ruleSection("no-effect-promise")),
+    )
+
+    const page = pageById(markdown, "shared-settings")
+
+    assert.ok(page?.body.includes("[`no-effect-promise`](/site/rules/no-effect-promise/)"))
+})
+
+test("links outside RULES.md and link-like text in a code example are left as they are", () => {
+    const example = "```ts\n// no\nconst x = a[0](#nowhere)\n\n// yes\nright()\n```"
+    const markdown = rulesMarkdown(
+        group(
+            "Error channel",
+            ruleSection("no-effect-promise", {
+                example,
+                why: "**Why**: see [Effect](https://effect.website/docs#errors).",
+            }),
+        ),
+    )
+
+    const page = pageById(markdown, "rules/no-effect-promise")
+
+    assert.ok(page?.body.includes("const x = a[0](#nowhere)"))
+    assert.ok(page?.body.includes("[Effect](https://effect.website/docs#errors)"))
+})
+
+test("a link to a section that has no site page fails, naming the link and where it is", () => {
+    const markdown = rulesMarkdown(
+        group(
+            "Error channel",
+            ruleSection("no-effect-promise", { why: "**Why**: see [gone](#removed-rule)." }),
+        ),
+    )
+
+    assert.throws(() => sitePages(markdown, { base: siteBase }), {
+        message:
+            "RULES.md, rule `no-effect-promise`: link `#removed-rule` resolves to no site page",
+    })
 })
