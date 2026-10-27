@@ -39,7 +39,7 @@ jobs:
                   working-directory: website
 
             - name: Test
-              run: pnpm --if-present test
+              run: pnpm test
 
             - name: Build
               run: pnpm build
