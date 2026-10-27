@@ -15,16 +15,7 @@ export default defineConfig({
                     href: "https://github.com/doubleloop-io/oxlint-plugin-effect",
                 },
             ],
-            sidebar: [
-                {
-                    label: "Guides",
-                    items: [{ label: "Example Guide", slug: "guides/example" }],
-                },
-                {
-                    label: "Reference",
-                    items: [{ autogenerate: { directory: "reference" } }],
-                },
-            ],
+            sidebar: [{ slug: "demo" }],
         }),
     ],
 })
