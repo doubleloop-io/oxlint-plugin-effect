@@ -2,26 +2,26 @@ import assert from "node:assert/strict"
 import { access, readFile } from "node:fs/promises"
 import { test } from "node:test"
 
-import { headingAnchor } from "./internalLinks.ts"
+import { headingAnchor, markdownLink, markdownLinkHrefs } from "./internalLinks.ts"
 import { publishedSite } from "./publishedSite.ts"
+import { maintainerSections, renamedSections } from "./readmeMdSource.ts"
+import { expectedRulesMdRoute, repositoryRoot, rulesMarkdown } from "./realRulesMd.ts"
 import { sitePages } from "./sitePages.ts"
 
-const repositoryRoot = new URL("../../../", import.meta.url)
 const readmeMarkdown = await readFile(new URL("README.md", repositoryRoot), "utf8")
-const rulesMarkdown = await readFile(new URL("RULES.md", repositoryRoot), "utf8")
 
 const { base, repositoryUrl } = publishedSite
 const pages = sitePages({ rulesMd: rulesMarkdown, readmeMd: readmeMarkdown }, publishedSite)
 const readmePages = pages.filter(({ kind }) => kind === "guide" || kind === "landing")
 
-const linkTarget = /\]\((?<href>[^)\s]+)\)/gu
-const withoutLinkTargets = (text: string) => text.replace(linkTarget, "](…)")
 // A README `##` section is a page, so its `###` subsections are `##` headings there
 const withSubsectionsAtPageLevel = (text: string) => text.replace(/^### /gmu, "## ")
 
 const sectionHeadings = [...readmeMarkdown.matchAll(/^## (?<heading>.+)$/gmu)].map(
     ({ groups }) => groups?.heading ?? "",
 )
+const publishedHeadings = sectionHeadings.filter((heading) => !maintainerSections.has(heading))
+const pageTitle = (heading: string) => renamedSections.get(heading)?.title ?? heading
 
 const sourceSection = (heading: string) => {
     const start = readmeMarkdown.indexOf(`${heading}\n`)
@@ -30,10 +30,34 @@ const sourceSection = (heading: string) => {
     return readmeMarkdown.slice(start, end).replace(`${heading}\n`, "").trim()
 }
 
-const pageText = (body: string) => withoutLinkTargets(body).trim()
-const sourceText = (section: string) => withoutLinkTargets(withSubsectionsAtPageLevel(section))
+const sectionRoutes = new Map(
+    publishedHeadings.flatMap((heading) => {
+        const route = heading === "Rules" ? "rules-overview/" : `${headingAnchor(heading)}/`
+        const subsectionRoutes = [...sourceSection(`## ${heading}`).matchAll(/^### (?<sub>.+)$/gmu)]
+            .map(({ groups }) => headingAnchor(groups?.sub ?? ""))
+            .map((anchor) => [anchor, `${route}#${anchor}`] as const)
+        return [[headingAnchor(heading), route] as const, ...subsectionRoutes]
+    }),
+)
 
-test("the README introduction is the landing page with its text, except link targets", () => {
+const expectedHref = (href: string) => {
+    if (/^https?:/u.test(href)) return href
+    const link = /^(?<file>[\w.-]+)?(?:#(?<anchor>[\w-]+))?$/u.exec(href)?.groups
+    if (link?.file === "RULES.md") {
+        return `${base}/${link.anchor === undefined ? "rules/" : expectedRulesMdRoute(link.anchor)}`
+    }
+    if (link?.file !== undefined) return `${repositoryUrl}/blob/main/${href}`
+    return `${base}/${sectionRoutes.get(link?.anchor ?? "") ?? "not-a-readme-section/"}`
+}
+
+const pageText = (body: string) => body.trim()
+const sourceText = (section: string) =>
+    withSubsectionsAtPageLevel(section).replace(
+        markdownLink,
+        (_link, href: string) => `](${expectedHref(href)})`,
+    )
+
+test("the real README introduction is the landing page with its text, links pointing to their page", () => {
     const [title = ""] = readmeMarkdown.split("\n")
 
     const landing = pages.find(({ kind }) => kind === "landing")
@@ -42,27 +66,25 @@ test("the README introduction is the landing page with its text, except link tar
     assert.equal(pageText(landing?.body ?? ""), sourceText(sourceSection(title)))
 })
 
-for (const heading of sectionHeadings.filter((heading) => heading !== "Development")) {
-    test(`the README section ${heading} is a page with its text, except link targets`, () => {
-        const page = readmePages.find(
-            ({ title }) => title === heading || (heading === "Rules" && title === "Rules overview"),
-        )
+for (const heading of publishedHeadings) {
+    test(`the real README section ${heading} is a page with its text, links pointing to their page`, () => {
+        const page = readmePages.find(({ title }) => title === pageTitle(heading))
 
         assert.equal(pageText(page?.body ?? ""), sourceText(sourceSection(`## ${heading}`)))
     })
 }
 
-test("no page shows the Development section of the README", () => {
+test("no page shows the Development section of the real README", () => {
     const blocks = sourceSection("## Development")
         .split("\n")
         .filter((line) => line.startsWith("- "))
-    assert.ok(blocks.length > 0)
 
-    for (const page of pages) {
-        for (const block of blocks) {
-            assert.ok(!page.body.includes(block), `${page.id} shows: ${block}`)
-        }
-    }
+    const shownBlocks = pages.flatMap((page) =>
+        blocks.filter((block) => page.body.includes(block)).map((block) => `${page.id}: ${block}`),
+    )
+
+    assert.ok(blocks.length > 0)
+    assert.deepEqual(shownBlocks, [])
 })
 
 const routeOf = (id: string) => (id === "index" ? `${base}/` : `${base}/${id}/`)
@@ -73,18 +95,16 @@ const pageHeadingAnchors = (body: string) =>
     )
 
 const readmeHrefs = () => [
-    ...readmePages.flatMap(({ body }) =>
-        [...body.matchAll(linkTarget)].map(({ groups }) => groups?.href ?? ""),
-    ),
+    ...readmePages.flatMap(({ body }) => markdownLinkHrefs(body)),
     ...readmePages
         .flatMap((page) => (page.kind === "landing" ? page.actions : []))
         .map(({ link }) => link),
 ]
 
-test("every internal README link points to an existing site page and heading", () => {
+test("every internal link of the real README points to an existing site page and heading", () => {
     const sitePageHrefs = readmeHrefs().filter((href) => href.startsWith(`${base}/`))
-    assert.ok(sitePageHrefs.length > 0)
 
+    assert.ok(sitePageHrefs.length > 0)
     for (const href of sitePageHrefs) {
         const [route, anchor] = href.split("#")
         const target = pages.find(({ id }) => routeOf(id) === route)
@@ -95,10 +115,10 @@ test("every internal README link points to an existing site page and heading", (
     }
 })
 
-test("every README link to a repository file points to a file that exists", async () => {
+test("every link of the real README to a repository file points to a file that exists", async () => {
     const fileHrefs = readmeHrefs().filter((href) => href.startsWith(`${repositoryUrl}/blob/main/`))
-    assert.ok(fileHrefs.length > 0)
 
+    assert.ok(fileHrefs.length > 0)
     for (const href of fileHrefs) {
         const file = new URL(href.replace(`${repositoryUrl}/blob/main/`, ""), repositoryRoot)
         await assert.doesNotReject(access(file), `${href} is not a repository file`)
