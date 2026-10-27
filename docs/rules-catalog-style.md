@@ -43,6 +43,8 @@ the compliant form
 
 The heading and the back link below it are enforced by `rules-md.test.ts`.
 
+The website parses this template in `website/src/site-content/`: it groups rule pages by their `##` section, drops the back link, and fails the build naming the rule when Intent, Trigger, Options or Fix is missing or out of shape (Options neither `none` nor a list, Fix not `none`, `autofix` or `suggestion…`, an example not opening with `// no` or without `// yes`). A change to the template must update that module and its tests.
+
 ## Opening sections
 
 - **Rules index**: a `Group | Rule` table in section order. The group appears only on its first row, linked to its section; every rule links to its own.

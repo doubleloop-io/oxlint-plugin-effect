@@ -6,6 +6,8 @@ Do not modify the logic or messages of `rules/anti-slop-*`: they are absorbed fr
 
 When adding or editing a section of `RULES.md`, follow [`docs/rules-catalog-style.md`](docs/rules-catalog-style.md).
 
+The website (`website/`) parses `RULES.md` in its content module (`website/src/site-content/`) and fails its build when a rule section breaks the catalog template: a change to the template or to the structure of `RULES.md` must update the content module and its tests (`cd website && pnpm test`).
+
 ## Agent skills
 
 ### Issue tracker

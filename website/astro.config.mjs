@@ -21,7 +21,17 @@ export default defineConfig({
                     href: "https://github.com/doubleloop-io/oxlint-plugin-effect",
                 },
             ],
-            sidebar: [{ label: "Rules", items: rulePages.map(({ id }) => ({ slug: id })) }],
+            sidebar: [
+                {
+                    label: "Rules",
+                    items: Object.entries(Object.groupBy(rulePages, ({ group }) => group)).map(
+                        ([group, pages = []]) => ({
+                            label: group,
+                            items: pages.map(({ id }) => ({ slug: id })),
+                        }),
+                    ),
+                },
+            ],
         }),
     ],
 })
