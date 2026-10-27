@@ -1,0 +1,25 @@
+import { readFile } from "node:fs/promises"
+
+export const repositoryRoot = new URL("../../../", import.meta.url)
+
+export const rulesMarkdown = await readFile(new URL("RULES.md", repositoryRoot), "utf8")
+
+export const rulesIndexRow =
+    /^\| (?:\[(?<group>[^\]]+)\]\(#(?<groupAnchor>[a-z-]+)\))? +\| \[`(?<rule>[a-z-]+)`\]/gmu
+
+// A group's row in the rules index names its first rule
+const firstRuleOfGroup = new Map(
+    [...rulesMarkdown.matchAll(rulesIndexRow)].flatMap(({ groups }) =>
+        groups?.groupAnchor === undefined ? [] : [[groups.groupAnchor, groups.rule] as const],
+    ),
+)
+
+const referencePageRoutes = new Map([
+    ["rules-index", "rules/"],
+    ["common-limits", "common-limits/"],
+    ["shared-settings", "shared-settings/"],
+])
+
+// The route a test expects for a RULES.md anchor, stated apart from how the site derives it
+export const expectedRulesMdRoute = (anchor: string) =>
+    referencePageRoutes.get(anchor) ?? `rules/${firstRuleOfGroup.get(anchor) ?? anchor}/`

@@ -1,16 +1,26 @@
 name: Setup
 description: Install pnpm and Node.js from package.json, then install dependencies.
 
+inputs:
+    working-directory:
+        description: Directory holding the package.json and pnpm-lock.yaml to set up from.
+        required: false
+        default: .
+
 runs:
     using: composite
     steps:
         - name: Install pnpm
           uses: pnpm/action-setup@v6
+          with:
+              package_json_file: ${{ inputs.working-directory }}/package.json
         - name: Install node
           uses: actions/setup-node@v7
           with:
               cache: pnpm
-              node-version-file: package.json
+              cache-dependency-path: ${{ inputs.working-directory }}/pnpm-lock.yaml
+              node-version-file: ${{ inputs.working-directory }}/package.json
         - name: Install dependencies
           shell: bash
+          working-directory: ${{ inputs.working-directory }}
           run: pnpm install --frozen-lockfile

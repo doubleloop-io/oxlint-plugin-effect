@@ -1,0 +1,192 @@
+import assert from "node:assert/strict"
+import { test } from "node:test"
+
+import { rulesMdSource } from "./rulesMdSource.ts"
+import { group, ruleSection, rulesMarkdown, wellFormedFields } from "./sourceMarkdownBuilders.ts"
+
+const pagesOf = (markdown: string) => rulesMdSource(markdown).sourcePages.map(({ page }) => page)
+
+const rulePages = (markdown: string) => pagesOf(markdown).filter((page) => page.kind === "rule")
+
+test("each rule section becomes a page named after the rule, in the group of its section", () => {
+    const markdown = rulesMarkdown(
+        group("Error channel", ruleSection("no-effect-promise"), ruleSection("try-object-form")),
+        group("Tagged values", ruleSection("no-manual-discriminant-comparison")),
+    )
+
+    const pages = rulePages(markdown)
+
+    assert.deepEqual(
+        pages.map(({ id, title, group }) => ({ id, title, group })),
+        [
+            { id: "rules/no-effect-promise", title: "no-effect-promise", group: "Error channel" },
+            { id: "rules/try-object-form", title: "try-object-form", group: "Error channel" },
+            {
+                id: "rules/no-manual-discriminant-comparison",
+                title: "no-manual-discriminant-comparison",
+                group: "Tagged values",
+            },
+        ],
+    )
+})
+
+test("a rule page carries the section body without the back link to the rules index", () => {
+    const markdown = rulesMarkdown(
+        group(
+            "Error channel",
+            ruleSection("no-effect-promise", { intent: "**Intent**: lift with tryPromise." }),
+        ),
+    )
+
+    const [page] = rulePages(markdown)
+
+    assert.equal(
+        page?.body,
+        [
+            "**Intent**: lift with tryPromise.",
+            wellFormedFields.example,
+            wellFormedFields.trigger,
+            wellFormedFields.exemptions,
+            wellFormedFields.why,
+            wellFormedFields.options,
+            wellFormedFields.fix,
+        ].join("\n\n") + "\n",
+    )
+})
+
+test("a heading-like line inside a code example stays in the rule body", () => {
+    const example = "```ts\n// no\n## not a heading\nwrong()\n\n// yes\nright()\n```"
+    const markdown = rulesMarkdown(
+        group("Error channel", ruleSection("no-effect-promise", { example })),
+    )
+
+    const [page] = rulePages(markdown)
+
+    assert.match(page?.body ?? "", /## not a heading/u)
+})
+
+for (const [field, label] of [
+    ["intent", "Intent"],
+    ["trigger", "Trigger"],
+    ["options", "Options"],
+    ["fix", "Fix"],
+] as const) {
+    test(`a rule section without ${label} fails, naming the rule and the field`, () => {
+        const markdown = rulesMarkdown(
+            group("Error channel", ruleSection("no-effect-promise", { [field]: null })),
+        )
+
+        assert.throws(() => rulesMdSource(markdown), {
+            message: `RULES.md, rule \`no-effect-promise\`: missing **${label}**`,
+        })
+    })
+}
+
+for (const [scenario, fields, problem] of [
+    [
+        "a Fix other than none, autofix or a suggestion",
+        { fix: "**Fix**: sometimes" },
+        "**Fix** is not none, autofix or suggestion",
+    ],
+    [
+        "Options that are neither none nor a list",
+        { options: "**Options**: a few." },
+        "**Options** is neither none nor followed by a list",
+    ],
+    [
+        "an example that does not open with the reported form",
+        { example: "```ts\n// yes\nright()\n\n// no\nwrong()\n```" },
+        "the example does not start with `// no`",
+    ],
+    [
+        "an example with no compliant form",
+        { example: "```ts\n// no\nwrong()\n```" },
+        "the example has no `// yes`",
+    ],
+] as const) {
+    test(`a rule section with ${scenario} fails, naming the rule`, () => {
+        const markdown = rulesMarkdown(
+            group("Error channel", ruleSection("no-effect-promise", fields)),
+        )
+
+        assert.throws(() => rulesMdSource(markdown), {
+            message: `RULES.md, rule \`no-effect-promise\`: ${problem}`,
+        })
+    })
+}
+
+test("Options followed by a list and a suggestion Fix with its detail follow the template", () => {
+    const markdown = rulesMarkdown(
+        group(
+            "Error channel",
+            ruleSection("no-effect-promise", {
+                options: "**Options**:\n\n- `testFiles`: shared setting.",
+                fix: "**Fix**: suggestion that wraps the literal",
+            }),
+        ),
+    )
+
+    const pages = rulePages(markdown)
+
+    assert.equal(pages.length, 1)
+})
+
+test("a sibling rule may leave the example, Exemptions and Why to the rule it links to", () => {
+    const markdown = rulesMarkdown(
+        group(
+            "Error channel",
+            ruleSection("try-object-form", { example: null, exemptions: null, why: null }),
+        ),
+    )
+
+    const pages = rulePages(markdown)
+
+    assert.deepEqual(
+        pages.map(({ id }) => id),
+        ["rules/try-object-form"],
+    )
+})
+
+const pageById = (markdown: string, id: string) => pagesOf(markdown).find((page) => page.id === id)
+
+test("Shared settings and Common limits each become a page with the body of their section", () => {
+    const markdown = rulesMarkdown(
+        "## Common limits\n\n- **Syntax only**: no type information.\n",
+        "## Shared settings\n\nDeclared once.\n\n- **`testFiles`**: test globs.\n",
+        group("Error channel", ruleSection("no-effect-promise")),
+    )
+
+    const pages = [pageById(markdown, "common-limits"), pageById(markdown, "shared-settings")]
+
+    assert.deepEqual(pages, [
+        {
+            kind: "reference",
+            id: "common-limits",
+            title: "Common limits",
+            body: "- **Syntax only**: no type information.\n",
+        },
+        {
+            kind: "reference",
+            id: "shared-settings",
+            title: "Shared settings",
+            body: "Declared once.\n\n- **`testFiles`**: test globs.\n",
+        },
+    ])
+})
+
+test("the rules index becomes the page at the root of the rules", () => {
+    const markdown = [
+        "# Rules\n",
+        "## Rules index\n\n| Group | Rule |\n| --- | --- |\n\nAll at `warn`.\n",
+        group("Error channel", ruleSection("no-effect-promise")),
+    ].join("\n")
+
+    const page = pageById(markdown, "rules")
+
+    assert.deepEqual(page, {
+        kind: "reference",
+        id: "rules",
+        title: "Rules index",
+        body: "| Group | Rule |\n| --- | --- |\n\nAll at `warn`.\n",
+    })
+})
