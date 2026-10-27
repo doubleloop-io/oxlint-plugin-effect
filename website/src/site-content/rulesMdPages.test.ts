@@ -2,10 +2,12 @@ import assert from "node:assert/strict"
 import { readFile } from "node:fs/promises"
 import { test } from "node:test"
 
+import { repository } from "./repository.ts"
 import { sitePages } from "./sitePages.ts"
 
 const rulesMdUrl = new URL("../../../RULES.md", import.meta.url)
 const rulesMarkdown = await readFile(rulesMdUrl, "utf8")
+const readmeMarkdown = await readFile(new URL("../../../README.md", import.meta.url), "utf8")
 
 const backLink = "<sup>[↑ rules index](#rules-index)</sup>"
 const ruleHeadingWithBackLink =
@@ -21,7 +23,7 @@ const rulesIndex = () => {
 }
 
 const base = "/oxlint-plugin-effect"
-const pages = sitePages(rulesMarkdown, { base })
+const pages = sitePages({ rulesMd: rulesMarkdown, readmeMd: readmeMarkdown }, { base, repository })
 const rulePages = () => pages.filter((page) => page.kind === "rule")
 
 const linkTarget = /\]\((?<href>[^)\s]+)\)/gu
@@ -83,7 +85,8 @@ for (const heading of ["Rules index", "Common limits", "Shared settings"]) {
 test("every link between sections of RULES.md points to an existing site page", () => {
     const routes = new Set(pages.map(({ id }) => `${base}/${id}/`))
 
-    const hrefs = pages.flatMap(({ body }) =>
+    const rulesMdPages = pages.filter(({ kind }) => kind === "rule" || kind === "reference")
+    const hrefs = rulesMdPages.flatMap(({ body }) =>
         [...body.matchAll(linkTarget)].map(({ groups }) => groups?.href ?? ""),
     )
 

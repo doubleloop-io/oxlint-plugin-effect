@@ -1,44 +1,16 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
 
-import { sitePages } from "./sitePages.ts"
-
-type RuleFields = {
-    intent: string
-    example: string
-    trigger: string
-    exemptions: string
-    why: string
-    options: string
-    fix: string
-}
-
-const wellFormedFields: RuleFields = {
-    intent: "**Intent**: do the right thing.",
-    example: "```ts\n// no\nwrong()\n\n// yes\nright()\n```",
-    trigger: "**Trigger**: a call to `wrong`.",
-    exemptions: "**Exemptions and blind spots**: aliases slip through.",
-    why: "**Why**: wrong things cost.",
-    options: "**Options**: none",
-    fix: "**Fix**: none",
-}
-
-const siteBase = "/site"
-
-const backLink = "<sup>[↑ rules index](#rules-index)</sup>"
-
-const ruleSection = (name: string, fields: Partial<Record<keyof RuleFields, string | null>> = {}) =>
-    [`### \`${name}\``, backLink, ...Object.values({ ...wellFormedFields, ...fields })]
-        .filter((block) => block !== null)
-        .join("\n\n") + "\n"
-
-const rulesMarkdown = (...groups: string[]) =>
-    ["# Rules\n", "## Rules index\n\n| Group | Rule |\n| --- | --- |\n", ...groups].join("\n")
+import {
+    group,
+    pagesOf,
+    ruleSection,
+    rulesMarkdown,
+    wellFormedFields,
+} from "./sourceMarkdownBuilders.ts"
 
 const rulePages = (markdown: string) =>
-    sitePages(markdown, { base: siteBase }).filter((page) => page.kind === "rule")
-
-const group = (title: string, ...sections: string[]) => [`## ${title}\n`, ...sections].join("\n")
+    pagesOf({ rulesMd: markdown }).filter((page) => page.kind === "rule")
 
 test("each rule section becomes a page named after the rule, in the group of its section", () => {
     const markdown = rulesMarkdown(
@@ -108,7 +80,7 @@ for (const [field, label] of [
             group("Error channel", ruleSection("no-effect-promise", { [field]: null })),
         )
 
-        assert.throws(() => sitePages(markdown, { base: siteBase }), {
+        assert.throws(() => pagesOf({ rulesMd: markdown }), {
             message: `RULES.md, rule \`no-effect-promise\`: missing **${label}**`,
         })
     })
@@ -141,7 +113,7 @@ for (const [scenario, fields, problem] of [
             group("Error channel", ruleSection("no-effect-promise", fields)),
         )
 
-        assert.throws(() => sitePages(markdown, { base: siteBase }), {
+        assert.throws(() => pagesOf({ rulesMd: markdown }), {
             message: `RULES.md, rule \`no-effect-promise\`: ${problem}`,
         })
     })
@@ -180,7 +152,7 @@ test("a sibling rule may leave the example, Exemptions and Why to the rule it li
 })
 
 const pageById = (markdown: string, id: string) =>
-    sitePages(markdown, { base: siteBase }).find((page) => page.id === id)
+    pagesOf({ rulesMd: markdown }).find((page) => page.id === id)
 
 test("Shared settings and Common limits each become a page with the body of their section", () => {
     const markdown = rulesMarkdown(
@@ -317,7 +289,7 @@ test("a link to a section that has no site page fails, naming the link and where
         ),
     )
 
-    assert.throws(() => sitePages(markdown, { base: siteBase }), {
+    assert.throws(() => pagesOf({ rulesMd: markdown }), {
         message:
             "RULES.md, rule `no-effect-promise`: link `#removed-rule` resolves to no site page",
     })
