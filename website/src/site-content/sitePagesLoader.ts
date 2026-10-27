@@ -1,15 +1,12 @@
-import { readFile } from "node:fs/promises"
-
 import type { Loader } from "astro/loaders"
 
+import { readRulesMarkdown } from "./readRulesMarkdown.ts"
 import { sitePages } from "./sitePages.ts"
-
-const sourcePath = "src/site-content/demo.md"
 
 export const sitePagesLoader = (): Loader => ({
     name: "site-pages",
     load: async ({ config, store, parseData, renderMarkdown }) => {
-        const markdown = await readFile(new URL(sourcePath, config.root), "utf8")
+        const markdown = await readRulesMarkdown(config.root)
         store.clear()
         for (const page of sitePages(markdown)) {
             const data = await parseData({ id: page.id, data: { title: page.title } })

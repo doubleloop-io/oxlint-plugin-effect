@@ -4,17 +4,36 @@ export type SitePage = {
     body: string
 }
 
-export const sitePages = (markdown: string): SitePage[] => {
-    const match = /^# (?<title>.+)\n+(?<body>[\s\S]*)$/u.exec(markdown)
-    if (match?.groups === undefined) {
-        throw new Error("the Markdown text must start with a `# ` title heading")
-    }
-    const { title, body } = match.groups
-    return [{ id: slug(title), title, body }]
+type RuleSection = {
+    name: string
+    lines: string[]
 }
 
-const slug = (title: string) =>
-    title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/gu, "-")
-        .replace(/^-|-$/gu, "")
+const ruleHeading = /^### `(?<name>[a-z-]+)`$/u
+const sectionHeading = /^#{1,3} /u
+const codeFence = /^```/u
+
+export const sitePages = (rulesMarkdown: string): SitePage[] =>
+    ruleSections(rulesMarkdown).map(({ name, lines }) => ({
+        id: `rules/${name}`,
+        title: name,
+        body: `${lines.join("\n").trim()}\n`,
+    }))
+
+const ruleSections = (markdown: string) => {
+    const sections: RuleSection[] = []
+    let current: RuleSection | undefined
+    let insideCodeBlock = false
+    for (const line of markdown.split("\n")) {
+        if (codeFence.test(line)) insideCodeBlock = !insideCodeBlock
+        const heading = insideCodeBlock ? undefined : sectionHeading.exec(line)
+        if (heading) {
+            const name = ruleHeading.exec(line)?.groups?.name
+            current = name === undefined ? undefined : { name, lines: [] }
+            if (current) sections.push(current)
+        } else {
+            current?.lines.push(line)
+        }
+    }
+    return sections
+}
