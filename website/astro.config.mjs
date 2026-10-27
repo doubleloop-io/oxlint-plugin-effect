@@ -14,6 +14,21 @@ export default defineConfig({
                     label: "GitHub",
                     href: "https://github.com/doubleloop-io/oxlint-plugin-effect",
                 },
+                {
+                    icon: "npm",
+                    label: "npm",
+                    href: "https://www.npmjs.com/package/@doubleloop-io/oxlint-plugin-effect",
+                },
+                {
+                    icon: "comment-alt",
+                    label: "Issues",
+                    href: "https://github.com/doubleloop-io/oxlint-plugin-effect/issues",
+                },
+            ],
+            customCss: [
+                "@fontsource-variable/inter",
+                "@fontsource-variable/jetbrains-mono",
+                "./src/styles/theme.css",
             ],
             sidebar: [
                 {
