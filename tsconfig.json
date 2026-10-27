@@ -17,6 +17,7 @@
     },
     "include": [
         "index.ts",
+        "oxlint.config.ts",
         "rules-md.test.ts",
         "presets/**/*.ts",
         "rules/**/*.ts",
