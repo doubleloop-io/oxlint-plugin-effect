@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import { readFile } from "node:fs/promises"
 import { test } from "node:test"
 
-import { repository } from "./repository.ts"
+import { publishedSite } from "./publishedSite.ts"
 import { sitePages } from "./sitePages.ts"
 
 const rulesMdUrl = new URL("../../../RULES.md", import.meta.url)
@@ -22,8 +22,8 @@ const rulesIndex = () => {
     })
 }
 
-const base = "/oxlint-plugin-effect"
-const pages = sitePages({ rulesMd: rulesMarkdown, readmeMd: readmeMarkdown }, { base, repository })
+const { base, repositoryUrl } = publishedSite
+const pages = sitePages({ rulesMd: rulesMarkdown, readmeMd: readmeMarkdown }, publishedSite)
 const rulePages = () => pages.filter((page) => page.kind === "rule")
 
 const linkTarget = /\]\((?<href>[^)\s]+)\)/gu

@@ -1,4 +1,5 @@
-import { headingAnchor, type LinkRoutes } from "./internalLinks.ts"
+import { headingAnchor } from "./internalLinks.ts"
+import { markdownLines } from "./markdownLines.ts"
 import type { SourcePage } from "./sitePages.ts"
 
 type Section = { level: "#" | "##"; heading: string; subheadings: string[]; lines: string[] }
@@ -7,13 +8,14 @@ const file = "README.md"
 
 const sectionHeading = /^(?<level>##?) (?<title>.+)$/u
 const subsectionHeading = /^### (?<title>.+)$/u
-const codeFence = /^```/u
 
 // Addressed to the plugin maintainers, not to its users
-const maintainerSections = new Set(["Development"])
+export const maintainerSections = new Set(["Development"])
 
 // `rules` is the rules index from RULES.md
-const renamedSections = new Map([["Rules", { id: "rules-overview", title: "Rules overview" }]])
+export const renamedSections = new Map([
+    ["Rules", { id: "rules-overview", title: "Rules overview" }],
+])
 
 const guidePage = (heading: string) =>
     renamedSections.get(heading) ?? { id: headingAnchor(heading), title: heading }
@@ -37,16 +39,16 @@ const readmeMdPage = ({ level, heading, lines }: Section): SourcePage => {
         ? {
               page: { kind: "landing", id: "index", title: heading, body, actions: landingActions },
               file,
-              label: "introduction",
+              location: "introduction",
           }
         : {
               page: { kind: "guide", ...guidePage(heading), body },
               file,
-              label: `section \`${heading}\``,
+              location: `section \`${heading}\``,
           }
 }
 
-const linkRoutes = (readmeSections: Section[]): LinkRoutes =>
+const linkRoutes = (readmeSections: Section[]) =>
     new Map(
         readmeSections
             .filter(({ level }) => level === "##")
@@ -69,9 +71,7 @@ const linkRoutes = (readmeSections: Section[]): LinkRoutes =>
 const sections = (markdown: string) => {
     const found: Section[] = []
     let current: Section | undefined
-    let insideCodeBlock = false
-    for (const line of markdown.split("\n")) {
-        if (codeFence.test(line)) insideCodeBlock = !insideCodeBlock
+    for (const { line, insideCodeBlock } of markdownLines(markdown.split("\n"))) {
         const heading = insideCodeBlock ? undefined : sectionHeading.exec(line)?.groups
         const subheading = insideCodeBlock ? undefined : subsectionHeading.exec(line)?.groups?.title
         if (heading?.title !== undefined) {

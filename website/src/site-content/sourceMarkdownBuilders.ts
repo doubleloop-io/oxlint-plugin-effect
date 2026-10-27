@@ -1,4 +1,5 @@
-import { type SiteSources, sitePages } from "./sitePages.ts"
+import { backLink } from "./rulesMdSource.ts"
+import { type SiteOptions, type SiteSources, sitePages } from "./sitePages.ts"
 
 type RuleFields = {
     intent: string
@@ -20,11 +21,10 @@ export const wellFormedFields: RuleFields = {
     fix: "**Fix**: none",
 }
 
-export const siteBase = "/site"
-
-export const siteRepository = "https://github.com/owner/the-plugin"
-
-export const backLink = "<sup>[↑ rules index](#rules-index)</sup>"
+export const testSite: SiteOptions = {
+    base: "/site",
+    repositoryUrl: "https://github.com/owner/the-plugin",
+}
 
 export const ruleSection = (
     name: string,
@@ -53,5 +53,4 @@ export const readmeMarkdown = (...sections: string[]) =>
 export const pagesOf = ({
     rulesMd = rulesMarkdown(group("Error channel", ruleSection("no-effect-promise"))),
     readmeMd = readmeMarkdown(),
-}: Partial<SiteSources>) =>
-    sitePages({ rulesMd, readmeMd }, { base: siteBase, repository: siteRepository })
+}: Partial<SiteSources>) => sitePages({ rulesMd, readmeMd }, testSite)

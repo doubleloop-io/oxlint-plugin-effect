@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
 
-import { pagesOf, readmeMarkdown, siteRepository } from "./sourceMarkdownBuilders.ts"
+import { pagesOf, readmeMarkdown, testSite } from "./sourceMarkdownBuilders.ts"
 
 const readmePages = (readmeMd: string) =>
     pagesOf({ readmeMd }).filter(({ kind }) => kind === "guide")
@@ -125,7 +125,10 @@ test("a link to a repository file with no site page points to the file on the ma
 
     const page = pageById(readmeMd, "versioning")
 
-    assert.equal(page?.body, `See [the license](${siteRepository}/blob/main/LICENSE.anti-slop).\n`)
+    assert.equal(
+        page?.body,
+        `See [the license](${testSite.repositoryUrl}/blob/main/LICENSE.anti-slop).\n`,
+    )
 })
 
 test("a link to RULES.md points to the rules index, a link to a rule in it to the rule page", () => {

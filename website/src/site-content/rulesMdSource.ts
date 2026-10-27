@@ -1,4 +1,5 @@
-import { headingAnchor, type LinkRoutes } from "./internalLinks.ts"
+import { headingAnchor } from "./internalLinks.ts"
+import { isCodeFence, markdownLines } from "./markdownLines.ts"
 import type { SitePage, SourcePage } from "./sitePages.ts"
 
 type Section = {
@@ -19,8 +20,8 @@ const referencePageIds = new Map([
 
 const sectionHeading = /^(?<level>#{1,3}) (?<title>.+)$/u
 const ruleHeading = /^`(?<name>[a-z-]+)`$/u
-const codeFence = /^```/u
-const backLink = /^<sup>\[↑ rules index\]\(#rules-index\)<\/sup>$/u
+
+export const backLink = "<sup>[↑ rules index](#rules-index)</sup>"
 
 const requiredFields = ["Intent", "Trigger", "Options", "Fix"]
 const fieldLabel = /^\*\*(?<label>[^*]+)\*\*:/u
@@ -41,16 +42,16 @@ const rulesMdPage = (section: Section): RulesMdPage[] => {
     const name = ruleHeading.exec(heading)?.groups?.name
     if (name !== undefined) {
         const page = rulePage({ ...section, name })
-        return [{ page, file, heading, label: `rule \`${name}\`` }]
+        return [{ page, file, heading, location: `rule \`${name}\`` }]
     }
     const id = referencePageIds.get(heading)
     if (id === undefined) return []
     const page: SitePage = { kind: "reference", id, title: heading, body: body(section) }
-    return [{ page, file, heading, label: `section \`${heading}\`` }]
+    return [{ page, file, heading, location: `section \`${heading}\`` }]
 }
 
 // A group has no page: its anchor leads to its first rule, as its heading does in RULES.md
-const linkRoutes = (allSections: Section[], sourcePages: RulesMdPage[]): LinkRoutes =>
+const linkRoutes = (allSections: Section[], sourcePages: RulesMdPage[]) =>
     new Map([
         [file, "rules/"],
         ...allSections.flatMap(({ heading }): [string, string][] => {
@@ -108,38 +109,32 @@ const templateProblem = (lines: string[]) => {
 const fixValue = /^(none|autofix|suggestion\b)/u
 
 const exampleProblem = (lines: string[]) => {
-    const start = lines.findIndex((line) => codeFence.test(line))
+    const start = lines.findIndex(isCodeFence)
     if (start === -1) return undefined
-    const end = lines.findIndex((line, index) => index > start && codeFence.test(line))
+    const end = lines.findIndex((line, index) => index > start && isCodeFence(line))
     const example = lines.slice(start + 1, end)
     if (!example[0]?.startsWith("// no")) return "the example does not start with `// no`"
     if (!example.some((line) => line.startsWith("// yes"))) return "the example has no `// yes`"
     return undefined
 }
 
-const proseLines = (lines: string[]) => {
-    let insideCodeBlock = false
-    return lines.map((line) => {
-        const isFence = codeFence.test(line)
-        if (isFence) insideCodeBlock = !insideCodeBlock
-        return insideCodeBlock || isFence ? "```" : line
-    })
-}
+const proseLines = (lines: string[]) =>
+    markdownLines(lines).map(({ line, isFence, insideCodeBlock }) =>
+        insideCodeBlock || isFence ? "```" : line,
+    )
 
 const sections = (markdown: string) => {
     const found: Section[] = []
     let group = ""
     let current: Section | undefined
-    let insideCodeBlock = false
-    for (const line of markdown.split("\n")) {
-        if (codeFence.test(line)) insideCodeBlock = !insideCodeBlock
+    for (const { line, insideCodeBlock } of markdownLines(markdown.split("\n"))) {
         const heading = insideCodeBlock ? undefined : sectionHeading.exec(line)?.groups
         if (heading?.title !== undefined) {
             if (heading.level === "##") group = heading.title
             current =
                 heading.level === "#" ? undefined : { heading: heading.title, group, lines: [] }
             if (current) found.push(current)
-        } else if (insideCodeBlock || !backLink.test(line)) {
+        } else if (insideCodeBlock || line !== backLink) {
             current?.lines.push(line)
         }
     }

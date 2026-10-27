@@ -3,15 +3,15 @@ import { access, readFile } from "node:fs/promises"
 import { test } from "node:test"
 
 import { headingAnchor } from "./internalLinks.ts"
-import { repository } from "./repository.ts"
+import { publishedSite } from "./publishedSite.ts"
 import { sitePages } from "./sitePages.ts"
 
 const repositoryRoot = new URL("../../../", import.meta.url)
 const readmeMarkdown = await readFile(new URL("README.md", repositoryRoot), "utf8")
 const rulesMarkdown = await readFile(new URL("RULES.md", repositoryRoot), "utf8")
 
-const base = "/oxlint-plugin-effect"
-const pages = sitePages({ rulesMd: rulesMarkdown, readmeMd: readmeMarkdown }, { base, repository })
+const { base, repositoryUrl } = publishedSite
+const pages = sitePages({ rulesMd: rulesMarkdown, readmeMd: readmeMarkdown }, publishedSite)
 const readmePages = pages.filter(({ kind }) => kind === "guide" || kind === "landing")
 
 const linkTarget = /\]\((?<href>[^)\s]+)\)/gu
@@ -96,11 +96,11 @@ test("every internal README link points to an existing site page and heading", (
 })
 
 test("every README link to a repository file points to a file that exists", async () => {
-    const fileHrefs = readmeHrefs().filter((href) => href.startsWith(`${repository}/blob/main/`))
+    const fileHrefs = readmeHrefs().filter((href) => href.startsWith(`${repositoryUrl}/blob/main/`))
     assert.ok(fileHrefs.length > 0)
 
     for (const href of fileHrefs) {
-        const file = new URL(href.replace(`${repository}/blob/main/`, ""), repositoryRoot)
+        const file = new URL(href.replace(`${repositoryUrl}/blob/main/`, ""), repositoryRoot)
         await assert.doesNotReject(access(file), `${href} is not a repository file`)
     }
 })
