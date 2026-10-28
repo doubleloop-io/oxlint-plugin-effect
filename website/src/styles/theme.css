@@ -27,6 +27,11 @@
     --sl-color-hairline-shade: var(--sl-color-gray-5);
 
     --theme-code-bg: var(--sl-color-gray-6);
+
+    /* Effect docs navigation tones: zinc-300 headings, zinc-400 items, zinc-800 current page */
+    --dl-sidebar-heading: #d4d4d8;
+    --dl-sidebar-item: #a1a1aa;
+    --dl-sidebar-current-bg: var(--sl-color-gray-5);
 }
 
 :root[data-theme="light"] {
@@ -53,6 +58,10 @@
     --sl-color-hairline-shade: var(--sl-color-gray-6);
 
     --theme-code-bg: var(--sl-color-gray-7);
+
+    --dl-sidebar-heading: #27272a;
+    --dl-sidebar-item: #52525b;
+    --dl-sidebar-current-bg: var(--sl-color-gray-7);
 }
 
 /* Monochrome links need an underline to stay distinguishable from body text. */
@@ -77,13 +86,49 @@ h4,
     font-weight: 600;
 }
 
+/*
+    Three sidebar levels, as in the Effect docs: top-level entries in the heading tone,
+    nested groups as smaller semibold labels, and their pages in the regular item tone.
+*/
+.sidebar-content .top-level > li > a.large,
+.sidebar-content .top-level > li > details > summary .large {
+    color: var(--dl-sidebar-heading);
+}
+
+.sidebar-content ul ul summary .large {
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    color: var(--dl-sidebar-item);
+}
+
+.sidebar-content ul ul a {
+    color: var(--dl-sidebar-item);
+}
+
+.sidebar-content a:hover,
+.sidebar-content a:focus,
+.sidebar-content summary:hover .large {
+    color: var(--sl-color-white);
+}
+
 /* The current sidebar page is a filled neutral pill, as in the Effect docs. */
 .sidebar-content a[aria-current="page"] {
-    background-color: var(--sl-color-gray-6);
+    background-color: var(--dl-sidebar-current-bg);
     color: var(--sl-color-white);
     font-weight: 600;
 }
 
-:root[data-theme="light"] .sidebar-content a[aria-current="page"] {
-    background-color: var(--sl-color-gray-7);
+/* Previous and next links are a footer aid, so they stay smaller than the page headings. */
+.pagination-links a {
+    padding: 0.625rem 0.875rem;
+    font-size: var(--sl-text-sm);
+}
+
+.pagination-links .link-title {
+    font-size: var(--sl-text-lg);
+}
+
+.pagination-links svg {
+    width: 1.125rem;
+    height: 1.125rem;
 }
