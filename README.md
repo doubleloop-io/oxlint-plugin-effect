@@ -35,13 +35,14 @@ With `.oxlintrc.json`, `extends` takes file paths only, so the preset is reached
 
 `all` enables every rule at `warn`, so adopting it never breaks a build: look at the warnings first, then raise to `error` the rules you want to enforce.
 
-**Set `entryFiles` before reading the warnings** on a layout that is not a Node CLI, such as Next.js or a monorepo. Its default, `**/main.ts`, `**/cli.ts`, `**/bin/**`, decides which files may run Effects and import adapters, so on another layout it turns correct code into warnings. How to set it: [Configuration options](https://doubleloop-io.github.io/oxlint-plugin-effect/configuration/#configuration-options).
+**Set `entryFiles` before reading the warnings** on a layout that is not a Node CLI, such as Next.js or a monorepo. Its default, `**/main.ts`, `**/cli.ts`, `**/bin/**`, decides which files may run Effects and import adapters, so on another layout it turns correct code into warnings. How to set it: [Shared settings](https://doubleloop-io.github.io/oxlint-plugin-effect/shared-settings/#setting-a-value).
 
 ## Documentation
 
 The guide is on the [website](https://doubleloop-io.github.io/oxlint-plugin-effect/):
 
-- [Configuration](https://doubleloop-io.github.io/oxlint-plugin-effect/configuration/): picking rules and the settings that describe your project.
+- [Configuration](https://doubleloop-io.github.io/oxlint-plugin-effect/configuration/): the `all` preset and picking rules.
+- [Shared settings](https://doubleloop-io.github.io/oxlint-plugin-effect/shared-settings/): the settings that describe your project, their defaults and the rules that use them.
 - [Default configuration](https://doubleloop-io.github.io/oxlint-plugin-effect/default-configuration/): `all` with every setting and option spelled out.
 - [Alongside `@effect/tsgo`](https://doubleloop-io.github.io/oxlint-plugin-effect/alongside-effect-tsgo/): combining its presets with this one.
 - [Rules overview](https://doubleloop-io.github.io/oxlint-plugin-effect/rules-overview/): every rule, grouped by topic.

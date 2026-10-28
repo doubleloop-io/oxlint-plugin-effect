@@ -11,7 +11,8 @@ It complements the type-aware rules of [`@effect/tsgo`](alongside-effect-tsgo.md
 ## Guide
 
 - [Installation](installation.md): the package and the Node and oxlint versions it requires.
-- [Configuration](configuration.md): the `all` preset, picking rules, and the settings that describe your project.
+- [Configuration](configuration.md): the `all` preset and picking rules.
+- [Shared settings](shared-settings.md): the settings that describe your project, their defaults and the rules that use them.
 - [Alongside `@effect/tsgo`](alongside-effect-tsgo.md): combining its presets with this one.
 - [Default configuration](default-configuration.md): `all` with every setting and option spelled out.
 - [Versioning](versioning.md): what a release may change and which oxlint versions are supported.
@@ -19,5 +20,4 @@ It complements the type-aware rules of [`@effect/tsgo`](alongside-effect-tsgo.md
 ## Rules
 
 - [Rules overview](rules.md): every rule, grouped by topic.
-- [Common limits](../RULES.md#common-limits): the limits every rule shares.
-- [Shared settings](../RULES.md#shared-settings): the settings the rules share and the rules that use them.
+- [Common limits](common-limits.md): the limits every rule shares.

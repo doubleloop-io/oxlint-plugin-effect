@@ -3,6 +3,7 @@ import { test } from "node:test"
 
 import {
     group,
+    guideFile,
     pagesOf,
     ruleSection,
     rulesMarkdown,
@@ -27,20 +28,19 @@ test("a link to a rule section points to the page of that rule", () => {
     assert.ok(page?.body.includes("like [`no-effect-promise`](/site/rules/no-effect-promise/)."))
 })
 
-test("a link to Shared settings or Common limits points to its page", () => {
-    const markdown = rulesMarkdown(
-        "## Common limits\n\n- **Syntax only**.\n",
-        "## Shared settings\n\n- **`testFiles`**.\n",
+test("a RULES.md link to a guide file points to its page", () => {
+    const rulesMd = rulesMarkdown(
         group(
             "Error channel",
             ruleSection("no-effect-promise", {
-                options: "**Options**:\n\n- `testFiles`: [shared setting](#shared-settings).",
-                exemptions: "**Exemptions and blind spots**: see [limits](#common-limits).",
+                options: "**Options**:\n\n- `testFiles`: [shared setting](user-guide/shared-settings.md).",
+                exemptions: "**Exemptions and blind spots**: see [limits](user-guide/common-limits.md).",
             }),
         ),
     )
+    const userGuide = [guideFile("shared-settings.md"), guideFile("common-limits.md")]
 
-    const page = pageById({ rulesMd: markdown }, "rules/no-effect-promise")
+    const page = pageById({ rulesMd, userGuide }, "rules/no-effect-promise")
 
     assert.ok(page?.body.includes("[shared setting](/site/shared-settings/)"))
     assert.ok(page?.body.includes("[limits](/site/common-limits/)"))
@@ -48,22 +48,29 @@ test("a link to Shared settings or Common limits points to its page", () => {
 
 test("a link to a group points to the first rule of that group", () => {
     const markdown = rulesMarkdown(
-        "## Shared settings\n\nUsed by [Error channel](#error-channel).\n",
         group("Error channel", ruleSection("no-effect-promise"), ruleSection("try-object-form")),
+        group(
+            "Tagged values",
+            ruleSection("no-manual-discriminant-comparison", {
+                why: "**Why**: as in [Error channel](#error-channel).",
+            }),
+        ),
     )
 
-    const page = pageById({ rulesMd: markdown }, "shared-settings")
+    const page = pageById({ rulesMd: markdown }, "rules/no-manual-discriminant-comparison")
 
     assert.ok(page?.body.includes("[Error channel](/site/rules/no-effect-promise/)"))
 })
 
 test("a link to the rules index points to the rules overview", () => {
     const markdown = rulesMarkdown(
-        "## Shared settings\n\nListed in the [rules index](#rules-index).\n",
-        group("Error channel", ruleSection("no-effect-promise")),
+        group(
+            "Error channel",
+            ruleSection("no-effect-promise", { why: "**Why**: see the [rules index](#rules-index)." }),
+        ),
     )
 
-    const page = pageById({ rulesMd: markdown }, "shared-settings")
+    const page = pageById({ rulesMd: markdown }, "rules/no-effect-promise")
 
     assert.ok(page?.body.includes("[rules index](/site/rules-overview/)"))
 })

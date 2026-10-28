@@ -1,9 +1,9 @@
 ---
 title: Default configuration
-order: 4
+order: 5
 ---
 
-`all` is equivalent to the config below, with every setting and option spelled out at its default. Both **replace** the defaults instead of extending them: see [Shared settings](../RULES.md#shared-settings).
+`all` is equivalent to the config below, with every setting and option spelled out at its default. Both **replace** the defaults instead of extending them: see [Shared settings](shared-settings.md).
 
 ```ts
 import { defineConfig } from "oxlint"

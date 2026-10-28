@@ -18,12 +18,8 @@ const firstRuleOfGroup = new Map(
     ),
 )
 
-const referencePageRoutes = new Map([
-    ["rules-index", "rules-overview/"],
-    ["common-limits", "common-limits/"],
-    ["shared-settings", "shared-settings/"],
-])
-
 // The route a test expects for a RULES.md anchor, stated apart from how the site derives it
 export const expectedRulesMdRoute = (anchor: string) =>
-    referencePageRoutes.get(anchor) ?? `rules/${firstRuleOfGroup.get(anchor) ?? anchor}/`
+    anchor === "rules-index"
+        ? "rules-overview/"
+        : `rules/${firstRuleOfGroup.get(anchor) ?? anchor}/`

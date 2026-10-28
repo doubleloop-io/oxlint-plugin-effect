@@ -4,7 +4,6 @@ import { userGuideSource } from "./userGuideSource.ts"
 
 export type SitePage =
     | { kind: "rule"; id: string; title: string; group: string; body: string }
-    | { kind: "reference"; id: string; title: string; body: string }
     | { kind: "guide"; id: string; title: string; body: string }
     | {
           kind: "landing"

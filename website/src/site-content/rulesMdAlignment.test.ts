@@ -21,7 +21,6 @@ const pages = sitePages(
     publishedSite,
 )
 const rulePages = () => pages.filter((page) => page.kind === "rule")
-const rulesMdPages = () => pages.filter(({ kind }) => kind === "rule" || kind === "reference")
 
 const ruleHeadingAndNextLine = /^### `(?<rule>[a-z-]+)`\n\n(?<nextLine>.*)$/gmu
 
@@ -36,6 +35,8 @@ const rulesIndex = () => {
 const expectedHref = (href: string) => {
     const anchor = /^#(?<anchor>[a-z-]+)$/u.exec(href)?.groups?.anchor
     if (anchor !== undefined) return `${base}/${expectedRulesMdRoute(anchor)}`
+    const guidePage = /^user-guide\/(?<page>[a-z-]+)\.md$/u.exec(href)?.groups?.page
+    if (guidePage !== undefined) return `${base}/${guidePage}/`
     return /^https?:/u.test(href) ? href : `${repositoryUrl}/blob/main/${href}`
 }
 
@@ -82,20 +83,20 @@ test("every block of a real RULES.md rule section is on its page, links pointing
     }
 })
 
-for (const heading of ["Common limits", "Shared settings"]) {
-    test(`${heading} is a page with the text of its real RULES.md section, links pointing to the page of their anchor`, () => {
-        const source = sourceSection(`## ${heading}`).replace(`## ${heading}\n`, "").trim()
+test("the real RULES.md has no section but the rules index and the groups of its rules", () => {
+    const groups = new Set(rulesIndex().map(({ group }) => group))
 
-        const page = pages.find(({ title }) => title === heading)
+    const sections = [...rulesMarkdown.matchAll(/^## (?<heading>.+)$/gmu)].map(
+        ({ groups }) => groups?.heading ?? "",
+    )
 
-        assert.equal(page?.body.trim(), withExpectedHrefs(source))
-    })
-}
+    assert.deepEqual(sections, ["Rules index", ...groups])
+})
 
 test("every link between sections of the real RULES.md points to an existing site page", () => {
     const routes = new Set(pages.map(({ id }) => `${base}/${id}/`))
 
-    const hrefs = rulesMdPages().flatMap(({ body }) => markdownLinkHrefs(body))
+    const hrefs = rulePages().flatMap(({ body }) => markdownLinkHrefs(body))
 
     const sitePageHrefs = hrefs.filter((href) => href.startsWith(`${base}/`))
     assert.ok(sitePageHrefs.length > 0)
@@ -104,7 +105,7 @@ test("every link between sections of the real RULES.md points to an existing sit
 
 // RULES.md links to no repository file today, so this guards the links it may gain
 test("every link of the real RULES.md to a repository file points to a file that exists", async () => {
-    const fileHrefs = rulesMdPages()
+    const fileHrefs = rulePages()
         .flatMap(({ body }) => markdownLinkHrefs(body))
         .filter((href) => href.startsWith(`${repositoryUrl}/blob/main/`))
 

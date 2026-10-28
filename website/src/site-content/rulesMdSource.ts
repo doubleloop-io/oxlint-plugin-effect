@@ -13,11 +13,6 @@ type RuleSection = Section & { name: string }
 
 const file = "RULES.md"
 
-const referencePageIds = new Map([
-    ["Common limits", "common-limits"],
-    ["Shared settings", "shared-settings"],
-])
-
 const sectionHeading = /^(?<level>#{1,3}) (?<title>.+)$/u
 const ruleHeading = /^`(?<name>[a-z-]+)`$/u
 
@@ -37,17 +32,13 @@ export const rulesMdSource = (markdown: string) => {
 
 type RulesMdPage = SourcePage & { heading: string }
 
+// Only rule sections have a page: the rules index and the group headings link to rule pages
 const rulesMdPage = (section: Section): RulesMdPage[] => {
     const { heading } = section
     const name = ruleHeading.exec(heading)?.groups?.name
-    if (name !== undefined) {
-        const page = rulePage({ ...section, name })
-        return [{ page, file, heading, location: `rule \`${name}\`` }]
-    }
-    const id = referencePageIds.get(heading)
-    if (id === undefined) return []
-    const page: SitePage = { kind: "reference", id, title: heading, body: body(section) }
-    return [{ page, file, heading, location: `section \`${heading}\`` }]
+    if (name === undefined) return []
+    const page = rulePage({ ...section, name })
+    return [{ page, file, heading, location: `rule \`${name}\`` }]
 }
 
 // The guide's rules index lists every rule, so it stands in for the RULES.md one, which has no page

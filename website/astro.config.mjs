@@ -11,7 +11,6 @@ import { sitePages } from "./src/site-content/sitePages.ts"
 const pages = sitePages(await readSiteSources(new URL(".", import.meta.url)), publishedSite)
 const rulePages = pages.filter((page) => page.kind === "rule")
 const guidePages = pages.filter((page) => page.kind === "guide" && page.id !== rulesOverviewId)
-const referencePages = pages.filter((page) => page.kind === "reference")
 
 export default defineConfig({
     site: siteOrigin,
@@ -45,7 +44,6 @@ export default defineConfig({
             sidebar: [
                 { slug: "index", label: "Overview" },
                 ...guidePages.map(({ id }) => ({ slug: id })),
-                ...referencePages.map(({ id }) => ({ slug: id })),
                 {
                     label: "Rules",
                     items: [

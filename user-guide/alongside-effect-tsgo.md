@@ -1,6 +1,6 @@
 ---
 title: Alongside `@effect/tsgo`
-order: 3
+order: 4
 ---
 
 [`@effect/tsgo`](https://github.com/Effect-TS/tsgo) is the official Effect language service on top of the TypeScript Go compiler; its `effecttsgo` oxlint presets add more than 100 type-aware rules. This plugin does not need it, and its rules target what those presets do not check, so the two complement each other. To use both, follow its [Oxlint Setup guide](https://github.com/Effect-TS/tsgo/blob/main/docs/README.md) and put its preset in `extends` **before** `all`:

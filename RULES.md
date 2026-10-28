@@ -40,47 +40,6 @@ The plugin's 31 rules.
 
 The `all` preset enables them all at `warn`.
 
-## Common limits
-
-- **Syntax only**: no rule uses type information. Only two rules look past the file: [`adapter-import-boundary`](#adapter-import-boundary), to find which directories are adapters, and [`prefer-effect-vitest`](#prefer-effect-vitest), to find whether `@effect/vitest` is installed.
-- **Literal names**: `Effect.gen` is recognized, `import { Effect as E }` or `import * as L from "effect/Layer"` slip through. On code that uses aliases, silence is not compliance.
-- **Effect 4**: the rules are written against v4. Where a v3 API has the same intent, they recognize its v3 name too (`catchAll`, `Either`, `Context.Tag`, `Config.redacted`, …), and the Trigger names it.
-
-## Shared settings
-
-What describes the project rather than a rule is declared once, under `settings["dl-effect"]` in the oxlint config, and read by every rule that needs it. A value **replaces** the default (it does not extend it). An unknown key or a value that is not an array of strings stops the lint with an error. File globs are matched against the path relative to oxlint's working directory, with `/` on every platform.
-
-- **`entryFiles`**
-    - used by:
-        - [`run-only-in-runner`](#run-only-in-runner)
-        - [`adapter-import-boundary`](#adapter-import-boundary)
-    - default: `**/main.ts`, `**/cli.ts`, `**/bin/**`. `index.ts` is excluded on purpose: it is usually a barrel, and exempting it would let adapters reach the rest of the application through re-exports.
-- **`testFiles`**
-    - used by:
-        - [`run-only-in-runner`](#run-only-in-runner), [`adapter-import-boundary`](#adapter-import-boundary), [`no-effect-promise`](#no-effect-promise), [`provide-named-layer`](#provide-named-layer), [`no-provide-on-definition`](#no-provide-on-definition), [`split-success-path-from-error-handling`](#split-success-path-from-error-handling), [`all-errors-handled-at-boundary`](#all-errors-handled-at-boundary), [`anti-slop-no-service-constructor-imports`](#anti-slop-no-service-constructor-imports): skip test files
-        - [`no-throw-or-primitive-failure`](#no-throw-or-primitive-failure): skips only primitive failures there
-        - [`single-style-per-function`](#single-style-per-function): treats their helpers like tests
-        - [`prefer-effect-vitest`](#prefer-effect-vitest): checks only them
-    - default: `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. A helper directory such as `src/testing/` does not count as tests: it is support code.
-- **`discriminants`**
-    - used by:
-        - [`no-manual-discriminant-comparison`](#no-manual-discriminant-comparison)
-        - [`no-manual-discriminant-construction`](#no-manual-discriminant-construction)
-    - default: `_tag`. Add the fields your unions discriminate on (`type`, `kind`).
-
-The file defaults come from a Node CLI. On another layout (Next.js, a monorepo) they must be reconfigured before reading the warnings:
-
-```ts
-export default defineConfig({
-    extends: [dlEffectAll],
-    settings: {
-        "dl-effect": { entryFiles: ["apps/web/src/app/**/route.ts", "apps/web/src/runtime.ts"] },
-    },
-})
-```
-
-Settings are not inherited from a preset in `extends` and cannot go in `overrides`: for a value that differs by group of files, override the rules instead.
-
 ## Error channel
 
 ### `no-throw-or-primitive-failure`
@@ -113,7 +72,7 @@ Effect.fail(new SheetTabNotFoundError({ spreadsheetId, message: "tab not found" 
 
 **Options**:
 
-- `testFiles`: shared setting, see [Shared settings](#shared-settings).
+- `testFiles`: shared setting, see [Shared settings](user-guide/shared-settings.md).
 
 **Fix**: none
 
@@ -166,7 +125,7 @@ Effect.tryPromise({ try: () => client.connect(), catch: toConnectionError })
 
 **Options**:
 
-- `testFiles`: shared setting, see [Shared settings](#shared-settings).
+- `testFiles`: shared setting, see [Shared settings](user-guide/shared-settings.md).
 
 **Fix**: none
 
@@ -231,7 +190,7 @@ const createEvent = Effect.fn("events.create")(
 
 **Options**:
 
-- `testFiles`: shared setting, see [Shared settings](#shared-settings).
+- `testFiles`: shared setting, see [Shared settings](user-guide/shared-settings.md).
 
 **Fix**: none
 
@@ -293,7 +252,7 @@ Match.value(payment).pipe(
 
 **Options**:
 
-- `discriminants`: shared setting, see [Shared settings](#shared-settings).
+- `discriminants`: shared setting, see [Shared settings](user-guide/shared-settings.md).
 
 **Fix**: none
 
@@ -325,7 +284,7 @@ const event = PaymentStartedEvent.make({ id, payment })
 
 **Options**:
 
-- `discriminants`: shared setting, see [Shared settings](#shared-settings).
+- `discriminants`: shared setting, see [Shared settings](user-guide/shared-settings.md).
 
 **Fix**: none
 
@@ -446,7 +405,7 @@ Missing: () => printMissing.pipe(Effect.provide(missingLayer)),
 
 **Options**:
 
-- `testFiles`: shared setting, see [Shared settings](#shared-settings).
+- `testFiles`: shared setting, see [Shared settings](user-guide/shared-settings.md).
 
 **Fix**: none
 
@@ -473,7 +432,7 @@ Missing: () => printMissing.pipe(Effect.provide(missingLayer)),
 
 **Options**:
 
-- `testFiles`: shared setting, see [Shared settings](#shared-settings).
+- `testFiles`: shared setting, see [Shared settings](user-guide/shared-settings.md).
 
 **Fix**: none
 
@@ -503,7 +462,7 @@ Effect.gen(function* () {
 
 **Options**:
 
-- `testFiles`: shared setting, see [Shared settings](#shared-settings).
+- `testFiles`: shared setting, see [Shared settings](user-guide/shared-settings.md).
 
 **Fix**: none
 
@@ -536,8 +495,8 @@ NodeRuntime.runMain(
 
 **Options**:
 
-- `entryFiles`: shared setting, see [Shared settings](#shared-settings).
-- `testFiles`: shared setting, see [Shared settings](#shared-settings).
+- `entryFiles`: shared setting, see [Shared settings](user-guide/shared-settings.md).
+- `testFiles`: shared setting, see [Shared settings](user-guide/shared-settings.md).
 
 **Fix**: none
 
@@ -567,7 +526,7 @@ effect("…", () => authorize({ role: "Manager" }).pipe(Effect.provide(sheetWith
 
 **Options**:
 
-- `testFiles`: shared setting, see [Shared settings](#shared-settings).
+- `testFiles`: shared setting, see [Shared settings](user-guide/shared-settings.md).
 
 **Fix**: none
 
@@ -597,7 +556,7 @@ const runBoundary = (effect: Effect.Effect<Response, never, never>) => Effect.ru
 
 **Options**:
 
-- `testFiles`: shared setting, see [Shared settings](#shared-settings).
+- `testFiles`: shared setting, see [Shared settings](user-guide/shared-settings.md).
 
 **Fix**: none
 
@@ -625,8 +584,8 @@ import { Calendar } from "../calendar/Calendar.ts"
 
 **Options**:
 
-- `entryFiles`: shared setting, see [Shared settings](#shared-settings).
-- `testFiles`: shared setting, see [Shared settings](#shared-settings).
+- `entryFiles`: shared setting, see [Shared settings](user-guide/shared-settings.md).
+- `testFiles`: shared setting, see [Shared settings](user-guide/shared-settings.md).
 
 **Fix**: none
 
@@ -767,7 +726,7 @@ const createEvent = Effect.fn("events.create")(function* (request: Request) {
 
 **Options**:
 
-- `testFiles`: shared setting, see [Shared settings](#shared-settings).
+- `testFiles`: shared setting, see [Shared settings](user-guide/shared-settings.md).
 
 **Fix**: none
 

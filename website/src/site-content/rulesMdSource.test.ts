@@ -147,31 +147,18 @@ test("a sibling rule may leave the example, Exemptions and Why to the rule it li
     )
 })
 
-const pageById = (markdown: string, id: string) => pagesOf(markdown).find((page) => page.id === id)
-
-test("Shared settings and Common limits each become a page with the body of their section", () => {
+test("a RULES.md section that is neither a group nor a rule has no page", () => {
     const markdown = rulesMarkdown(
-        "## Common limits\n\n- **Syntax only**: no type information.\n",
         "## Shared settings\n\nDeclared once.\n\n- **`testFiles`**: test globs.\n",
         group("Error channel", ruleSection("no-effect-promise")),
     )
 
-    const pages = [pageById(markdown, "common-limits"), pageById(markdown, "shared-settings")]
+    const pages = pagesOf(markdown)
 
-    assert.deepEqual(pages, [
-        {
-            kind: "reference",
-            id: "common-limits",
-            title: "Common limits",
-            body: "- **Syntax only**: no type information.\n",
-        },
-        {
-            kind: "reference",
-            id: "shared-settings",
-            title: "Shared settings",
-            body: "Declared once.\n\n- **`testFiles`**: test globs.\n",
-        },
-    ])
+    assert.deepEqual(
+        pages.map(({ id }) => id),
+        ["rules/no-effect-promise"],
+    )
 })
 
 test("the rules index has no page, as the rules overview lists every rule", () => {

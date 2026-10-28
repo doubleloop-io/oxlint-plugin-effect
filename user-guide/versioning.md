@@ -1,6 +1,6 @@
 ---
 title: Versioning
-order: 5
+order: 7
 ---
 
 Versions are `0.x`: any minor release may add, remove or change rules, options, settings and messages.
