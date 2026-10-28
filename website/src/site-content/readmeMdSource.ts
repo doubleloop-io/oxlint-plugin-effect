@@ -12,17 +12,17 @@ const subsectionHeading = /^### (?<title>.+)$/u
 // Addressed to the plugin maintainers, not to its users
 export const maintainerSections = new Set(["Development"])
 
-// `rules` is the rules index from RULES.md
-export const renamedSections = new Map([
-    ["Rules", { id: "rules-overview", title: "Rules overview" }],
-])
+export const rulesOverviewId = "rules-overview"
+
+// `rules/` is the parent route of the rule pages
+export const renamedSections = new Map([["Rules", { id: rulesOverviewId, title: "Rules overview" }]])
 
 const guidePage = (heading: string) =>
     renamedSections.get(heading) ?? { id: headingAnchor(heading), title: heading }
 
 const landingActions = [
     { text: "Installation", link: "#installation" },
-    { text: "Rules index", link: "RULES.md" },
+    { text: "Rules overview", link: "RULES.md" },
 ]
 
 export const readmeMdSource = (markdown: string) => {
