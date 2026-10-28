@@ -1,5 +1,5 @@
 {
-    "name": "smoke-fixture",
+    "name": "consumer-fixture",
     "private": true,
     "type": "module"
 }

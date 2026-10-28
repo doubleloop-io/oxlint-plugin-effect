@@ -40,8 +40,8 @@
         "build": "rm -rf dist && tsc -p tsconfig.build.json && node presets/all-json.ts",
         "build:w": "node --watch-path=index.ts --watch-path=rules --watch-path=presets --watch-path=shared --watch-path=tsconfig.build.json scripts/build.ts",
         "pack:check": "node --test presets/all-dist.test.ts && node scripts/pack-check.ts",
-        "build-and-pack": "pnpm check && pnpm build && pnpm pack:check && pnpm smoke-test",
-        "smoke-test": "node scripts/smoke-test.ts",
+        "build-and-pack": "pnpm check && pnpm build && pnpm pack:check && pnpm consumer-test",
+        "consumer-test": "node scripts/consumer-test.ts",
         "release": "node scripts/release.ts",
         "consumer:link": "./scripts/link-consumer.sh link",
         "consumer:unlink": "./scripts/link-consumer.sh unlink"

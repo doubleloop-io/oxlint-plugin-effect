@@ -5,7 +5,7 @@ import { join } from "node:path"
 
 import { npmPack } from "./npm-pack.ts"
 
-const fixtureDir = new URL("../smoke-fixture/", import.meta.url)
+const fixtureDir = new URL("../consumer-fixture/", import.meta.url)
 
 // Stored under names oxlint does not discover, so the repo's own lint skips them; each one is
 // copied to the name a consumer would use.
@@ -63,7 +63,7 @@ const oxlintVersion = async () => {
     return version
 }
 
-const workDir = await mkdtemp(join(tmpdir(), "smoke-test-"))
+const workDir = await mkdtemp(join(tmpdir(), "consumer-test-"))
 const projectDir = join(workDir, "project")
 const problems: string[] = []
 
@@ -94,8 +94,8 @@ try {
 }
 
 if (problems.length > 0) {
-    console.error(`smoke test failed:\n${problems.map((problem) => `- ${problem}`).join("\n")}`)
+    console.error(`consumer test failed:\n${problems.map((problem) => `- ${problem}`).join("\n")}`)
     process.exitCode = 1
 } else {
-    console.log("smoke test passed")
+    console.log("consumer test passed")
 }
