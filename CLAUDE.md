@@ -2,7 +2,7 @@
 
 After any change, run `pnpm format && pnpm build-and-pack` and fix what it reports before finishing. Run it outside the sandbox: `npm pack` writes to `~/.npm`. Formatting is never a question for the user.
 
-Do not modify the logic or messages of `rules/anti-slop-*`: they are absorbed from `dmmulroy/anti-slop` and must stay resyncable. When a dl-effect rule covers the same case more strongly, retire the anti-slop rule instead.
+Do not modify the logic or messages of `src/rules/anti-slop-*`: they are absorbed from `dmmulroy/anti-slop` and must stay resyncable. When a dl-effect rule covers the same case more strongly, retire the anti-slop rule instead.
 
 The rule catalog is one file per rule, `docs/user-guide/rules/<rule-name>.md`, listed in the rules index, `docs/user-guide/rules.md`. When adding or editing a rule file, follow [`docs/rules-catalog-style.md`](docs/rules-catalog-style.md).
 

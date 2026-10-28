@@ -3,7 +3,7 @@ import { existsSync } from "node:fs"
 import { test } from "node:test"
 import { fileURLToPath } from "node:url"
 
-import { readAllJson, renderAllJson } from "./all-json.ts"
+import { readAllJson, renderAllJson } from "./preset-all-json.ts"
 
 const distAllJs = new URL("../dist/presets/all.js", import.meta.url)
 

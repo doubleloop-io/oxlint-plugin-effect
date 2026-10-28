@@ -3,11 +3,11 @@
     "compilerOptions": {
         "noEmit": false,
         "outDir": "dist",
-        "rootDir": ".",
+        "rootDir": "src",
         "declaration": true,
         "rewriteRelativeImportExtensions": true,
         "noEmitOnError": true
     },
-    "include": ["index.ts", "presets/all.ts", "rules/*.ts", "shared/*.ts"],
+    "include": ["src"],
     "exclude": ["**/*.test.ts"]
 }

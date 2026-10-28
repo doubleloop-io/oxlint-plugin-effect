@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises"
 
-import all from "./all.ts"
+import all from "../src/presets/all.ts"
 
 const allJsonUrl = new URL("../dist/presets/all.json", import.meta.url)
 

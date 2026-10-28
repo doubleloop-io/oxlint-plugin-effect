@@ -42,7 +42,7 @@ the compliant form
 **Fix**: none
 ````
 
-The file name is the rule name; `rule-files.test.ts` checks that the catalog has exactly one file per rule of the plugin. `title` is the rule name and `group` the topic of its row in the rules index. The file has no heading: the website shows the title.
+The file name is the rule name; `src/rule-files.test.ts` checks that the catalog has exactly one file per rule of the plugin. `title` is the rule name and `group` the topic of its row in the rules index. The file has no heading: the website shows the title.
 
 The website parses this template in `website/src/site-content/`: it gives each rule file a page in the group of its frontmatter, in the order of the rules index, rewrites every relative `.md` link to the page it names, and fails the build naming the file when the rules index does not link it, when a link has no page, or when Intent, Trigger, Options or Fix is missing or out of shape (Options neither `none` nor a list, Fix not `none`, `autofix` or `suggestion…`, an example not opening with `// ❌ no` or without `// ✅ yes`). A change to the template must update that module and its tests.
 
