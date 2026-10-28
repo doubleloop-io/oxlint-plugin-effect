@@ -23,4 +23,4 @@ program.pipe(Effect.catchTag("NotFound", () => recover))
 
 **Fix**: none
 
-**Origin**: absorbed from [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), MIT-licensed: see [`LICENSE.anti-slop`](../../LICENSE.anti-slop).
+**Origin**: absorbed from [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), MIT-licensed: see [`LICENSE.anti-slop`](../../../LICENSE.anti-slop).

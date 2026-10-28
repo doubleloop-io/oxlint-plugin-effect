@@ -9,7 +9,7 @@
     },
     "files": [
         "dist/",
-        "user-guide/",
+        "docs/user-guide/",
         "README.md",
         "CHANGELOG.md",
         "LICENSE",

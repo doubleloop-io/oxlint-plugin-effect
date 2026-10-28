@@ -90,13 +90,13 @@ for (const { condition, href } of [
         ]
 
         assert.throws(() => guidePagesOf(userGuide), {
-            message: `user-guide/versioning.md: link \`${href}\` resolves to no site page`,
+            message: `docs/user-guide/versioning.md: link \`${href}\` resolves to no site page`,
         })
     })
 }
 
 test("a relative link to a repository file with no page points to that file on the main branch", () => {
-    const userGuide = [guideFile("versioning.md", {}, "See the [license](../LICENSE).\n")]
+    const userGuide = [guideFile("versioning.md", {}, "See the [license](../../LICENSE).\n")]
 
     const page = guidePagesOf(userGuide).find(({ id }) => id === "versioning")
 
@@ -132,7 +132,7 @@ for (const { condition, content, problem } of invalidFrontmatter) {
         const userGuide = [{ path: "versioning.md", content }]
 
         assert.throws(() => guidePagesOf(userGuide), {
-            message: `user-guide/versioning.md: ${problem}`,
+            message: `docs/user-guide/versioning.md: ${problem}`,
         })
     })
 }

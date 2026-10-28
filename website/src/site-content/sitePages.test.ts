@@ -53,7 +53,7 @@ test("a link from a rule file to a repository file with no page points to that f
     const userGuide = [
         rulesIndexFile("anti-slop-prefer-effect-match"),
         ruleFile("anti-slop-prefer-effect-match", {
-            fields: { why: "**Why**: see the [license](../../LICENSE.anti-slop)." },
+            fields: { why: "**Why**: see the [license](../../../LICENSE.anti-slop)." },
         }),
     ]
 
@@ -74,6 +74,6 @@ test("a link from a rule file to a missing rule file fails the build, naming the
 
     assert.throws(() => pagesOf(userGuide), {
         message:
-            "user-guide/rules/no-effect-promise.md: link `removed-rule.md` resolves to no site page",
+            "docs/user-guide/rules/no-effect-promise.md: link `removed-rule.md` resolves to no site page",
     })
 })

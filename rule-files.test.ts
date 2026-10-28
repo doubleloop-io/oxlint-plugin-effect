@@ -7,7 +7,7 @@ import dlEffectPlugin from "./index.ts"
 const ruleFileName = /^(?<rule>.+)\.md$/u
 
 const documentedRules = async () => {
-    const files = await readdir(new URL("user-guide/rules/", import.meta.url))
+    const files = await readdir(new URL("docs/user-guide/rules/", import.meta.url))
     return files.flatMap((file) => ruleFileName.exec(file)?.groups?.rule ?? []).sort()
 }
 

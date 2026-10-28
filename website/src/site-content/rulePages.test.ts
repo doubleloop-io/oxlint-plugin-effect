@@ -35,7 +35,7 @@ for (const [field, label] of [
         ]
 
         assert.throws(() => rulePagesOf(userGuide), {
-            message: `user-guide/rules/no-effect-promise.md: missing **${label}**`,
+            message: `docs/user-guide/rules/no-effect-promise.md: missing **${label}**`,
         })
     })
 }
@@ -71,7 +71,7 @@ for (const [scenario, fields, problem] of [
         const userGuide = [rulesIndexFile("no-effect-promise"), ruleFile("no-effect-promise", { fields })]
 
         assert.throws(() => rulePagesOf(userGuide), {
-            message: `user-guide/rules/no-effect-promise.md: ${problem}`,
+            message: `docs/user-guide/rules/no-effect-promise.md: ${problem}`,
         })
     })
 }
@@ -128,7 +128,7 @@ test("a rule file without a group fails the build, naming the file", () => {
     ]
 
     assert.throws(() => rulePagesOf(userGuide), {
-        message: "user-guide/rules/no-effect-promise.md: frontmatter has no `group`",
+        message: "docs/user-guide/rules/no-effect-promise.md: frontmatter has no `group`",
     })
 })
 
@@ -158,7 +158,7 @@ test("a rule file the rules index does not link fails the build, naming the file
 
     assert.throws(() => rulePagesOf(userGuide), {
         message:
-            "user-guide/rules/try-object-form.md: not linked from the rules index, user-guide/rules.md",
+            "docs/user-guide/rules/try-object-form.md: not linked from the rules index, docs/user-guide/rules.md",
     })
 })
 
@@ -168,6 +168,6 @@ test("a guide file outside the rule directory with a group fails the build, nami
     ]
 
     assert.throws(() => rulePagesOf(userGuide), {
-        message: "user-guide/versioning.md: frontmatter has unknown field `group`",
+        message: "docs/user-guide/versioning.md: frontmatter has unknown field `group`",
     })
 })

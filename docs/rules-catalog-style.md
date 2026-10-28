@@ -1,6 +1,6 @@
 # How to write the rule catalog
 
-Writing rules for the rule catalog: one file per rule, `user-guide/rules/<rule-name>.md`, listed in the rules index, `user-guide/rules.md`. They apply to every new or modified rule file.
+Writing rules for the rule catalog: one file per rule, `docs/user-guide/rules/<rule-name>.md`, listed in the rules index, `docs/user-guide/rules.md`. They apply to every new or modified rule file.
 
 ## Reader
 
@@ -48,11 +48,11 @@ The website parses this template in `website/src/site-content/`: it gives each r
 
 ## Rules index
 
-`user-guide/rules.md` has a `Topic | Rules` table: one row per group, its rules linked to their files in the order of the website sidebar. A new rule is added to the row of its group. Under Absorbed from anti-slop, the rules imported from `dmmulroy/anti-slop` and the anti-slop rules superseded by a dl-effect rule.
+`docs/user-guide/rules.md` has a `Topic | Rules` table: one row per group, its rules linked to their files in the order of the website sidebar. A new rule is added to the row of its group. Under Absorbed from anti-slop, the rules imported from `dmmulroy/anti-slop` and the anti-slop rules superseded by a dl-effect rule.
 
 ## Shared settings page
 
-`user-guide/shared-settings.md` is the only place that describes the settings. Under The settings, one bullet per setting, saying what it is for, with two sub-bullets: `used by`, listing the rules (a short note when a rule uses the setting differently from the others; rules that use it the same way share one bullet), and `default`, with the reason for any deliberate exclusion. A rule that gains or drops a setting updates its `used by`.
+`docs/user-guide/shared-settings.md` is the only place that describes the settings. Under The settings, one bullet per setting, saying what it is for, with two sub-bullets: `used by`, listing the rules (a short note when a rule uses the setting differently from the others; rules that use it the same way share one bullet), and `default`, with the reason for any deliberate exclusion. A rule that gains or drops a setting updates its `used by`.
 
 ## Fields
 
@@ -63,11 +63,11 @@ The website parses this template in `website/src/site-content/`: it gives each r
 - **Why**: the concrete cost of breaking the norm. One or two sentences.
 - **Options**: a bold label like Intent, not a heading. One bullet per option: a shared setting reads "shared setting, see [Shared settings](../shared-settings.md).", one specific to the rule states its default. A rule without options has `**Options**: none` on one line.
 - **Fix**: `none`, `autofix` or `suggestion`; the conditions under which the fix does not apply go in Exemptions and blind spots.
-- **Origin**: only on the rules absorbed from anti-slop, after Fix: "absorbed from [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), MIT-licensed: see [`LICENSE.anti-slop`](../../LICENSE.anti-slop)."
+- **Origin**: only on the rules absorbed from anti-slop, after Fix: "absorbed from [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), MIT-licensed: see [`LICENSE.anti-slop`](../../../LICENSE.anti-slop)."
 
 ## Redundancy and verbosity
 
-- **Every fact in one place.** What applies to several rules (common limits, the `entryFiles`, `testFiles` and `discriminants` settings) lives in the guide pages [Common limits](../user-guide/common-limits.md) and [Shared settings](../user-guide/shared-settings.md), and rules link to them.
+- **Every fact in one place.** What applies to several rules (common limits, the `entryFiles`, `testFiles` and `discriminants` settings) lives in the guide pages [Common limits](user-guide/common-limits.md) and [Shared settings](user-guide/shared-settings.md), and rules link to them.
 - **Sibling rules** (same pattern): the second has Intent, Trigger, Exemptions, Options and Fix, and links to the first for the example and Why instead of repeating them.
 - **No source citations** (`AGENTS.md`, JSDoc, `ai-docs/`), no rule history, no numeric comparisons with effecttsgo: they do not belong in the catalog.
 - **No pattern guides.** How to structure tests without `@effect/vitest`, how to write a test runner: those are patterns, not rules, and do not belong in the catalog.

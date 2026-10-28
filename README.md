@@ -49,4 +49,4 @@ The guide is on the [website](https://doubleloop-io.github.io/oxlint-plugin-effe
 - [Versioning](https://doubleloop-io.github.io/oxlint-plugin-effect/versioning/): what a release may change.
 - [Troubleshooting](https://doubleloop-io.github.io/oxlint-plugin-effect/troubleshooting/): the problems most often hit when adopting the plugin.
 
-Coding agents: the same pages ship in the package under `user-guide/`, starting from `user-guide/README.md`.
+Coding agents: the same pages ship in the package under `docs/user-guide/`, starting from `docs/user-guide/README.md`.

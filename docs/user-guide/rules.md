@@ -18,7 +18,7 @@ What each rule reports and why is on its page. Report false positives and missed
 
 ## Absorbed from anti-slop
 
-Some rules come from the Effect rules of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), MIT-licensed: see [`LICENSE.anti-slop`](../LICENSE.anti-slop).
+Some rules come from the Effect rules of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), MIT-licensed: see [`LICENSE.anti-slop`](../../LICENSE.anti-slop).
 
 | Status     | Rules                                                                                                                                                                                                                                                               |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

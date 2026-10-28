@@ -3,7 +3,7 @@ import { markdownLines } from "./markdownLines.ts"
 import { ruleTemplateProblem } from "./ruleTemplate.ts"
 import type { GuideFile, SitePage, SourcePage } from "./sitePages.ts"
 
-export const userGuideDirectory = "user-guide"
+export const userGuideDirectory = "docs/user-guide"
 
 const guideIndexPath = "README.md"
 

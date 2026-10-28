@@ -18,7 +18,7 @@ No rule uses type information. What can only be seen through types stays with ef
 
 ## No overlap with effecttsgo
 
-A pattern already reported by `@effect/tsgo` does not become a rule. If effecttsgo covers it partially, the rule covers the rest, and its file in the [rule catalog](../user-guide/rules.md) states where the boundary lies.
+A pattern already reported by `@effect/tsgo` does not become a rule. If effecttsgo covers it partially, the rule covers the rest, and its file in the [rule catalog](user-guide/rules.md) states where the boundary lies.
 
 ## Effect 4
 
