@@ -49,15 +49,16 @@ test("a link to Shared settings or Common limits points to its page", () => {
 
 test("a link to a group points to the first rule of that group", () => {
     const markdown = rulesMarkdown(
+        "## Shared settings\n\nUsed by [Error channel](#error-channel).\n",
         group("Error channel", ruleSection("no-effect-promise"), ruleSection("try-object-form")),
-    ).replace("| --- | --- |\n", "| --- | --- |\n| [Error channel](#error-channel) | |\n")
+    )
 
-    const page = pageById({ rulesMd: markdown }, "rules")
+    const page = pageById({ rulesMd: markdown }, "shared-settings")
 
     assert.ok(page?.body.includes("[Error channel](/site/rules/no-effect-promise/)"))
 })
 
-test("a link to the rules index points to the rules index page", () => {
+test("a link to the rules index points to the rules overview", () => {
     const markdown = rulesMarkdown(
         "## Shared settings\n\nListed in the [rules index](#rules-index).\n",
         group("Error channel", ruleSection("no-effect-promise")),
@@ -65,7 +66,7 @@ test("a link to the rules index points to the rules index page", () => {
 
     const page = pageById({ rulesMd: markdown }, "shared-settings")
 
-    assert.ok(page?.body.includes("[rules index](/site/rules/)"))
+    assert.ok(page?.body.includes("[rules index](/site/rules-overview/)"))
 })
 
 test("a RULES.md link to a section that has no site page fails, naming the link and the rule", () => {
@@ -82,7 +83,7 @@ test("a RULES.md link to a section that has no site page fails, naming the link 
     })
 })
 
-test("the landing page links to installation and to the rules index", () => {
+test("the landing page shows the package scope above its name, the first paragraph as tagline, and links to installation and the rules overview", () => {
     const readmeMd = [
         "# @owner/the-plugin\n\nAn oxlint plugin.\n\nIt complements [tsgo](#alongside-effecttsgo).\n",
         "## Installation\n\n```bash\npnpm add -D the-plugin\n```\n",
@@ -95,10 +96,13 @@ test("the landing page links to installation and to the rules index", () => {
         kind: "landing",
         id: "index",
         title: "@owner/the-plugin",
-        body: "An oxlint plugin.\n\nIt complements [tsgo](/site/configuration/#alongside-effecttsgo).\n",
+        scope: "@owner/",
+        name: "the-plugin",
+        tagline: "An oxlint plugin.",
+        body: "It complements [tsgo](/site/configuration/#alongside-effecttsgo).\n",
         actions: [
             { text: "Installation", link: "/site/installation/" },
-            { text: "Rules index", link: "/site/rules/" },
+            { text: "Rules overview", link: "/site/rules-overview/" },
         ],
     })
 })
@@ -117,7 +121,7 @@ test("a link to a README section points to its page, a link to a subsection to i
     )
 })
 
-test("a link to the Rules section points to the rules overview, apart from the rules index page", () => {
+test("a link to the Rules section points to the rules overview", () => {
     const readmeMd = readmeMarkdown(
         "## Rules\n\n| Topic | Rules |\n\n### Absorbed from anti-slop\n\nSome rules.\n",
         "## Versioning\n\nSee the [overview](#rules) and [provenance](#absorbed-from-anti-slop).\n",
@@ -129,10 +133,9 @@ test("a link to the Rules section points to the rules overview, apart from the r
         pages.find(({ id }) => id === "versioning")?.body,
         "See the [overview](/site/rules-overview/) and [provenance](/site/rules-overview/#absorbed-from-anti-slop).\n",
     )
-    assert.equal(pages.find(({ id }) => id === "rules")?.title, "Rules index")
 })
 
-test("a link from the README to RULES.md points to the rules index, a link to a rule in it to the rule page", () => {
+test("a link from the README to RULES.md points to the rules overview, a link to a rule in it to the rule page", () => {
     const readmeMd = readmeMarkdown(
         "## Versioning\n\nIn [`RULES.md`](RULES.md), such as [this](RULES.md#no-effect-promise).\n",
     )
@@ -141,7 +144,7 @@ test("a link from the README to RULES.md points to the rules index, a link to a 
 
     assert.equal(
         page?.body,
-        "In [`RULES.md`](/site/rules/), such as [this](/site/rules/no-effect-promise/).\n",
+        "In [`RULES.md`](/site/rules-overview/), such as [this](/site/rules/no-effect-promise/).\n",
     )
 })
 

@@ -15,7 +15,7 @@ const firstRuleOfGroup = new Map(
 )
 
 const referencePageRoutes = new Map([
-    ["rules-index", "rules/"],
+    ["rules-index", "rules-overview/"],
     ["common-limits", "common-limits/"],
     ["shared-settings", "shared-settings/"],
 ])

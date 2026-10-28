@@ -6,7 +6,16 @@ export type SitePage =
     | { kind: "rule"; id: string; title: string; group: string; body: string }
     | { kind: "reference"; id: string; title: string; body: string }
     | { kind: "guide"; id: string; title: string; body: string }
-    | { kind: "landing"; id: string; title: string; body: string; actions: LandingAction[] }
+    | {
+          kind: "landing"
+          id: string
+          title: string
+          scope: string | undefined
+          name: string
+          tagline: string
+          body: string
+          actions: LandingAction[]
+      }
 
 type LandingAction = { text: string; link: string }
 

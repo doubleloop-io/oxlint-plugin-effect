@@ -1,5 +1,6 @@
 import { headingAnchor } from "./internalLinks.ts"
 import { isCodeFence, markdownLines } from "./markdownLines.ts"
+import { rulesOverviewId } from "./readmeMdSource.ts"
 import type { SitePage, SourcePage } from "./sitePages.ts"
 
 type Section = {
@@ -13,7 +14,6 @@ type RuleSection = Section & { name: string }
 const file = "RULES.md"
 
 const referencePageIds = new Map([
-    ["Rules index", "rules"],
     ["Common limits", "common-limits"],
     ["Shared settings", "shared-settings"],
 ])
@@ -50,10 +50,14 @@ const rulesMdPage = (section: Section): RulesMdPage[] => {
     return [{ page, file, heading, location: `section \`${heading}\`` }]
 }
 
+// The README Rules section lists every rule, so it stands in for the rules index, which has no page
+const rulesIndexRoute = `${rulesOverviewId}/`
+
 // A group has no page: its anchor leads to its first rule, as its heading does in RULES.md
 const linkRoutes = (allSections: Section[], sourcePages: RulesMdPage[]) =>
     new Map([
-        [file, "rules/"],
+        [file, rulesIndexRoute],
+        [`${file}#rules-index`, rulesIndexRoute],
         ...allSections.flatMap(({ heading }): [string, string][] => {
             const target =
                 sourcePages.find((source) => source.heading === heading)?.page ??

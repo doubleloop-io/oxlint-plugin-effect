@@ -79,7 +79,7 @@ test("every block of a real RULES.md rule section is on its page, links pointing
     }
 })
 
-for (const heading of ["Rules index", "Common limits", "Shared settings"]) {
+for (const heading of ["Common limits", "Shared settings"]) {
     test(`${heading} is a page with the text of its real RULES.md section, links pointing to the page of their anchor`, () => {
         const source = sourceSection(`## ${heading}`).replace(`## ${heading}\n`, "").trim()
 

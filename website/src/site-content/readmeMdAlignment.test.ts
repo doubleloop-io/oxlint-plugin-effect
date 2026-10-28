@@ -44,7 +44,7 @@ const expectedHref = (href: string) => {
     if (/^https?:/u.test(href)) return href
     const link = /^(?<file>[\w.-]+)?(?:#(?<anchor>[\w-]+))?$/u.exec(href)?.groups
     if (link?.file === "RULES.md") {
-        return `${base}/${link.anchor === undefined ? "rules/" : expectedRulesMdRoute(link.anchor)}`
+        return `${base}/${link.anchor === undefined ? "rules-overview/" : expectedRulesMdRoute(link.anchor)}`
     }
     if (link?.file !== undefined) return `${repositoryUrl}/blob/main/${href}`
     return `${base}/${sectionRoutes.get(link?.anchor ?? "") ?? "not-a-readme-section/"}`
@@ -62,8 +62,12 @@ test("the real README introduction is the landing page with its text, links poin
 
     const landing = pages.find(({ kind }) => kind === "landing")
 
-    assert.equal(landing?.title, title.replace(/^# /u, ""))
-    assert.equal(pageText(landing?.body ?? ""), sourceText(sourceSection(title)))
+    const [tagline, ...rest] = sourceText(sourceSection(title)).split("\n\n")
+    assert.ok(landing?.kind === "landing")
+    assert.equal(landing.title, title.replace(/^# /u, ""))
+    assert.equal(`${landing.scope ?? ""}${landing.name}`, landing.title)
+    assert.equal(landing.tagline, tagline)
+    assert.equal(pageText(landing.body), rest.join("\n\n"))
 })
 
 for (const heading of publishedHeadings) {

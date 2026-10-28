@@ -174,19 +174,14 @@ test("Shared settings and Common limits each become a page with the body of thei
     ])
 })
 
-test("the rules index becomes the page at the root of the rules", () => {
+test("the rules index has no page, as the rules overview lists every rule", () => {
     const markdown = [
         "# Rules\n",
         "## Rules index\n\n| Group | Rule |\n| --- | --- |\n\nAll at `warn`.\n",
         group("Error channel", ruleSection("no-effect-promise")),
     ].join("\n")
 
-    const page = pageById(markdown, "rules")
+    const pages = rulesMdSource(markdown).sourcePages
 
-    assert.deepEqual(page, {
-        kind: "reference",
-        id: "rules",
-        title: "Rules index",
-        body: "| Group | Rule |\n| --- | --- |\n\nAll at `warn`.\n",
-    })
+    assert.ok(pages.every(({ page }) => page.title !== "Rules index"))
 })
