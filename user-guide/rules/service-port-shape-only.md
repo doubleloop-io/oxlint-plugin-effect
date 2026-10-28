@@ -6,10 +6,10 @@ group: Services and Layers
 **Intent**: a port is a shape-only `Context.Service` (v3: `Context.Tag`), with no implementation attached.
 
 ```ts
-// no
+// ❌ no
 class Agent extends Context.Service<Agent, Shape>()("app/Agent", { make: makeAgent }) {}
 
-// yes
+// ✅ yes
 export class Agent extends Context.Service<
     Agent,
     { readonly search: (name: string) => Effect.Effect<RaceCard, AgentError> }

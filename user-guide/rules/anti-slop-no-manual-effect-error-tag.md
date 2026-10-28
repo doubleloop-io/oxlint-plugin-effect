@@ -6,10 +6,10 @@ group: Error channel
 **Intent**: a catch handler does not discriminate errors by `_tag`; `catchTag` and `catchReason` do.
 
 ```ts
-// no
+// ❌ no
 program.pipe(Effect.catch((error) => (error._tag === "NotFound" ? recover : Effect.fail(error))))
 
-// yes
+// ✅ yes
 program.pipe(Effect.catchTag("NotFound", () => recover))
 ```
 

@@ -6,10 +6,10 @@ group: Runtime and entry point
 **Intent**: Effects run only in the program's runner, the entry point.
 
 ```ts
-// no
+// ❌ no
 export const check = () => Effect.runPromise(pingDb(url))
 
-// yes: in main.ts
+// ✅ yes: in main.ts
 NodeRuntime.runMain(
     run(process.argv.slice(2)).pipe(Effect.provide(NodeServices.layer)) satisfies Effect.Effect<
         void,

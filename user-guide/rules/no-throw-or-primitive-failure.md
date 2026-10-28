@@ -6,13 +6,13 @@ group: Error channel
 **Intent**: an expected failure is a tagged error, never a thrown or primitive value.
 
 ```ts
-// no
+// ❌ no
 Effect.gen(function* () {
     if (tab === undefined) throw new Error("tab not found")
 })
 Effect.fail("tab not found")
 
-// yes
+// ✅ yes
 export class SheetTabNotFoundError extends Schema.TaggedError<SheetTabNotFoundError>()(
     "SheetTabNotFoundError",
     { spreadsheetId: Schema.String, message: Schema.String },

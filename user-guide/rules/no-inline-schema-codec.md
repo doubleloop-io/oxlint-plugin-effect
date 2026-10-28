@@ -6,10 +6,10 @@ group: Schema
 **Intent**: a decoder or encoder is a named module-level constant, not built and applied inline.
 
 ```ts
-// no
+// ❌ no
 const toPayment = (raw: unknown) => Schema.decodeUnknownSync(PaymentResponse)(raw)
 
-// yes
+// ✅ yes
 const decodePaymentResponse = Schema.decodeUnknownSync(PaymentResponse)
 
 const toPayment = (raw: unknown) => decodePaymentResponse(raw)

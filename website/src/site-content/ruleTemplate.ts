@@ -36,8 +36,8 @@ const exampleProblem = (lines: string[]) => {
     if (start === -1) return undefined
     const end = lines.findIndex((line, index) => index > start && isCodeFence(line))
     const example = lines.slice(start + 1, end)
-    if (!example[0]?.startsWith("// no")) return "the example does not start with `// no`"
-    if (!example.some((line) => line.startsWith("// yes"))) return "the example has no `// yes`"
+    if (!example[0]?.startsWith("// ❌ no")) return "the example does not start with `// ❌ no`"
+    if (!example.some((line) => line.startsWith("// ✅ yes"))) return "the example has no `// ✅ yes`"
     return undefined
 }
 

@@ -6,12 +6,12 @@ group: Code shape
 **Intent**: a `yield*` result is bound to a `const` before being used.
 
 ```ts
-// no
+// ❌ no
 function* () {
     return yield* missingIn(yield* readSheet())
 }
 
-// yes
+// ✅ yes
 function* () {
     const sheet = yield* readSheet()
     return yield* missingIn(sheet)

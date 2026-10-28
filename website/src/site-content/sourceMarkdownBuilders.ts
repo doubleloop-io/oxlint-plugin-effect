@@ -12,7 +12,7 @@ type RuleFields = {
 
 export const wellFormedFields: RuleFields = {
     intent: "**Intent**: do the right thing.",
-    example: "```ts\n// no\nwrong()\n\n// yes\nright()\n```",
+    example: "```ts\n// ❌ no\nwrong()\n\n// ✅ yes\nright()\n```",
     trigger: "**Trigger**: a call to `wrong`.",
     exemptions: "**Exemptions and blind spots**: aliases slip through.",
     why: "**Why**: wrong things cost.",

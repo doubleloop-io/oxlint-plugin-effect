@@ -6,10 +6,10 @@ group: Error channel
 **Intent**: a promise that can reject is lifted with [`Effect.tryPromise`](try-object-form.md), not `Effect.promise`.
 
 ```ts
-// no
+// ❌ no
 Effect.promise(() => client.connect())
 
-// yes
+// ✅ yes
 Effect.tryPromise({ try: () => client.connect(), catch: toConnectionError })
 ```
 

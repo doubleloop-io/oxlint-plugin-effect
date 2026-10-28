@@ -6,14 +6,14 @@ group: Effectful functions
 **Intent**: a function is entirely Effect or not Effect at all.
 
 ```ts
-// no
+// ❌ no
 export const POST = async (request: Request) => {
     const form = await request.formData()
     const created = await Effect.runPromise(Effect.result(createEvent(form)))
     // …
 }
 
-// yes: promises lifted with Effect.tryPromise
+// ✅ yes: promises lifted with Effect.tryPromise
 const createEvent = Effect.fn("events.create")(function* (request: Request) {
     const form = yield* Effect.tryPromise({
         try: () => request.formData(),

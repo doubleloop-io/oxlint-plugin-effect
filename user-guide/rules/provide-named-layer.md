@@ -6,10 +6,10 @@ group: Services and Layers
 **Intent**: `Effect.provide` receives a named Layer, never an inline composition.
 
 ```ts
-// no
+// ❌ no
 printMissing.pipe(Effect.provide(Layer.mergeAll(FileRaceList.layer, GoogleSheet.readerLayer)))
 
-// yes: the Layer is named in the entry point, provided in the dispatch
+// ✅ yes: the Layer is named in the entry point, provided in the dispatch
 const missingLayer = Layer.mergeAll(FileRaceList.layer, GoogleSheet.readerLayer)
 Missing: () => printMissing.pipe(Effect.provide(missingLayer)),
 ```

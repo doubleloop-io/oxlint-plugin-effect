@@ -6,10 +6,10 @@ group: Services and Layers
 **Intent**: runtime code obtains a service from its Layer, never by calling its `make…` constructor.
 
 ```ts
-// no: in src/runtime.ts
+// ❌ no: in src/runtime.ts
 import { makeIssueService } from "./issue-service.ts"
 
-// yes
+// ✅ yes
 import { IssueService } from "./issue-service.ts"
 
 Effect.gen(function* () {

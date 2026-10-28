@@ -6,12 +6,12 @@ group: Effectful functions
 **Intent**: a recursive effectful function uses `Effect.fnUntraced`; the entry point that starts the recursion is traced.
 
 ```ts
-// no
+// ❌ no
 const walk = Effect.fn("walk")(function* (node: Node) {
     for (const child of node.children) yield* walk(child)
 })
 
-// yes
+// ✅ yes
 const walk = Effect.fnUntraced(function* (node: Node) {
     for (const child of node.children) yield* walk(child)
 })

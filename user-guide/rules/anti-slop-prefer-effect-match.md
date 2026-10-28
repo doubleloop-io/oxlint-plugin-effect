@@ -6,10 +6,10 @@ group: Code shape
 **Intent**: a choice among several literal values of the same expression is a `Match`, not a chain of ternaries.
 
 ```ts
-// no
+// ❌ no
 const label = kind === "a" ? "A" : kind === "b" ? "B" : "Other"
 
-// yes
+// ✅ yes
 const label = Match.value(kind).pipe(
     Match.when("a", () => "A"),
     Match.when("b", () => "B"),

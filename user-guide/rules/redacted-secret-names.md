@@ -6,11 +6,11 @@ group: Config and secrets
 **Intent**: a secret read from config or declared in a schema is `Redacted`.
 
 ```ts
-// no
+// ❌ no
 serviceAccount: Config.schema(NonBlank, "GOOGLE_SERVICE_ACCOUNT_JSON")
 const Session = Schema.Struct({ userId: UserId, accessToken: Schema.String })
 
-// yes
+// ✅ yes
 serviceAccount: Config.schema(Schema.Redacted(NonBlank), "GOOGLE_SERVICE_ACCOUNT_JSON")
 const Session = Schema.Struct({ userId: UserId, accessToken: Schema.Redacted(Schema.String) })
 ```

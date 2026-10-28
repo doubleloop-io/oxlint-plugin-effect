@@ -6,13 +6,13 @@ group: Code shape
 **Intent**: `Effect`, `Stream` and `Layer` return types are inferred, not annotated, except on exported declarations.
 
 ```ts
-// no
+// ❌ no
 (effect, name): Effect.Effect<RaceFillResult, never, Agent | SheetReader | SheetWriter> =>
 
-// yes
+// ✅ yes
 (effect, name) =>
 
-// yes: an exported declaration keeps its annotation as a contract
+// ✅ yes: an exported declaration keeps its annotation as a contract
 export const findPrice = (id: PriceId): Effect.Effect<Price, PriceNotFound> =>
 ```
 

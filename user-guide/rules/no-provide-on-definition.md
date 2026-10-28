@@ -6,10 +6,10 @@ group: Services and Layers
 **Intent**: a program does not provide its own Layers; its caller does.
 
 ```ts
-// no
+// ❌ no
 const printMissing = Effect.gen(function* () { … }).pipe(Effect.provide(missingLayer))
 
-// yes: the program stays unprovided, its caller provides
+// ✅ yes: the program stays unprovided, its caller provides
 const printMissing = Effect.gen(function* () { … })
 Missing: () => printMissing.pipe(Effect.provide(missingLayer)),
 ```

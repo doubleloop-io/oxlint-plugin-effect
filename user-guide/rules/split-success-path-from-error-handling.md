@@ -6,18 +6,18 @@ group: Error channel
 **Intent**: the generator holds only the happy path; error handling lives in the second argument of `Effect.fn`.
 
 ```ts
-// no
+// ❌ no
 function* () {
     const x = yield* fetchThing.pipe(Effect.catchTag("NotFound", () => Effect.succeed(fallback)))
 }
 
-// yes: naming the error or giving an alternative is not handling
+// ✅ yes: naming the error or giving an alternative is not handling
 function* () {
     const x = yield* fetchThing.pipe(Effect.orElseSucceed(() => fallback))
     const y = yield* decode(raw).pipe(Effect.mapError((error) => new BadRequest({ message: error.message })))
 }
 
-// yes: translation in the second argument, which also receives the original arguments
+// ✅ yes: translation in the second argument, which also receives the original arguments
 const createEvent = Effect.fn("events.create")(
     function* (request: Request) { /* success only */ },
     (effect, request) => effect.pipe(Effect.catchTags({ BadRequest: (e) => refused(400, e.message) })),

@@ -6,7 +6,7 @@ group: Tagged values
 **Intent**: branching on a union's discriminant goes through an exhaustive match, never through comparisons or `switch`.
 
 ```ts
-// no
+// ❌ no
 switch (event._tag) {
     case "Created":
         return onCreated(event)
@@ -14,10 +14,10 @@ switch (event._tag) {
         return onDeleted(event)
 }
 
-// yes
+// ✅ yes
 Match.value(event).pipe(Match.tagsExhaustive({ Created: onCreated, Deleted: onDeleted }))
 
-// yes, with `discriminants: ["_tag", "type"]`
+// ✅ yes, with `discriminants: ["_tag", "type"]`
 Match.value(payment).pipe(
     Match.discriminatorsExhaustive("type")({ card: fromCard, transfer: fromTransfer }),
 )

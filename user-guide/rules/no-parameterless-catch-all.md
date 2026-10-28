@@ -6,14 +6,14 @@ group: Error channel
 **Intent**: errors are caught by tag; a fallback that ignores the error is spelled `orElseSucceed`/`orElse`, never a catch-all with an ignored parameter.
 
 ```ts
-// no
+// ❌ no
 Effect.catch(() => Effect.succeed(fallback))
 
-// yes
+// ✅ yes
 Effect.catchTag("AgentTimeout", () => Effect.succeed(skip))
 Effect.catchTag(["ParseError", "ReservedPortError"], () => Effect.succeed(3000))
 
-// yes: every failure truly means the same fallback
+// ✅ yes: every failure truly means the same fallback
 Effect.orElseSucceed(() => fallback)
 ```
 

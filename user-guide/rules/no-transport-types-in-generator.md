@@ -6,14 +6,14 @@ group: Design and boundaries
 **Intent**: the generator returns a domain value; conversion to a transport type happens in the second argument of `Effect.fn`.
 
 ```ts
-// no: an error branch inside the happy path
+// ❌ no: an error branch inside the happy path
 function* (request: Request) {
     const credential = yield* sessionCredential
     if (credential === undefined) return Response.redirect(new URL("/login", origin), 303)
     // …
 }
 
-// yes
+// ✅ yes
 const createEvent = Effect.fn("events.create")(
     function* (request: Request) {
         const credential = yield* sessionCredential // fails with Unauthenticated

@@ -22,10 +22,10 @@ group: Error channel
 **Intent**: one sentence, in the imperative or as a prohibition.
 
 ```ts
-// no
+// ❌ no
 code the rule reports
 
-// yes
+// ✅ yes
 the compliant form
 ```
 
@@ -44,7 +44,7 @@ the compliant form
 
 The file name is the rule name; `rule-files.test.ts` checks that the catalog has exactly one file per rule of the plugin. `title` is the rule name and `group` the topic of its row in the rules index. The file has no heading: the website shows the title.
 
-The website parses this template in `website/src/site-content/`: it gives each rule file a page in the group of its frontmatter, in the order of the rules index, rewrites every relative `.md` link to the page it names, and fails the build naming the file when the rules index does not link it, when a link has no page, or when Intent, Trigger, Options or Fix is missing or out of shape (Options neither `none` nor a list, Fix not `none`, `autofix` or `suggestion…`, an example not opening with `// no` or without `// yes`). A change to the template must update that module and its tests.
+The website parses this template in `website/src/site-content/`: it gives each rule file a page in the group of its frontmatter, in the order of the rules index, rewrites every relative `.md` link to the page it names, and fails the build naming the file when the rules index does not link it, when a link has no page, or when Intent, Trigger, Options or Fix is missing or out of shape (Options neither `none` nor a list, Fix not `none`, `autofix` or `suggestion…`, an example not opening with `// ❌ no` or without `// ✅ yes`). A change to the template must update that module and its tests.
 
 ## Rules index
 
@@ -57,7 +57,7 @@ The website parses this template in `website/src/site-content/`: it gives each r
 ## Fields
 
 - **Intent**: one sentence that makes sense on its own. It states the norm, not the mechanism ("domain code does not import the implementation", not "reports relative imports of directories…").
-- **Example**: `no` first, then `yes`. The `no` is code that **this** rule reports: never an example of the pattern the rule does not detect. The minimum needed to recognize the case, at most about fifteen lines. Several `yes` only when they are genuinely different alternatives.
+- **Example**: `// ❌ no` first, then `// ✅ yes`, each marker on its own comment line with its emoji. The `no` is code that **this** rule reports: never an example of the pattern the rule does not detect. The minimum needed to recognize the case, at most about fifteen lines. Several `yes` only when they are genuinely different alternatives.
 - **Trigger**: the reported syntactic forms, precise enough to predict whether a given piece of code fires.
 - **Exemptions and blind spots**: deliberate exemptions (entry, test, release) with their reason in half a sentence; then the cases that slip through (aliases, mutual recursion, requirements that need types). The reader must know that the rule's silence does not mean compliance. If another rule or diagnostic covers the gap, one line: "See `leaking-requirements` (effecttsgo)." Omit the field when there is nothing to say.
 - **Why**: the concrete cost of breaking the norm. One or two sentences.

@@ -6,7 +6,7 @@ group: Services and Layers
 **Intent**: the service a Layer provides is built with `Tag.of({…})`, not a bare object literal.
 
 ```ts
-// no
+// ❌ no
 export const RepoLive = Layer.effect(
     Repo,
     Effect.gen(function* () {
@@ -15,7 +15,7 @@ export const RepoLive = Layer.effect(
     }),
 )
 
-// yes
+// ✅ yes
 export const RepoLive = Layer.effect(
     Repo,
     Effect.gen(function* () {

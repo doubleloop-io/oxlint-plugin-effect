@@ -6,13 +6,13 @@ group: Code shape
 **Intent**: if one match handler delegates to a named function, the others do too.
 
 ```ts
-// no
+// ❌ no
 Option.match(only, {
     onNone: () => missingIn(sheet),
     onSome: Effect.fn("onlyCandidate")(function* (name: string) { … }),
 })
 
-// yes
+// ✅ yes
 Option.match(only, {
     onNone: () => missingIn(sheet),
     onSome: (name) => onlyCandidate(sheet, name),

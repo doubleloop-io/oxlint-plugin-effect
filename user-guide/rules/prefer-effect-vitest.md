@@ -6,12 +6,12 @@ group: Runtime and entry point
 **Intent**: tests hand their Effects to `@effect/vitest` instead of running them.
 
 ```ts
-// no
+// ❌ no
 test("…", async () => {
     await Effect.runPromise(authorize({ role: "Manager" }))
 })
 
-// yes: fakes as Layers
+// ✅ yes: fakes as Layers
 import { effect } from "@effect/vitest"
 
 effect("…", () => authorize({ role: "Manager" }).pipe(Effect.provide(sheetWith(row))))

@@ -6,7 +6,7 @@ group: Code shape
 **Intent**: inside an Effect generator, return early on the empty or failed case instead of yielding a match.
 
 ```ts
-// no
+// ❌ no
 const save = Effect.fn("save")(function* (id: PolicyId) {
     const found = yield* findPolicy(id)
     return yield* Option.match(found, {
@@ -15,7 +15,7 @@ const save = Effect.fn("save")(function* (id: PolicyId) {
     })
 })
 
-// yes
+// ✅ yes
 const save = Effect.fn("save")(function* (id: PolicyId) {
     const found = yield* findPolicy(id)
     if (Option.isNone(found)) return yield* register(id)

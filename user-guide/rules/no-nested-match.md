@@ -6,7 +6,7 @@ group: Code shape
 **Intent**: a match handler contains neither another match nor a ternary.
 
 ```ts
-// no
+// ❌ no
 const run = (argv: ReadonlyArray<string>) =>
     Result.match(parseArgs(argv), {
         onFailure: usageError,
@@ -14,14 +14,14 @@ const run = (argv: ReadonlyArray<string>) =>
             Option.match(command.only, { onNone: () => fillAll, onSome: fillOnly }),
     })
 
-// yes, outside a generator: a named handler
+// ✅ yes, outside a generator: a named handler
 const fill = (command: CliCommand) =>
     Option.match(command.only, { onNone: () => fillAll, onSome: fillOnly })
 
 const run = (argv: ReadonlyArray<string>) =>
     Result.match(parseArgs(argv), { onFailure: usageError, onSuccess: fill })
 
-// yes, inside a generator: guard clauses
+// ✅ yes, inside a generator: guard clauses
 const run = Effect.fn("run")(function* (argv: ReadonlyArray<string>) {
     const parsed = parseArgs(argv)
     if (Result.isFailure(parsed)) return yield* usageError(parsed.failure)

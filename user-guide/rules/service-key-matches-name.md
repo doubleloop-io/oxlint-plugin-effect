@@ -6,13 +6,13 @@ group: Services and Layers
 **Intent**: a service's key is its class name, alone or after a path prefix.
 
 ```ts
-// no
+// ❌ no
 export class GeocodingApis extends Context.Service<GeocodingApis, Shape>()("GeocodingAPIs") {}
 
-// yes
+// ✅ yes
 export class GeocodingApis extends Context.Service<GeocodingApis, Shape>()("GeocodingApis") {}
 
-// yes
+// ✅ yes
 export class GeocodingApis extends Context.Service<GeocodingApis, Shape>()(
     "app/geo/GeocodingApis",
 ) {}

@@ -6,10 +6,10 @@ group: Schema
 **Intent**: an exported schema carries an `identifier` equal to its name.
 
 ```ts
-// no
+// ❌ no
 export const EventBusEvents = Schema.Union([Created, Deleted])
 
-// yes
+// ✅ yes
 export const EventBusEvents = Schema.Union([Created, Deleted]).annotate({
     identifier: "EventBusEvents",
 })

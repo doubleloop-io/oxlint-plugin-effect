@@ -6,10 +6,10 @@ group: Design and boundaries
 **Intent**: domain code and other adapters do not import an adapter; only entry files choose it.
 
 ```ts
-// no: in src/orders/place-order.ts
+// ❌ no: in src/orders/place-order.ts
 import { GoogleCalendar } from "../calendar/google/GoogleCalendar.ts"
 
-// yes: depend on the port, main.ts provides GoogleCalendar.layer
+// ✅ yes: depend on the port, main.ts provides GoogleCalendar.layer
 import { Calendar } from "../calendar/Calendar.ts"
 ```
 

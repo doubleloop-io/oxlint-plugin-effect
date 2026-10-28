@@ -6,10 +6,10 @@ group: Error channel
 **Intent**: `Effect.try` and `Effect.tryPromise` take `{ try, catch }`, with `catch` producing a tagged error.
 
 ```ts
-// no
+// ❌ no
 Effect.tryPromise(() => api.spreadsheets.get({ spreadsheetId }))
 
-// yes
+// ✅ yes
 Effect.tryPromise({
     try: () => api.spreadsheets.get({ spreadsheetId }),
     catch: toSheetError(spreadsheetId),

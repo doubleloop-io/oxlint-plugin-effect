@@ -6,14 +6,14 @@ group: Runtime and entry point
 **Intent**: the entry point runs an Effect whose error channel is closed to `never`.
 
 ```ts
-// no
+// ❌ no
 export const POST = (request: Request) => Effect.runPromise(createEvent(request))
 
-// yes: in an entry file
+// ✅ yes: in an entry file
 export const POST = (request: Request) =>
     Effect.runPromise(createEvent(request) satisfies Effect.Effect<Response, never>)
 
-// yes: a typed helper
+// ✅ yes: a typed helper
 const runBoundary = (effect: Effect.Effect<Response, never, never>) => Effect.runPromise(effect)
 ```
 

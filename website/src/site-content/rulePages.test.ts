@@ -53,13 +53,18 @@ for (const [scenario, fields, problem] of [
     ],
     [
         "an example that does not open with the reported form",
-        { example: "```ts\n// yes\nright()\n\n// no\nwrong()\n```" },
-        "the example does not start with `// no`",
+        { example: "```ts\n// ✅ yes\nright()\n\n// ❌ no\nwrong()\n```" },
+        "the example does not start with `// ❌ no`",
+    ],
+    [
+        "an example marking its forms without emoji",
+        { example: "```ts\n// no\nwrong()\n\n// yes\nright()\n```" },
+        "the example does not start with `// ❌ no`",
     ],
     [
         "an example with no compliant form",
-        { example: "```ts\n// no\nwrong()\n```" },
-        "the example has no `// yes`",
+        { example: "```ts\n// ❌ no\nwrong()\n```" },
+        "the example has no `// ✅ yes`",
     ],
 ] as const) {
     test(`a rule file with ${scenario} fails the build, naming the file`, () => {
@@ -102,7 +107,7 @@ test("a sibling rule may leave the example, Exemptions and Why to the rule it li
 })
 
 test("a heading-like line inside a code example stays in the rule body", () => {
-    const example = "```ts\n// no\n## not a heading\nwrong()\n\n// yes\nright()\n```"
+    const example = "```ts\n// ❌ no\n## not a heading\nwrong()\n\n// ✅ yes\nright()\n```"
     const userGuide = [
         rulesIndexFile("no-effect-promise"),
         ruleFile("no-effect-promise", { fields: { example } }),

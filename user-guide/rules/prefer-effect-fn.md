@@ -6,11 +6,11 @@ group: Effectful functions
 **Intent**: an effectful function is `Effect.fn("name")`, and a named effect value has a span.
 
 ```ts
-// no
+// ❌ no
 const outcomeFor = (name: string) => Effect.gen(function* () { … }).pipe(Effect.catch(toFailed))
 const refresh = Effect.gen(function* () { … })
 
-// yes: extra combinators as arguments, not .pipe
+// ✅ yes: extra combinators as arguments, not .pipe
 const outcomeFor = Effect.fn("outcomeFor")(function* (name: string) { … }, Effect.catch(toFailed))
 const refresh = Effect.gen(function* () { … }).pipe(Effect.withSpan("refresh"))
 ```
