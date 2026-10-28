@@ -83,7 +83,7 @@ test("a RULES.md link to a section that has no site page fails, naming the link 
     })
 })
 
-test("the landing page links to installation and to the rules overview", () => {
+test("the landing page shows the package scope above its name, the first paragraph as tagline, and links to installation and the rules overview", () => {
     const readmeMd = [
         "# @owner/the-plugin\n\nAn oxlint plugin.\n\nIt complements [tsgo](#alongside-effecttsgo).\n",
         "## Installation\n\n```bash\npnpm add -D the-plugin\n```\n",
@@ -96,7 +96,10 @@ test("the landing page links to installation and to the rules overview", () => {
         kind: "landing",
         id: "index",
         title: "@owner/the-plugin",
-        body: "An oxlint plugin.\n\nIt complements [tsgo](/site/configuration/#alongside-effecttsgo).\n",
+        scope: "@owner/",
+        name: "the-plugin",
+        tagline: "An oxlint plugin.",
+        body: "It complements [tsgo](/site/configuration/#alongside-effecttsgo).\n",
         actions: [
             { text: "Installation", link: "/site/installation/" },
             { text: "Rules overview", link: "/site/rules-overview/" },

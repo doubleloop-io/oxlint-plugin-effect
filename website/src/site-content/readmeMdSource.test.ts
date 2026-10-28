@@ -63,3 +63,13 @@ test("the Development section and its subsections are on no page", () => {
     assert.ok(!pages.some(({ id }) => id === "development"))
     assert.ok(!pages.some(({ body }) => body.includes("pnpm format") || body.includes("Releasing")))
 })
+
+test("an unscoped package name is the whole landing title, and an introduction of one paragraph leaves an empty body", () => {
+    const page = pageById(readmeMarkdown(), "index")
+
+    assert.ok(page?.kind === "landing")
+    assert.equal(page.scope, undefined)
+    assert.equal(page.name, "the-plugin")
+    assert.equal(page.tagline, "A plugin.")
+    assert.equal(page.body, "")
+})

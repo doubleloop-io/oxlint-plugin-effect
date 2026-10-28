@@ -132,3 +132,22 @@ h4,
     width: 1.125rem;
     height: 1.125rem;
 }
+
+/* The landing title is the package name: the scope sits above it, so the name fits one line. */
+.hero h1 {
+    font-size: clamp(var(--sl-text-3xl), calc(0.25rem + 4.5vw), var(--sl-text-5xl));
+    overflow-wrap: normal;
+}
+
+.hero-scope {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: var(--sl-text-xl);
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--sl-color-gray-3);
+}
+
+.hero .tagline {
+    color: var(--sl-color-gray-2);
+}

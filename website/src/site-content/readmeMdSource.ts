@@ -1,6 +1,6 @@
 import { headingAnchor } from "./internalLinks.ts"
 import { markdownLines } from "./markdownLines.ts"
-import type { SourcePage } from "./sitePages.ts"
+import type { SitePage, SourcePage } from "./sitePages.ts"
 
 type Section = { level: "#" | "##"; heading: string; subheadings: string[]; lines: string[] }
 
@@ -33,19 +33,26 @@ export const readmeMdSource = (markdown: string) => {
     return { sourcePages, routes: linkRoutes(readmeSections) }
 }
 
+const packageName = /^(?<scope>@[^/]+\/)?(?<name>.+)$/u
+
 const readmeMdPage = ({ level, heading, lines }: Section): SourcePage => {
     const body = `${lines.join("\n").trim()}\n`
     return level === "#"
-        ? {
-              page: { kind: "landing", id: "index", title: heading, body, actions: landingActions },
-              file,
-              location: "introduction",
-          }
+        ? { page: landingPage(heading, body), file, location: "introduction" }
         : {
               page: { kind: "guide", ...guidePage(heading), body },
               file,
               location: `section \`${heading}\``,
           }
+}
+
+// The heading is the package name, split so the scope can sit above the name;
+// the first paragraph is the tagline under it, so the body starts after it
+const landingPage = (heading: string, introduction: string): SitePage => {
+    const { scope, name = heading } = packageName.exec(heading)?.groups ?? {}
+    const [tagline = "", ...rest] = introduction.split("\n\n")
+    const body = rest.length === 0 ? "" : `${rest.join("\n\n").trim()}\n`
+    return { kind: "landing", id: "index", title: heading, scope, name, tagline: tagline.trim(), body, actions: landingActions }
 }
 
 const linkRoutes = (readmeSections: Section[]) =>
