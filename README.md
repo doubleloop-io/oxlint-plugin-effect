@@ -125,8 +125,10 @@ What each rule reports and why is in [`RULES.md`](RULES.md). Report false positi
 
 Some rules come from the Effect rules of [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), MIT-licensed: see [`LICENSE.anti-slop`](LICENSE.anti-slop).
 
-- Imported: [`anti-slop-no-manual-effect-error-tag`](RULES.md#anti-slop-no-manual-effect-error-tag), [`anti-slop-no-service-constructor-imports`](RULES.md#anti-slop-no-service-constructor-imports), [`anti-slop-prefer-effect-match`](RULES.md#anti-slop-prefer-effect-match).
-- Superseded: `no-manual-tag-comparison` by [`no-manual-discriminant-comparison`](RULES.md#no-manual-discriminant-comparison), `no-manual-tagged-construction` by [`no-manual-discriminant-construction`](RULES.md#no-manual-discriminant-construction).
+| Status     | Rules                                                                                                                                                                                                                                                               |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Imported   | [`anti-slop-no-manual-effect-error-tag`](RULES.md#anti-slop-no-manual-effect-error-tag), [`anti-slop-no-service-constructor-imports`](RULES.md#anti-slop-no-service-constructor-imports), [`anti-slop-prefer-effect-match`](RULES.md#anti-slop-prefer-effect-match) |
+| Superseded | `no-manual-tag-comparison` → [`no-manual-discriminant-comparison`](RULES.md#no-manual-discriminant-comparison), `no-manual-tagged-construction` → [`no-manual-discriminant-construction`](RULES.md#no-manual-discriminant-construction)                             |
 
 ## Default configuration
 
