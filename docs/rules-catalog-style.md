@@ -1,6 +1,6 @@
-# How to write `RULES.md`
+# How to write the rule catalog
 
-Writing rules for the rule catalog. They apply to every new or modified section.
+Writing rules for the rule catalog: one file per rule, `user-guide/rules/<rule-name>.md`, listed in the rules index, `user-guide/rules.md`. They apply to every new or modified rule file.
 
 ## Reader
 
@@ -14,9 +14,10 @@ Not the plugin maintainer: the rule's history, the sources it came from and impl
 ## Template
 
 ````md
-### `rule-name`
-
-<sup>[↑ rules index](#rules-index)</sup>
+---
+title: rule-name
+group: Error channel
+---
 
 **Intent**: one sentence, in the imperative or as a prohibition.
 
@@ -41,13 +42,13 @@ the compliant form
 **Fix**: none
 ````
 
-The heading and the back link below it are enforced by `rules-md.test.ts`.
+The file name is the rule name; `rule-files.test.ts` checks that the catalog has exactly one file per rule of the plugin. `title` is the rule name and `group` the topic of its row in the rules index. The file has no heading: the website shows the title.
 
-The website parses this template in `website/src/site-content/`: it gives each rule a page in the group of its `##` section, drops the back link, rewrites every `#anchor` link to the page of its heading (a group's anchor to its first rule, the rules index to the Rules overview) and every `user-guide/` link to that guide page, and fails the build naming the link when an anchor has no page, or naming the rule when Intent, Trigger, Options or Fix is missing or out of shape (Options neither `none` nor a list, Fix not `none`, `autofix` or `suggestion…`, an example not opening with `// no` or without `// yes`). A change to the template must update that module and its tests.
+The website parses this template in `website/src/site-content/`: it gives each rule file a page in the group of its frontmatter, in the order of the rules index, rewrites every relative `.md` link to the page it names, and fails the build naming the file when the rules index does not link it, when a link has no page, or when Intent, Trigger, Options or Fix is missing or out of shape (Options neither `none` nor a list, Fix not `none`, `autofix` or `suggestion…`, an example not opening with `// no` or without `// yes`). A change to the template must update that module and its tests.
 
-## Opening section
+## Rules index
 
-- **Rules index**: a `Group | Rule` table in section order. The group appears only on its first row, linked to its section; every rule links to its own.
+`user-guide/rules.md` has a `Topic | Rules` table: one row per group, its rules linked to their files in the order of the website sidebar. A new rule is added to the row of its group. Under Absorbed from anti-slop, the rules imported from `dmmulroy/anti-slop` and the anti-slop rules superseded by a dl-effect rule.
 
 ## Shared settings page
 
@@ -60,8 +61,9 @@ The website parses this template in `website/src/site-content/`: it gives each r
 - **Trigger**: the reported syntactic forms, precise enough to predict whether a given piece of code fires.
 - **Exemptions and blind spots**: deliberate exemptions (entry, test, release) with their reason in half a sentence; then the cases that slip through (aliases, mutual recursion, requirements that need types). The reader must know that the rule's silence does not mean compliance. If another rule or diagnostic covers the gap, one line: "See `leaking-requirements` (effecttsgo)." Omit the field when there is nothing to say.
 - **Why**: the concrete cost of breaking the norm. One or two sentences.
-- **Options**: a bold label like Intent, not a heading. One bullet per option: a shared setting reads "shared setting, see [Shared settings](user-guide/shared-settings.md).", one specific to the rule states its default. A rule without options has `**Options**: none` on one line.
+- **Options**: a bold label like Intent, not a heading. One bullet per option: a shared setting reads "shared setting, see [Shared settings](../shared-settings.md).", one specific to the rule states its default. A rule without options has `**Options**: none` on one line.
 - **Fix**: `none`, `autofix` or `suggestion`; the conditions under which the fix does not apply go in Exemptions and blind spots.
+- **Origin**: only on the rules absorbed from anti-slop, after Fix: "absorbed from [`dmmulroy/anti-slop`](https://github.com/dmmulroy/anti-slop), MIT-licensed: see [`LICENSE.anti-slop`](../../LICENSE.anti-slop)."
 
 ## Redundancy and verbosity
 

@@ -4,7 +4,6 @@ import type { GuideFile, SiteSources } from "./sitePages.ts"
 import { userGuideDirectory } from "./userGuideSource.ts"
 
 export const readSiteSources = async (siteRoot: URL): Promise<SiteSources> => ({
-    rulesMd: await readFile(new URL("../RULES.md", siteRoot), "utf8"),
     userGuide: await readUserGuide(new URL(`../${userGuideDirectory}/`, siteRoot)),
 })
 

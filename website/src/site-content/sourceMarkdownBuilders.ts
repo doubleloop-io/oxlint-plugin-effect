@@ -1,5 +1,4 @@
-import { backLink } from "./rulesMdSource.ts"
-import { type GuideFile, type SiteOptions, type SiteSources, sitePages } from "./sitePages.ts"
+import { type GuideFile, type SiteOptions, sitePages } from "./sitePages.ts"
 
 type RuleFields = {
     intent: string
@@ -26,20 +25,6 @@ export const testSite: SiteOptions = {
     repositoryUrl: "https://github.com/owner/the-plugin",
 }
 
-export const ruleSection = (
-    name: string,
-    fields: Partial<Record<keyof RuleFields, string | null>> = {},
-) =>
-    [`### \`${name}\``, backLink, ...Object.values({ ...wellFormedFields, ...fields })]
-        .filter((block) => block !== null)
-        .join("\n\n") + "\n"
-
-export const rulesMarkdown = (...groups: string[]) =>
-    ["# Rules\n", "## Rules index\n\n| Group | Rule |\n| --- | --- |\n", ...groups].join("\n")
-
-export const group = (title: string, ...sections: string[]) =>
-    [`## ${title}\n`, ...sections].join("\n")
-
 export const frontmatter = (fields: Record<string, string | number>) =>
     ["---", ...Object.entries(fields).map(([key, value]) => `${key}: ${value}`), "---", ""].join("\n")
 
@@ -49,10 +34,34 @@ export const guideFile = (
     body = "Some text.\n",
 ): GuideFile => ({ path, content: `${frontmatter({ title: "A page", ...fields })}\n${body}` })
 
-export const pagesOf = ({
-    rulesMd = rulesMarkdown(group("Error channel", ruleSection("no-effect-promise"))),
-    userGuide = [],
-}: Partial<SiteSources>) => sitePages({ rulesMd, userGuide }, testSite)
+export const ruleBody = (fields: Partial<Record<keyof RuleFields, string | null>> = {}) =>
+    Object.values({ ...wellFormedFields, ...fields })
+        .filter((block) => block !== null)
+        .join("\n\n") + "\n"
+
+export const ruleFile = (
+    name: string,
+    {
+        group = "Error channel",
+        fields = {},
+    }: { group?: string; fields?: Parameters<typeof ruleBody>[0] } = {},
+): GuideFile => ({
+    path: `rules/${name}.md`,
+    content: `${frontmatter({ title: name, group })}\n${ruleBody(fields)}`,
+})
+
+// The rules index orders the rule pages by the order of its links
+export const rulesIndexFile = (...rules: string[]) =>
+    guideFile(
+        "rules.md",
+        { title: "Rules overview" },
+        `${rules.map((rule) => `- [\`${rule}\`](rules/${rule}.md)`).join("\n")}\n`,
+    )
+
+export const pagesOf = (userGuide: GuideFile[]) => sitePages({ userGuide }, testSite)
 
 export const guidePagesOf = (userGuide: GuideFile[]) =>
-    pagesOf({ userGuide }).filter(({ kind }) => kind === "guide" || kind === "landing")
+    pagesOf(userGuide).filter(({ kind }) => kind === "guide" || kind === "landing")
+
+export const rulePagesOf = (userGuide: GuideFile[]) =>
+    pagesOf(userGuide).filter((page) => page.kind === "rule")

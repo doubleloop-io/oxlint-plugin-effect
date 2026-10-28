@@ -5,7 +5,7 @@ import { test } from "node:test"
 import { headingAnchor, markdownLinkHrefs } from "./internalLinks.ts"
 import { publishedSite } from "./publishedSite.ts"
 import { readSiteSources } from "./readSiteSources.ts"
-import { repositoryRoot } from "./realRulesMd.ts"
+import { repositoryRoot } from "./realRepository.ts"
 import { sitePages } from "./sitePages.ts"
 
 const sources = await readSiteSources(new URL("website/", repositoryRoot))
@@ -29,7 +29,11 @@ test("the real user guide has guide files", () => {
     assert.ok(sources.userGuide.length > 0)
 })
 
-for (const { path, content } of sources.userGuide.filter(({ path }) => path !== "README.md")) {
+const isRuleFile = (path: string) => path.startsWith("rules/")
+
+for (const { path, content } of sources.userGuide.filter(
+    ({ path }) => path !== "README.md" && !isRuleFile(path),
+)) {
     test(`the real guide file ${path} is a guide page with its frontmatter title`, () => {
         const page = pageOf(path)
 
@@ -37,6 +41,44 @@ for (const { path, content } of sources.userGuide.filter(({ path }) => path !== 
         assert.equal(page?.title, frontmatterTitle(content))
     })
 }
+
+test("every real rule file is a rule page named after its file", () => {
+    const ruleFileNames = sources.userGuide
+        .filter(({ path }) => isRuleFile(path))
+        .map(({ path }) => path.replace(/^rules\/(?<name>.+)\.md$/u, "$<name>"))
+        .toSorted()
+
+    const rulePageTitles = pages
+        .filter(({ kind }) => kind === "rule")
+        .map(({ title }) => title)
+        .toSorted()
+
+    assert.ok(ruleFileNames.length > 0)
+    assert.deepEqual(rulePageTitles, ruleFileNames)
+})
+
+const rulesIndexRow = /^\| (?<topic>[^|]+?) +\| (?<rules>.+) \|$/gmu
+const ruleLink = /\]\(rules\/(?<rule>[a-z-]+)\.md\)/gu
+
+// The topic table comes first in the rules index, before any other table that links rules
+const rulesIndexTopics = () => {
+    const rulesIndex = sources.userGuide.find(({ path }) => path === "rules.md")?.content ?? ""
+    const topicTable = rulesIndex.split("\n\n").find((block) => block.startsWith("| Topic"))
+    return [...(topicTable ?? "").matchAll(rulesIndexRow)].flatMap(({ groups }) =>
+        [...(groups?.rules ?? "").matchAll(ruleLink)].map((link) => ({
+            id: `rules/${link.groups?.rule}`,
+            group: groups?.topic ?? "",
+        })),
+    )
+}
+
+test("real rule pages sit in the group of their topic in the rules index, in its order", () => {
+    const rulePages = pages.flatMap((page) =>
+        page.kind === "rule" ? [{ id: page.id, group: page.group }] : [],
+    )
+
+    assert.deepEqual(rulePages, rulesIndexTopics())
+})
 
 test("the real guide index is the landing page, with the package scope above its name and its first paragraph as tagline", () => {
     const landing = pageOf("README.md")

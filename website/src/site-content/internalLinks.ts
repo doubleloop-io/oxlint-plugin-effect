@@ -4,13 +4,11 @@ import { markdownLines } from "./markdownLines.ts"
 import type { SiteOptions } from "./sitePages.ts"
 
 // Keyed by `<source file>#<anchor>`, or by `<source file>` for the file itself, so one source can
-// link into another (user guide → RULES.md)
+// link into another (guide page → rule page)
 export type LinkRoutes = Map<string, string>
 
 export type LinkSource = SiteOptions & {
     file: string
-    // Where in the file the page comes from; undefined when the page is the whole file
-    location: string | undefined
     routes: LinkRoutes
 }
 
@@ -42,8 +40,7 @@ export const resolveLink = (href: string, source: LinkSource) => {
     const { anchor } = target
     const route = source.routes.get(anchor === undefined ? file : `${file}#${anchor}`)
     if (route === undefined) {
-        const origin = [source.file, source.location].filter((part) => part !== undefined)
-        throw new Error(`${origin.join(", ")}: link \`${href}\` resolves to no site page`)
+        throw new Error(`${source.file}: link \`${href}\` resolves to no site page`)
     }
     return `${source.base.replace(/\/$/u, "")}/${route}`
 }

@@ -7,12 +7,10 @@ on:
             - main
         paths:
             - website/**
-            - RULES.md
             - user-guide/**
     pull_request:
         paths:
             - website/**
-            - RULES.md
             - user-guide/**
 
 concurrency:

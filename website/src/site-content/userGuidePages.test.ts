@@ -52,24 +52,6 @@ test("the rules index is the rules overview page, apart from the route of the ru
     ])
 })
 
-test("a link from a guide file to RULES.md points to the rules overview, a link to a rule in it to the rule page", () => {
-    const userGuide = [
-        guideFile("rules.md"),
-        guideFile(
-            "configuration.md",
-            {},
-            "In [the catalog](../RULES.md), such as [this](../RULES.md#no-effect-promise).\n",
-        ),
-    ]
-
-    const page = guidePagesOf(userGuide).find(({ id }) => id === "configuration")
-
-    assert.equal(
-        page?.body,
-        "In [the catalog](/site/rules-overview/), such as [this](/site/rules/no-effect-promise/).\n",
-    )
-})
-
 test("guide pages follow the order of their frontmatter, then their path, whatever the file order", () => {
     const userGuide = [
         guideFile("zebra.md"),

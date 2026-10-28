@@ -10,14 +10,7 @@ import { npmPack } from "./npm-pack.ts"
 const localPathMarkers = ["/Users/", "/home/"]
 
 // Mirrors `files` in package.json; npm adds package.json on its own.
-const allowedFiles = [
-    "package.json",
-    "RULES.md",
-    "README.md",
-    "CHANGELOG.md",
-    "LICENSE",
-    "LICENSE.anti-slop",
-]
+const allowedFiles = ["package.json", "README.md", "CHANGELOG.md", "LICENSE", "LICENSE.anti-slop"]
 const allowedDirectories = ["dist/", "user-guide/"]
 
 const isAllowed = (path: string) =>

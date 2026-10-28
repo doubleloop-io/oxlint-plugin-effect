@@ -5,7 +5,7 @@ import { test } from "node:test"
 import { headingAnchor, markdownLinkHrefs } from "./internalLinks.ts"
 import { publishedSite, siteOrigin } from "./publishedSite.ts"
 import { readSiteSources } from "./readSiteSources.ts"
-import { repositoryRoot } from "./realRulesMd.ts"
+import { repositoryRoot } from "./realRepository.ts"
 import { sitePages } from "./sitePages.ts"
 
 // The README is no site page: it reaches the guide through absolute URLs, which work on npmjs.com

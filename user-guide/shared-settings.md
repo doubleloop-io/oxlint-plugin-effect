@@ -9,20 +9,20 @@ Three settings describe your project, not a rule, so they are declared once unde
 
 - **`entryFiles`**: the files allowed to run Effects and import adapters.
     - used by:
-        - [`run-only-in-runner`](../RULES.md#run-only-in-runner)
-        - [`adapter-import-boundary`](../RULES.md#adapter-import-boundary)
+        - [`run-only-in-runner`](rules/run-only-in-runner.md)
+        - [`adapter-import-boundary`](rules/adapter-import-boundary.md)
     - default: `**/main.ts`, `**/cli.ts`, `**/bin/**`. `index.ts` is excluded on purpose: it is usually a barrel, and exempting it would let adapters reach the rest of the application through re-exports.
 - **`testFiles`**: the test files, exempt from the rules that tests legitimately break and the only files `prefer-effect-vitest` checks.
     - used by:
-        - [`run-only-in-runner`](../RULES.md#run-only-in-runner), [`adapter-import-boundary`](../RULES.md#adapter-import-boundary), [`no-effect-promise`](../RULES.md#no-effect-promise), [`provide-named-layer`](../RULES.md#provide-named-layer), [`no-provide-on-definition`](../RULES.md#no-provide-on-definition), [`split-success-path-from-error-handling`](../RULES.md#split-success-path-from-error-handling), [`all-errors-handled-at-boundary`](../RULES.md#all-errors-handled-at-boundary), [`anti-slop-no-service-constructor-imports`](../RULES.md#anti-slop-no-service-constructor-imports): skip test files
-        - [`no-throw-or-primitive-failure`](../RULES.md#no-throw-or-primitive-failure): skips only primitive failures there
-        - [`single-style-per-function`](../RULES.md#single-style-per-function): treats their helpers like tests
-        - [`prefer-effect-vitest`](../RULES.md#prefer-effect-vitest): checks only them
+        - [`run-only-in-runner`](rules/run-only-in-runner.md), [`adapter-import-boundary`](rules/adapter-import-boundary.md), [`no-effect-promise`](rules/no-effect-promise.md), [`provide-named-layer`](rules/provide-named-layer.md), [`no-provide-on-definition`](rules/no-provide-on-definition.md), [`split-success-path-from-error-handling`](rules/split-success-path-from-error-handling.md), [`all-errors-handled-at-boundary`](rules/all-errors-handled-at-boundary.md), [`anti-slop-no-service-constructor-imports`](rules/anti-slop-no-service-constructor-imports.md): skip test files
+        - [`no-throw-or-primitive-failure`](rules/no-throw-or-primitive-failure.md): skips only primitive failures there
+        - [`single-style-per-function`](rules/single-style-per-function.md): treats their helpers like tests
+        - [`prefer-effect-vitest`](rules/prefer-effect-vitest.md): checks only them
     - default: `**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`, `**/test/**`, `**/tests/**`. A helper directory such as `src/testing/` does not count as tests: it is support code.
 - **`discriminants`**: the fields that discriminate a closed union.
     - used by:
-        - [`no-manual-discriminant-comparison`](../RULES.md#no-manual-discriminant-comparison)
-        - [`no-manual-discriminant-construction`](../RULES.md#no-manual-discriminant-construction)
+        - [`no-manual-discriminant-comparison`](rules/no-manual-discriminant-comparison.md)
+        - [`no-manual-discriminant-construction`](rules/no-manual-discriminant-construction.md)
     - default: `_tag`. Add the fields your unions discriminate on, such as `type` or `kind`.
 
 File globs are matched against the path relative to oxlint's working directory, with `/` on every platform.
