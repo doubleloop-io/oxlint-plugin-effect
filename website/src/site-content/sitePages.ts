@@ -1,4 +1,4 @@
-import { type LinkRoutes, resolveLink, rewriteInternalLinks } from "./internalLinks.ts"
+import { resolveLink, rewriteInternalLinks } from "./internalLinks.ts"
 import { userGuideSource } from "./userGuideSource.ts"
 
 export type SitePage =
