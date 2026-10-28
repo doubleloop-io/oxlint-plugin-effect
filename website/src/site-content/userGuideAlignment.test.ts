@@ -2,10 +2,11 @@ import assert from "node:assert/strict"
 import { access } from "node:fs/promises"
 import { test } from "node:test"
 
-import { headingAnchor, markdownLinkHrefs } from "./internalLinks.ts"
+import { markdownLinkHrefs } from "./internalLinks.ts"
 import { publishedSite } from "./publishedSite.ts"
 import { readSiteSources } from "./readSiteSources.ts"
 import { repositoryRoot } from "./realRepository.ts"
+import { pageHeadingAnchors, routeOf } from "./siteLinkTargets.ts"
 import { sitePages } from "./sitePages.ts"
 
 const sources = await readSiteSources(new URL("website/", repositoryRoot))
@@ -110,13 +111,6 @@ const guideHrefs = () =>
         const actionLinks = page?.kind === "landing" ? page.actions.map(({ link }) => link) : []
         return [...markdownLinkHrefs(page?.body ?? ""), ...actionLinks]
     })
-
-const pageHeadingAnchors = (body: string) =>
-    [...body.matchAll(/^#{1,6} (?<heading>.+)$/gmu)].map(({ groups }) =>
-        headingAnchor(groups?.heading ?? ""),
-    )
-
-const routeOf = (id: string) => (id === "index" ? `${base}/` : `${base}/${id}/`)
 
 test("every internal link of the real user guide points to an existing site page and heading", () => {
     for (const href of guideHrefs().filter((link) => link.startsWith(`${base}/`))) {

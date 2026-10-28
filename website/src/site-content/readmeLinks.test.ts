@@ -2,10 +2,11 @@ import assert from "node:assert/strict"
 import { access, readFile } from "node:fs/promises"
 import { test } from "node:test"
 
-import { headingAnchor, markdownLinkHrefs } from "./internalLinks.ts"
+import { markdownLinkHrefs } from "./internalLinks.ts"
 import { publishedSite, siteOrigin } from "./publishedSite.ts"
 import { readSiteSources } from "./readSiteSources.ts"
 import { repositoryRoot } from "./realRepository.ts"
+import { pageHeadingAnchors, routeOf } from "./siteLinkTargets.ts"
 import { sitePages } from "./sitePages.ts"
 
 // The README is no site page: it reaches the guide through absolute URLs, which work on npmjs.com
@@ -15,13 +16,6 @@ const pages = sitePages(await readSiteSources(new URL("website/", repositoryRoot
 const { base, repositoryUrl } = publishedSite
 const websiteUrl = `${siteOrigin}${base}/`
 const repositoryFileUrl = `${repositoryUrl}/blob/main/`
-
-const routeOf = (id: string) => (id === "index" ? `${base}/` : `${base}/${id}/`)
-
-const pageHeadingAnchors = (body: string) =>
-    [...body.matchAll(/^#{1,6} (?<heading>.+)$/gmu)].map(({ groups }) =>
-        headingAnchor(groups?.heading ?? ""),
-    )
 
 test("every link of the real README is an absolute URL to the website or to a repository file", () => {
     const otherHrefs = readmeHrefs.filter(
