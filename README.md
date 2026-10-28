@@ -47,5 +47,6 @@ The guide is on the [website](https://doubleloop-io.github.io/oxlint-plugin-effe
 - [Alongside `@effect/tsgo`](https://doubleloop-io.github.io/oxlint-plugin-effect/alongside-effect-tsgo/): combining its presets with this one.
 - [Rules overview](https://doubleloop-io.github.io/oxlint-plugin-effect/rules-overview/): every rule, grouped by topic.
 - [Versioning](https://doubleloop-io.github.io/oxlint-plugin-effect/versioning/): what a release may change.
+- [Troubleshooting](https://doubleloop-io.github.io/oxlint-plugin-effect/troubleshooting/): the problems most often hit when adopting the plugin.
 
 Coding agents: the same pages ship in the package under `user-guide/`, starting from `user-guide/README.md`.

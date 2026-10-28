@@ -16,6 +16,7 @@ It complements the type-aware rules of [`@effect/tsgo`](alongside-effect-tsgo.md
 - [Alongside `@effect/tsgo`](alongside-effect-tsgo.md): combining its presets with this one.
 - [Default configuration](default-configuration.md): `all` with every setting and option spelled out.
 - [Versioning](versioning.md): what a release may change and which oxlint versions are supported.
+- [Troubleshooting](troubleshooting.md): the problems most often hit when adopting the plugin.
 
 ## Rules
 

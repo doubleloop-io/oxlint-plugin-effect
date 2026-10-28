@@ -51,6 +51,16 @@ test("the real guide index is the landing page, with the package scope above its
     )
 })
 
+test("the real guide index links to every guide page", () => {
+    const indexHrefs = markdownLinkHrefs(pageOf("README.md")?.body ?? "")
+    const unlinked = sources.userGuide
+        .filter(({ path }) => path !== "README.md")
+        .map(({ path }) => pageOf(path)?.id ?? path)
+        .filter((id) => !indexHrefs.includes(routeOf(id)))
+
+    assert.deepEqual(unlinked, [])
+})
+
 const guideHrefs = () =>
     sources.userGuide.flatMap(({ path }) => {
         const page = pageOf(path)
