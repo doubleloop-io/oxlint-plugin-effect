@@ -40,16 +40,6 @@ export const rulesMarkdown = (...groups: string[]) =>
 export const group = (title: string, ...sections: string[]) =>
     [`## ${title}\n`, ...sections].join("\n")
 
-// The landing page links to Installation, so a README always has one
-export const readmeMarkdown = (...sections: string[]) =>
-    [
-        "# the-plugin\n\nA plugin.\n",
-        ...sections,
-        ...(sections.some((section) => section.startsWith("## Installation\n"))
-            ? []
-            : ["## Installation\n\nInstall it.\n"]),
-    ].join("\n")
-
 export const frontmatter = (fields: Record<string, string | number>) =>
     ["---", ...Object.entries(fields).map(([key, value]) => `${key}: ${value}`), "---", ""].join("\n")
 
@@ -61,11 +51,8 @@ export const guideFile = (
 
 export const pagesOf = ({
     rulesMd = rulesMarkdown(group("Error channel", ruleSection("no-effect-promise"))),
-    readmeMd = readmeMarkdown(),
     userGuide = [],
-}: Partial<SiteSources>) => sitePages({ rulesMd, readmeMd, userGuide }, testSite)
-
-const readmePageIds = new Set(pagesOf({}).map(({ id }) => id))
+}: Partial<SiteSources>) => sitePages({ rulesMd, userGuide }, testSite)
 
 export const guidePagesOf = (userGuide: GuideFile[]) =>
-    pagesOf({ userGuide }).filter(({ id }) => !readmePageIds.has(id))
+    pagesOf({ userGuide }).filter(({ kind }) => kind === "guide" || kind === "landing")

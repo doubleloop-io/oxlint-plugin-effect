@@ -13,6 +13,63 @@ test("a guide file is a guide page with the title of its frontmatter, named afte
     ])
 })
 
+test("the guide index is the landing page: the package scope above its name, the first paragraph as tagline, and actions to installation and the rules overview", () => {
+    const userGuide = [
+        guideFile(
+            "README.md",
+            { title: '"@owner/the-plugin"' },
+            "An oxlint plugin.\n\nStart from [configuration](configuration.md).\n",
+        ),
+        guideFile("installation.md"),
+        guideFile("configuration.md"),
+        guideFile("rules.md"),
+    ]
+
+    const landing = guidePagesOf(userGuide).find(({ kind }) => kind === "landing")
+
+    assert.deepEqual(landing, {
+        kind: "landing",
+        id: "index",
+        title: "@owner/the-plugin",
+        scope: "@owner/",
+        name: "the-plugin",
+        tagline: "An oxlint plugin.",
+        body: "Start from [configuration](/site/configuration/).\n",
+        actions: [
+            { text: "Installation", link: "/site/installation/" },
+            { text: "Rules overview", link: "/site/rules-overview/" },
+        ],
+    })
+})
+
+test("the rules index is the rules overview page, apart from the route of the rule pages", () => {
+    const userGuide = [guideFile("rules.md", { title: "Rules overview" }, "| Topic | Rules |\n")]
+
+    const pages = guidePagesOf(userGuide)
+
+    assert.deepEqual(pages, [
+        { kind: "guide", id: "rules-overview", title: "Rules overview", body: "| Topic | Rules |\n" },
+    ])
+})
+
+test("a link from a guide file to RULES.md points to the rules overview, a link to a rule in it to the rule page", () => {
+    const userGuide = [
+        guideFile("rules.md"),
+        guideFile(
+            "configuration.md",
+            {},
+            "In [the catalog](../RULES.md), such as [this](../RULES.md#no-effect-promise).\n",
+        ),
+    ]
+
+    const page = guidePagesOf(userGuide).find(({ id }) => id === "configuration")
+
+    assert.equal(
+        page?.body,
+        "In [the catalog](/site/rules-overview/), such as [this](/site/rules/no-effect-promise/).\n",
+    )
+})
+
 test("guide pages follow the order of their frontmatter, then their path, whatever the file order", () => {
     const userGuide = [
         guideFile("zebra.md"),

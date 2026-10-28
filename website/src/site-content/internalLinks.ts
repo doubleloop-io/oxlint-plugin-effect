@@ -4,7 +4,7 @@ import { markdownLines } from "./markdownLines.ts"
 import type { SiteOptions } from "./sitePages.ts"
 
 // Keyed by `<source file>#<anchor>`, or by `<source file>` for the file itself, so one source can
-// link into another (README → RULES.md)
+// link into another (user guide → RULES.md)
 export type LinkRoutes = Map<string, string>
 
 export type LinkSource = SiteOptions & {

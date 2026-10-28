@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { access, readFile } from "node:fs/promises"
+import { access } from "node:fs/promises"
 import { test } from "node:test"
 
 import { markdownLink, markdownLinkHrefs } from "./internalLinks.ts"
@@ -14,11 +14,10 @@ import {
 import { backLink } from "./rulesMdSource.ts"
 import { sitePages } from "./sitePages.ts"
 
-const readmeMarkdown = await readFile(new URL("README.md", repositoryRoot), "utf8")
 
 const { base, repositoryUrl } = publishedSite
 const pages = sitePages(
-    { rulesMd: rulesMarkdown, readmeMd: readmeMarkdown, userGuide },
+    { rulesMd: rulesMarkdown, userGuide },
     publishedSite,
 )
 const rulePages = () => pages.filter((page) => page.kind === "rule")

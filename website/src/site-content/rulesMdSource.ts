@@ -1,7 +1,7 @@
 import { headingAnchor } from "./internalLinks.ts"
 import { isCodeFence, markdownLines } from "./markdownLines.ts"
-import { rulesOverviewId } from "./readmeMdSource.ts"
 import type { SitePage, SourcePage } from "./sitePages.ts"
+import { rulesOverviewId } from "./userGuideSource.ts"
 
 type Section = {
     heading: string
@@ -50,7 +50,7 @@ const rulesMdPage = (section: Section): RulesMdPage[] => {
     return [{ page, file, heading, location: `section \`${heading}\`` }]
 }
 
-// The README Rules section lists every rule, so it stands in for the rules index, which has no page
+// The guide's rules index lists every rule, so it stands in for the RULES.md one, which has no page
 const rulesIndexRoute = `${rulesOverviewId}/`
 
 // A group has no page: its anchor leads to its first rule, as its heading does in RULES.md

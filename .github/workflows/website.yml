@@ -8,12 +8,12 @@ on:
         paths:
             - website/**
             - RULES.md
-            - README.md
+            - user-guide/**
     pull_request:
         paths:
             - website/**
             - RULES.md
-            - README.md
+            - user-guide/**
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}

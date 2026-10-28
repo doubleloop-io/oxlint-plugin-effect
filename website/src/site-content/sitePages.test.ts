@@ -4,7 +4,6 @@ import { test } from "node:test"
 import {
     group,
     pagesOf,
-    readmeMarkdown,
     ruleSection,
     rulesMarkdown,
 } from "./sourceMarkdownBuilders.ts"
@@ -80,81 +79,5 @@ test("a RULES.md link to a section that has no site page fails, naming the link 
     assert.throws(() => pagesOf({ rulesMd: markdown }), {
         message:
             "RULES.md, rule `no-effect-promise`: link `#removed-rule` resolves to no site page",
-    })
-})
-
-test("the landing page shows the package scope above its name, the first paragraph as tagline, and links to installation and the rules overview", () => {
-    const readmeMd = [
-        "# @owner/the-plugin\n\nAn oxlint plugin.\n\nIt complements [tsgo](#alongside-effecttsgo).\n",
-        "## Installation\n\n```bash\npnpm add -D the-plugin\n```\n",
-        "## Configuration\n\n### Alongside `@effect/tsgo`\n\nBoth.\n",
-    ].join("\n")
-
-    const page = pageById({ readmeMd }, "index")
-
-    assert.deepEqual(page, {
-        kind: "landing",
-        id: "index",
-        title: "@owner/the-plugin",
-        scope: "@owner/",
-        name: "the-plugin",
-        tagline: "An oxlint plugin.",
-        body: "It complements [tsgo](/site/configuration/#alongside-effecttsgo).\n",
-        actions: [
-            { text: "Installation", link: "/site/installation/" },
-            { text: "Rules overview", link: "/site/rules-overview/" },
-        ],
-    })
-})
-
-test("a link to a README section points to its page, a link to a subsection to its heading there", () => {
-    const readmeMd = readmeMarkdown(
-        "## Installation\n\nThen [configure](#configuration), [with tsgo](#alongside-effecttsgo).\n",
-        "## Configuration\n\nExtend.\n\n### Alongside `@effect/tsgo`\n\nBoth.\n",
-    )
-
-    const page = pageById({ readmeMd }, "installation")
-
-    assert.equal(
-        page?.body,
-        "Then [configure](/site/configuration/), [with tsgo](/site/configuration/#alongside-effecttsgo).\n",
-    )
-})
-
-test("a link to the Rules section points to the rules overview", () => {
-    const readmeMd = readmeMarkdown(
-        "## Rules\n\n| Topic | Rules |\n\n### Absorbed from anti-slop\n\nSome rules.\n",
-        "## Versioning\n\nSee the [overview](#rules) and [provenance](#absorbed-from-anti-slop).\n",
-    )
-
-    const pages = pagesOf({ readmeMd })
-
-    assert.equal(
-        pages.find(({ id }) => id === "versioning")?.body,
-        "See the [overview](/site/rules-overview/) and [provenance](/site/rules-overview/#absorbed-from-anti-slop).\n",
-    )
-})
-
-test("a link from the README to RULES.md points to the rules overview, a link to a rule in it to the rule page", () => {
-    const readmeMd = readmeMarkdown(
-        "## Versioning\n\nIn [`RULES.md`](RULES.md), such as [this](RULES.md#no-effect-promise).\n",
-    )
-
-    const page = pageById({ readmeMd }, "versioning")
-
-    assert.equal(
-        page?.body,
-        "In [`RULES.md`](/site/rules-overview/), such as [this](/site/rules/no-effect-promise/).\n",
-    )
-})
-
-test("a link to the Development section fails, as it has no site page", () => {
-    const readmeMd = readmeMarkdown(
-        "## Versioning\n\nSee [releasing](#development).\n",
-        "## Development\n\n- `pnpm release`.\n",
-    )
-
-    assert.throws(() => pagesOf({ readmeMd }), {
-        message: "README.md, section `Versioning`: link `#development` resolves to no site page",
     })
 })

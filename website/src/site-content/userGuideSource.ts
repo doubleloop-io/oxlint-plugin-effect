@@ -1,8 +1,23 @@
 import { headingAnchor } from "./internalLinks.ts"
 import { markdownLines } from "./markdownLines.ts"
-import type { GuideFile, SourcePage } from "./sitePages.ts"
+import type { GuideFile, SitePage, SourcePage } from "./sitePages.ts"
 
 export const userGuideDirectory = "user-guide"
+
+const guideIndexPath = "README.md"
+
+export const rulesOverviewId = "rules-overview"
+
+// `rules/` is the parent route of the rule pages, so the rules index has a route of its own
+const pageIds = new Map([
+    [guideIndexPath, "index"],
+    ["rules.md", rulesOverviewId],
+])
+
+const landingActions = [
+    { text: "Installation", link: "installation.md" },
+    { text: "Rules overview", link: "rules.md" },
+]
 
 type Frontmatter = { title: string; order: number }
 
@@ -19,7 +34,8 @@ const markdownHeading = /^#{1,6} (?<heading>.+)$/u
 
 const linkRoutes = ({ path, body }: GuideEntry) => {
     const file = `${userGuideDirectory}/${path}`
-    const route = `${pageId(path)}/`
+    const id = pageId(path)
+    const route = id === "index" ? "" : `${id}/`
     const anchors = markdownLines(body.split("\n")).flatMap(({ line, insideCodeBlock }) => {
         const heading = insideCodeBlock ? undefined : markdownHeading.exec(line)?.groups?.heading
         return heading === undefined ? [] : [headingAnchor(heading)]
@@ -30,7 +46,7 @@ const linkRoutes = ({ path, body }: GuideEntry) => {
     ]
 }
 
-const pageId = (path: string) => path.replace(/\.md$/u, "")
+const pageId = (path: string) => pageIds.get(path) ?? path.replace(/\.md$/u, "")
 
 // A page without an order goes after the ordered ones
 const byFrontmatterOrderThenPath = (left: GuideEntry, right: GuideEntry) =>
@@ -39,6 +55,9 @@ const byFrontmatterOrderThenPath = (left: GuideEntry, right: GuideEntry) =>
 const knownFields = new Set(["title", "order"])
 
 const frontmatterField = /^(?<field>[\w-]+): *(?<value>.*)$/u
+
+// YAML needs quotes around a value that starts with a reserved character such as `@`
+const quotedValue = /^"(?<text>.*)"$/u
 
 const integer = /^-?\d+$/u
 
@@ -57,7 +76,8 @@ const guideEntry = ({ path, content }: GuideFile): GuideEntry => {
                 if (!knownFields.has(field)) {
                     throw guideFileError(path, `frontmatter has unknown field \`${field}\``)
                 }
-                return [field, value.trim()] as const
+                const trimmed = value.trim()
+                return [field, quotedValue.exec(trimmed)?.groups?.text ?? trimmed] as const
             }),
     )
     const title = fields.get("title")
@@ -77,7 +97,29 @@ const guideFileError = (path: string, problem: string) =>
     new Error(`${userGuideDirectory}/${path}: ${problem}`)
 
 const guidePage = ({ path, frontmatter, body }: GuideEntry): SourcePage => ({
-    page: { kind: "guide", id: pageId(path), title: frontmatter.title, body },
+    page:
+        path === guideIndexPath
+            ? landingPage(frontmatter.title, body)
+            : { kind: "guide", id: pageId(path), title: frontmatter.title, body },
     file: `${userGuideDirectory}/${path}`,
     location: undefined,
 })
+
+const packageName = /^(?<scope>@[^/]+\/)?(?<name>.+)$/u
+
+// The title is the package name, split so the scope can sit above the name;
+// the first paragraph is the tagline under it, so the body starts after it
+const landingPage = (title: string, body: string): SitePage => {
+    const { scope, name = title } = packageName.exec(title)?.groups ?? {}
+    const [tagline = "", ...rest] = body.split("\n\n")
+    return {
+        kind: "landing",
+        id: "index",
+        title,
+        scope,
+        name,
+        tagline: tagline.trim(),
+        body: rest.length === 0 ? "" : `${rest.join("\n\n").trim()}\n`,
+        actions: landingActions,
+    }
+}

@@ -3,7 +3,7 @@ import starlight from "@astrojs/starlight"
 import { defineConfig } from "astro/config"
 
 import { publishedSite, siteOrigin } from "./src/site-content/publishedSite.ts"
-import { rulesOverviewId } from "./src/site-content/readmeMdSource.ts"
+import { rulesOverviewId } from "./src/site-content/userGuideSource.ts"
 import { readSiteSources } from "./src/site-content/readSiteSources.ts"
 import { sitePages } from "./src/site-content/sitePages.ts"
 

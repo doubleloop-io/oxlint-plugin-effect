@@ -1,5 +1,4 @@
 import { type LinkRoutes, resolveLink, rewriteInternalLinks } from "./internalLinks.ts"
-import { readmeMdSource } from "./readmeMdSource.ts"
 import { rulesMdSource } from "./rulesMdSource.ts"
 import { userGuideSource } from "./userGuideSource.ts"
 
@@ -25,12 +24,12 @@ export type SourcePage = { page: SitePage; file: string; location: string | unde
 // `path` is relative to the user-guide directory
 export type GuideFile = { path: string; content: string }
 
-export type SiteSources = { rulesMd: string; readmeMd: string; userGuide: GuideFile[] }
+export type SiteSources = { rulesMd: string; userGuide: GuideFile[] }
 
 export type SiteOptions = { base: string; repositoryUrl: string }
 
-export const sitePages = ({ rulesMd, readmeMd, userGuide }: SiteSources, options: SiteOptions) => {
-    const sources = [readmeMdSource(readmeMd), userGuideSource(userGuide), rulesMdSource(rulesMd)]
+export const sitePages = ({ rulesMd, userGuide }: SiteSources, options: SiteOptions) => {
+    const sources = [userGuideSource(userGuide), rulesMdSource(rulesMd)]
     const routes: LinkRoutes = new Map(sources.flatMap((source) => [...source.routes]))
     return sources
         .flatMap(({ sourcePages }) => sourcePages)
