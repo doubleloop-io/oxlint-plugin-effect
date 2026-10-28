@@ -2,8 +2,8 @@
 import starlight from "@astrojs/starlight"
 import { defineConfig } from "astro/config"
 
-import { publishedSite } from "./src/site-content/publishedSite.ts"
-import { rulesOverviewId } from "./src/site-content/readmeMdSource.ts"
+import { publishedSite, siteOrigin } from "./src/site-content/publishedSite.ts"
+import { rulesOverviewId } from "./src/site-content/userGuideSource.ts"
 import { readSiteSources } from "./src/site-content/readSiteSources.ts"
 import { sitePages } from "./src/site-content/sitePages.ts"
 
@@ -11,10 +11,9 @@ import { sitePages } from "./src/site-content/sitePages.ts"
 const pages = sitePages(await readSiteSources(new URL(".", import.meta.url)), publishedSite)
 const rulePages = pages.filter((page) => page.kind === "rule")
 const guidePages = pages.filter((page) => page.kind === "guide" && page.id !== rulesOverviewId)
-const referencePages = pages.filter((page) => page.kind === "reference")
 
 export default defineConfig({
-    site: "https://doubleloop-io.github.io",
+    site: siteOrigin,
     base: publishedSite.base,
     integrations: [
         starlight({
@@ -45,7 +44,6 @@ export default defineConfig({
             sidebar: [
                 { slug: "index", label: "Overview" },
                 ...guidePages.map(({ id }) => ({ slug: id })),
-                ...referencePages.map(({ id }) => ({ slug: id })),
                 {
                     label: "Rules",
                     items: [

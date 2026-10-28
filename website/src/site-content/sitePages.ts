@@ -1,10 +1,8 @@
-import { type LinkRoutes, resolveLink, rewriteInternalLinks } from "./internalLinks.ts"
-import { readmeMdSource } from "./readmeMdSource.ts"
-import { rulesMdSource } from "./rulesMdSource.ts"
+import { resolveLink, rewriteInternalLinks } from "./internalLinks.ts"
+import { userGuideSource } from "./userGuideSource.ts"
 
 export type SitePage =
     | { kind: "rule"; id: string; title: string; group: string; body: string }
-    | { kind: "reference"; id: string; title: string; body: string }
     | { kind: "guide"; id: string; title: string; body: string }
     | {
           kind: "landing"
@@ -19,19 +17,19 @@ export type SitePage =
 
 type LandingAction = { text: string; link: string }
 
-export type SourcePage = { page: SitePage; file: string; location: string }
+export type SourcePage = { page: SitePage; file: string }
 
-export type SiteSources = { rulesMd: string; readmeMd: string }
+// `path` is relative to the user-guide directory
+export type GuideFile = { path: string; content: string }
+
+export type SiteSources = { userGuide: GuideFile[] }
 
 export type SiteOptions = { base: string; repositoryUrl: string }
 
-export const sitePages = ({ rulesMd, readmeMd }: SiteSources, options: SiteOptions) => {
-    const sources = [readmeMdSource(readmeMd), rulesMdSource(rulesMd)]
-    const routes: LinkRoutes = new Map(sources.flatMap((source) => [...source.routes]))
-    return sources
-        .flatMap(({ sourcePages }) => sourcePages)
-        .map(({ page, file, location }): SitePage => {
-            const source = { ...options, file, location, routes }
+export const sitePages = ({ userGuide }: SiteSources, options: SiteOptions) => {
+    const { sourcePages, routes } = userGuideSource(userGuide)
+    return sourcePages.map(({ page, file }): SitePage => {
+            const source = { ...options, file, routes }
             const body = rewriteInternalLinks(page.body, source)
             if (page.kind !== "landing") return { ...page, body }
             const actions = page.actions.map(({ text, link }) => ({

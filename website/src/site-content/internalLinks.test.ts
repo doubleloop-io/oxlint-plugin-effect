@@ -6,20 +6,16 @@ import { testSite } from "./sourceMarkdownBuilders.ts"
 
 const linkSource = (routes: Record<string, string>): LinkSource => ({
     ...testSite,
-    file: "RULES.md",
-    location: "rule `no-effect-promise`",
+    file: "docs/user-guide/shared-settings.md",
     routes: new Map(Object.entries(routes)),
 })
 
 test("an anchor link points to its route under the base, also when the link names its file", () => {
-    const source = linkSource({ "RULES.md#try-object-form": "rules/try-object-form/" })
+    const source = linkSource({ "docs/user-guide/shared-settings.md#defaults": "shared-settings/#defaults" })
 
-    const body = rewriteInternalLinks(
-        "[a](#try-object-form), [b](RULES.md#try-object-form)",
-        source,
-    )
+    const body = rewriteInternalLinks("[a](#defaults), [b](shared-settings.md#defaults)", source)
 
-    assert.equal(body, "[a](/site/rules/try-object-form/), [b](/site/rules/try-object-form/)")
+    assert.equal(body, "[a](/site/shared-settings/#defaults), [b](/site/shared-settings/#defaults)")
 })
 
 test("links to the web and link-like text in a code block are left as they are", () => {
@@ -32,7 +28,7 @@ test("links to the web and link-like text in a code block are left as they are",
 })
 
 test("a link to a repository file with no site page points to the file on the main branch", () => {
-    const body = rewriteInternalLinks("See [the license](LICENSE.anti-slop).", linkSource({}))
+    const body = rewriteInternalLinks("See [the license](../../LICENSE.anti-slop).", linkSource({}))
 
     assert.equal(body, `See [the license](${testSite.repositoryUrl}/blob/main/LICENSE.anti-slop).`)
 })

@@ -4,9 +4,11 @@ After any change, run `pnpm format && pnpm build-and-pack` and fix what it repor
 
 Do not modify the logic or messages of `rules/anti-slop-*`: they are absorbed from `dmmulroy/anti-slop` and must stay resyncable. When a dl-effect rule covers the same case more strongly, retire the anti-slop rule instead.
 
-When adding or editing a section of `RULES.md`, follow [`docs/rules-catalog-style.md`](docs/rules-catalog-style.md).
+The rule catalog is one file per rule, `docs/user-guide/rules/<rule-name>.md`, listed in the rules index, `docs/user-guide/rules.md`. When adding or editing a rule file, follow [`docs/rules-catalog-style.md`](docs/rules-catalog-style.md).
 
-The website (`website/`) parses `RULES.md` and `README.md` in its content module (`website/src/site-content/`) and fails its build when a rule section breaks the catalog template or a link resolves to no page: a change to the template or to the structure of `RULES.md` or `README.md` must update the content module and its tests (`cd website && pnpm test`). Each `##` section of `README.md` becomes a site page except Development, which addresses maintainers only.
+The website (`website/`) is built from `docs/user-guide/` by its content module (`website/src/site-content/`). Each `docs/user-guide/` file is a page, titled and ordered by its frontmatter; `docs/user-guide/README.md` is the guide index and the landing page, `docs/user-guide/rules.md` the Rules overview, whose links order the rule pages; each rule file is a rule page in the group of its frontmatter. Links between guide files are relative `.md` paths. The build fails when a guide file's frontmatter is invalid, a rule file breaks the catalog template or is missing from the rules index, or a link resolves to no page: a change to the template, to the frontmatter or to the structure of the rules index must update the content module and its tests (`cd website && pnpm test`).
+
+The README is the essential guide: introduction, installation, the happy path and the warnings that matter before adopting the plugin. It links to the website guide with absolute URLs and does not repeat it; anything else goes in `docs/user-guide/`. Maintainer docs go in `CONTRIBUTING.md`, which has no site page.
 
 ## Agent skills
 

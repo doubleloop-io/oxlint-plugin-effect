@@ -7,12 +7,12 @@ on:
             - main
         paths:
             - website/**
-            - RULES.md
+            - docs/user-guide/**
             - README.md
     pull_request:
         paths:
             - website/**
-            - RULES.md
+            - docs/user-guide/**
             - README.md
 
 concurrency:
