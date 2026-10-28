@@ -93,10 +93,11 @@ test("the real guide index is the landing page, with the package scope above its
     )
 })
 
+// Rule pages are reached through the rules index, which the build already requires to link them
 test("the real guide index links to every guide page", () => {
     const indexHrefs = markdownLinkHrefs(pageOf("README.md")?.body ?? "")
     const unlinked = sources.userGuide
-        .filter(({ path }) => path !== "README.md")
+        .filter(({ path }) => path !== "README.md" && !isRuleFile(path))
         .map(({ path }) => pageOf(path)?.id ?? path)
         .filter((id) => !indexHrefs.includes(routeOf(id)))
 
