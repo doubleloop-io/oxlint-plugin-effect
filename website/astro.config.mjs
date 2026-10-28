@@ -19,6 +19,7 @@ export default defineConfig({
     integrations: [
         starlight({
             title: "oxlint-plugin-effect",
+            tableOfContents: false,
             social: [
                 {
                     icon: "github",
