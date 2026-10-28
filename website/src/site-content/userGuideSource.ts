@@ -22,26 +22,26 @@ const landingActions = [
     { text: "Rules overview", link: rulesIndexPath },
 ]
 
-type Frontmatter = { title: string; order: number; group: string | undefined }
-
-type GuideEntry = { path: string; frontmatter: Frontmatter; body: string }
+// Whether a file is a rule is decided once, from its path, when it is parsed
+type ParsedGuideFile = { path: string; title: string; body: string } & (
+    | { kind: "rule"; group: string }
+    | { kind: "page"; order: number }
+)
 
 const frontmatterBlock = /^---\n(?<fields>(?:.*\n)*?)---\n/u
 
 export const userGuideSource = (files: GuideFile[]) => {
-    const all = files.map(guideEntry)
-    const guideEntries = all
-        .filter(({ path }) => !isRuleFile(path))
-        .toSorted(byFrontmatterOrderThenPath)
-    const entries = [...guideEntries, ...inRulesIndexOrder(all)]
-    return { sourcePages: entries.map(guidePage), routes: new Map(entries.flatMap(linkRoutes)) }
+    const parsed = files.map(parseGuideFile)
+    const pages = parsed.filter((file) => file.kind === "page").toSorted(byOrderThenPath)
+    const ordered = [...pages, ...inRulesIndexOrder(parsed)]
+    return { sourcePages: ordered.map(sourcePage), routes: new Map(ordered.flatMap(linkRoutes)) }
 }
 
 // The rules index sits next to `rules/`, so its links to rule files are their paths
-const inRulesIndexOrder = (entries: GuideEntry[]) => {
-    const rulesIndex = entries.find(({ path }) => path === rulesIndexPath)
+const inRulesIndexOrder = (files: ParsedGuideFile[]) => {
+    const rulesIndex = files.find(({ path }) => path === rulesIndexPath)
     const linkedPaths = markdownLinkHrefs(rulesIndex?.body ?? "")
-    const position = ({ path }: GuideEntry) => {
+    const position = ({ path }: ParsedGuideFile) => {
         const index = linkedPaths.indexOf(path)
         if (index === -1) {
             throw guideFileError(
@@ -51,16 +51,16 @@ const inRulesIndexOrder = (entries: GuideEntry[]) => {
         }
         return index
     }
-    return entries
-        .filter(({ path }) => isRuleFile(path))
-        .map((entry) => ({ entry, position: position(entry) }))
+    return files
+        .filter((file) => file.kind === "rule")
+        .map((file) => ({ file, position: position(file) }))
         .toSorted((left, right) => left.position - right.position)
-        .map(({ entry }) => entry)
+        .map(({ file }) => file)
 }
 
 const markdownHeading = /^#{1,6} (?<heading>.+)$/u
 
-const linkRoutes = ({ path, body }: GuideEntry) => {
+const linkRoutes = ({ path, body }: ParsedGuideFile) => {
     const file = `${userGuideDirectory}/${path}`
     const id = pageId(path)
     const route = id === "index" ? "" : `${id}/`
@@ -76,9 +76,10 @@ const linkRoutes = ({ path, body }: GuideEntry) => {
 
 const pageId = (path: string) => pageIds.get(path) ?? path.replace(/\.md$/u, "")
 
-// A page without an order goes after the ordered ones
-const byFrontmatterOrderThenPath = (left: GuideEntry, right: GuideEntry) =>
-    left.frontmatter.order - right.frontmatter.order || left.path.localeCompare(right.path)
+type OrderedFile = { path: string; order: number }
+
+const byOrderThenPath = (left: OrderedFile, right: OrderedFile) =>
+    left.order - right.order || left.path.localeCompare(right.path)
 
 const ruleDirectory = "rules/"
 
@@ -94,7 +95,7 @@ const quotedValue = /^"(?<text>.*)"$/u
 
 const integer = /^-?\d+$/u
 
-const guideEntry = ({ path, content }: GuideFile): GuideEntry => {
+const parseGuideFile = ({ path, content }: GuideFile): ParsedGuideFile => {
     const block = frontmatterBlock.exec(content)
     if (block === null) throw guideFileError(path, "no frontmatter")
     const fields = new Map(
@@ -119,33 +120,33 @@ const guideEntry = ({ path, content }: GuideFile): GuideEntry => {
     if (order !== undefined && !integer.test(order)) {
         throw guideFileError(path, "frontmatter `order` is not an integer")
     }
-    const group = fields.get("group")
-    if (isRuleFile(path) && (group === undefined || group === "")) {
-        throw guideFileError(path, "frontmatter has no `group`")
+    const body = `${content.slice(block[0].length).trim()}\n`
+    if (isRuleFile(path)) {
+        const group = fields.get("group")
+        if (group === undefined || group === "") throw guideFileError(path, "frontmatter has no `group`")
+        return { kind: "rule", path, title, group, body }
     }
-    const frontmatter = {
-        title,
-        order: order === undefined ? Number.POSITIVE_INFINITY : Number(order),
-        group,
-    }
-    return { path, frontmatter, body: `${content.slice(block[0].length).trim()}\n` }
+    // A page without an order goes after the ordered ones
+    const position = order === undefined ? Number.POSITIVE_INFINITY : Number(order)
+    return { kind: "page", path, title, order: position, body }
 }
 
 const guideFileError = (path: string, problem: string) =>
     new Error(`${userGuideDirectory}/${path}: ${problem}`)
 
-const guidePage = ({ path, frontmatter, body }: GuideEntry): SourcePage => ({
-    page: sitePage(path, frontmatter, body),
-    file: `${userGuideDirectory}/${path}`,
+const sourcePage = (file: ParsedGuideFile): SourcePage => ({
+    page: sitePage(file),
+    file: `${userGuideDirectory}/${file.path}`,
 })
 
-const sitePage = (path: string, { title, group }: Frontmatter, body: string): SitePage => {
-    if (path === guideIndexPath) return landingPage(title, body)
-    if (group !== undefined) {
+const sitePage = (file: ParsedGuideFile): SitePage => {
+    const { path, title, body } = file
+    if (file.kind === "rule") {
         const problem = ruleTemplateProblem(body)
         if (problem !== undefined) throw guideFileError(path, problem)
-        return { kind: "rule", id: pageId(path), title, group, body }
+        return { kind: "rule", id: pageId(path), title, group: file.group, body }
     }
+    if (path === guideIndexPath) return landingPage(title, body)
     return { kind: "guide", id: pageId(path), title, body }
 }
 
