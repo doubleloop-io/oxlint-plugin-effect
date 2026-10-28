@@ -1,5 +1,5 @@
 import { backLink } from "./rulesMdSource.ts"
-import { type SiteOptions, type SiteSources, sitePages } from "./sitePages.ts"
+import { type GuideFile, type SiteOptions, type SiteSources, sitePages } from "./sitePages.ts"
 
 type RuleFields = {
     intent: string
@@ -50,7 +50,22 @@ export const readmeMarkdown = (...sections: string[]) =>
             : ["## Installation\n\nInstall it.\n"]),
     ].join("\n")
 
+export const frontmatter = (fields: Record<string, string | number>) =>
+    ["---", ...Object.entries(fields).map(([key, value]) => `${key}: ${value}`), "---", ""].join("\n")
+
+export const guideFile = (
+    path: string,
+    fields: Record<string, string | number> = {},
+    body = "Some text.\n",
+): GuideFile => ({ path, content: `${frontmatter({ title: "A page", ...fields })}\n${body}` })
+
 export const pagesOf = ({
     rulesMd = rulesMarkdown(group("Error channel", ruleSection("no-effect-promise"))),
     readmeMd = readmeMarkdown(),
-}: Partial<SiteSources>) => sitePages({ rulesMd, readmeMd }, testSite)
+    userGuide = [],
+}: Partial<SiteSources>) => sitePages({ rulesMd, readmeMd, userGuide }, testSite)
+
+const readmePageIds = new Set(pagesOf({}).map(({ id }) => id))
+
+export const guidePagesOf = (userGuide: GuideFile[]) =>
+    pagesOf({ userGuide }).filter(({ id }) => !readmePageIds.has(id))

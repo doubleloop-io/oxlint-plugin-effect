@@ -2,7 +2,7 @@
 import starlight from "@astrojs/starlight"
 import { defineConfig } from "astro/config"
 
-import { publishedSite } from "./src/site-content/publishedSite.ts"
+import { publishedSite, siteOrigin } from "./src/site-content/publishedSite.ts"
 import { rulesOverviewId } from "./src/site-content/readmeMdSource.ts"
 import { readSiteSources } from "./src/site-content/readSiteSources.ts"
 import { sitePages } from "./src/site-content/sitePages.ts"
@@ -14,7 +14,7 @@ const guidePages = pages.filter((page) => page.kind === "guide" && page.id !== r
 const referencePages = pages.filter((page) => page.kind === "reference")
 
 export default defineConfig({
-    site: "https://doubleloop-io.github.io",
+    site: siteOrigin,
     base: publishedSite.base,
     integrations: [
         starlight({

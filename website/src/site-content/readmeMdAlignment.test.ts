@@ -3,15 +3,18 @@ import { access, readFile } from "node:fs/promises"
 import { test } from "node:test"
 
 import { headingAnchor, markdownLink, markdownLinkHrefs } from "./internalLinks.ts"
-import { publishedSite } from "./publishedSite.ts"
+import { publishedSite, siteOrigin } from "./publishedSite.ts"
 import { maintainerSections, renamedSections } from "./readmeMdSource.ts"
-import { expectedRulesMdRoute, repositoryRoot, rulesMarkdown } from "./realRulesMd.ts"
+import { expectedRulesMdRoute, repositoryRoot, rulesMarkdown, userGuide } from "./realRulesMd.ts"
 import { sitePages } from "./sitePages.ts"
 
 const readmeMarkdown = await readFile(new URL("README.md", repositoryRoot), "utf8")
 
 const { base, repositoryUrl } = publishedSite
-const pages = sitePages({ rulesMd: rulesMarkdown, readmeMd: readmeMarkdown }, publishedSite)
+const pages = sitePages(
+    { rulesMd: rulesMarkdown, readmeMd: readmeMarkdown, userGuide },
+    publishedSite,
+)
 const readmePages = pages.filter(({ kind }) => kind === "guide" || kind === "landing")
 
 // A README `##` section is a page, so its `###` subsections are `##` headings there
@@ -105,18 +108,27 @@ const readmeHrefs = () => [
         .map(({ link }) => link),
 ]
 
+const assertIsSitePageAndHeading = (href: string) => {
+    const [route, anchor] = href.split("#")
+    const target = pages.find(({ id }) => routeOf(id) === route)
+    assert.ok(target, `${href} is not a site page`)
+    if (anchor !== undefined) {
+        assert.ok(pageHeadingAnchors(target.body).includes(anchor), `${href} has no heading`)
+    }
+}
+
 test("every internal link of the real README points to an existing site page and heading", () => {
     const sitePageHrefs = readmeHrefs().filter((href) => href.startsWith(`${base}/`))
 
     assert.ok(sitePageHrefs.length > 0)
-    for (const href of sitePageHrefs) {
-        const [route, anchor] = href.split("#")
-        const target = pages.find(({ id }) => routeOf(id) === route)
-        assert.ok(target, `${href} is not a site page`)
-        if (anchor !== undefined) {
-            assert.ok(pageHeadingAnchors(target.body).includes(anchor), `${href} has no heading`)
-        }
-    }
+    for (const href of sitePageHrefs) assertIsSitePageAndHeading(href)
+})
+
+test("every absolute link of the real README to the website points to an existing site page and heading", () => {
+    const websiteHrefs = readmeHrefs().filter((href) => href.startsWith(`${siteOrigin}${base}/`))
+
+    assert.ok(websiteHrefs.length > 0)
+    for (const href of websiteHrefs) assertIsSitePageAndHeading(href.replace(siteOrigin, ""))
 })
 
 test("every link of the real README to a repository file points to a file that exists", async () => {

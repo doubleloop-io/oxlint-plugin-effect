@@ -12,7 +12,7 @@ It complements the type-aware rules of [`@effect/tsgo`](#alongside-effecttsgo): 
 pnpm add -D @doubleloop-io/oxlint-plugin-effect oxlint
 ```
 
-Requires Node `^22.20.0 || >=24.8.0` and oxlint `^1.82.0`.
+Requires Node `^22.20.0 || >=24.8.0` and oxlint `^1.82.0`. What a release may change and which oxlint versions are supported: [Versioning](https://doubleloop-io.github.io/oxlint-plugin-effect/versioning/).
 
 ## Configuration
 
@@ -215,12 +215,6 @@ export default defineConfig({
 ```
 
 To change a setting, declare it in `settings`; to change a rule option, extend `all` and override only that rule.
-
-## Versioning
-
-Versions are `0.x`: any minor release may add, remove or change rules, options, settings and messages.
-
-Supported oxlint is the `peerDependencies` range, `^1.82.0`; CI tests the tarball against `1.82.0`. oxlint's JS plugin API is still experimental, so a newer oxlint minor may break the plugin before the range is narrowed.
 
 ## Development
 

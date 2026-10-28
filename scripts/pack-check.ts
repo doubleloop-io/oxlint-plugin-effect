@@ -18,7 +18,7 @@ const allowedFiles = [
     "LICENSE",
     "LICENSE.anti-slop",
 ]
-const allowedDirectories = ["dist/"]
+const allowedDirectories = ["dist/", "user-guide/"]
 
 const isAllowed = (path: string) =>
     allowedFiles.includes(path) ||

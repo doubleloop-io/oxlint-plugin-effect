@@ -1,3 +1,5 @@
+import { posix } from "node:path"
+
 import { markdownLines } from "./markdownLines.ts"
 import type { SiteOptions } from "./sitePages.ts"
 
@@ -7,7 +9,8 @@ export type LinkRoutes = Map<string, string>
 
 export type LinkSource = SiteOptions & {
     file: string
-    location: string
+    // Where in the file the page comes from; undefined when the page is the whole file
+    location: string | undefined
     routes: LinkRoutes
 }
 
@@ -24,17 +27,23 @@ export const headingAnchor = (heading: string) =>
         .replace(/[^\p{L}\p{N}\s-]/gu, "")
         .replace(/\s/gu, "-")
 
+// A relative link is relative to the directory of the file it is in
+const repositoryPath = (relativePath: string, { file }: LinkSource) =>
+    posix.join(posix.dirname(file), relativePath)
+
 export const resolveLink = (href: string, source: LinkSource) => {
     const target = internalHref.exec(href)?.groups
     if (target === undefined) {
-        return repositoryFileHref.test(href) ? `${source.repositoryUrl}/blob/main/${href}` : href
+        return repositoryFileHref.test(href)
+            ? `${source.repositoryUrl}/blob/main/${repositoryPath(href, source)}`
+            : href
     }
-    const { file = source.file, anchor } = target
+    const file = target.file === undefined ? source.file : repositoryPath(target.file, source)
+    const { anchor } = target
     const route = source.routes.get(anchor === undefined ? file : `${file}#${anchor}`)
     if (route === undefined) {
-        throw new Error(
-            `${source.file}, ${source.location}: link \`${href}\` resolves to no site page`,
-        )
+        const origin = [source.file, source.location].filter((part) => part !== undefined)
+        throw new Error(`${origin.join(", ")}: link \`${href}\` resolves to no site page`)
     }
     return `${source.base.replace(/\/$/u, "")}/${route}`
 }

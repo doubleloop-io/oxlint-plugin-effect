@@ -9,6 +9,7 @@ import {
     repositoryRoot,
     rulesIndexRow,
     rulesMarkdown,
+    userGuide,
 } from "./realRulesMd.ts"
 import { backLink } from "./rulesMdSource.ts"
 import { sitePages } from "./sitePages.ts"
@@ -16,7 +17,10 @@ import { sitePages } from "./sitePages.ts"
 const readmeMarkdown = await readFile(new URL("README.md", repositoryRoot), "utf8")
 
 const { base, repositoryUrl } = publishedSite
-const pages = sitePages({ rulesMd: rulesMarkdown, readmeMd: readmeMarkdown }, publishedSite)
+const pages = sitePages(
+    { rulesMd: rulesMarkdown, readmeMd: readmeMarkdown, userGuide },
+    publishedSite,
+)
 const rulePages = () => pages.filter((page) => page.kind === "rule")
 const rulesMdPages = () => pages.filter(({ kind }) => kind === "rule" || kind === "reference")
 

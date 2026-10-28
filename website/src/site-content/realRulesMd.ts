@@ -1,8 +1,12 @@
 import { readFile } from "node:fs/promises"
 
+import { readUserGuide } from "./readSiteSources.ts"
+
 export const repositoryRoot = new URL("../../../", import.meta.url)
 
 export const rulesMarkdown = await readFile(new URL("RULES.md", repositoryRoot), "utf8")
+
+export const userGuide = await readUserGuide(new URL("user-guide/", repositoryRoot))
 
 export const rulesIndexRow =
     /^\| (?:\[(?<group>[^\]]+)\]\(#(?<groupAnchor>[a-z-]+)\))? +\| \[`(?<rule>[a-z-]+)`\]/gmu
