@@ -15,5 +15,7 @@
         "isolatedModules": true,
         "skipLibCheck": true
     },
-    "include": ["oxlint.config.ts", "scripts/**/*.ts", "src/**/*.ts"]
+    "include": ["oxlint.config.ts", "scripts/**/*.ts", "src/**/*.ts"],
+    // The fixture imports resolve only in the project that consumer-test installs.
+    "exclude": ["scripts/consumer-fixture"]
 }

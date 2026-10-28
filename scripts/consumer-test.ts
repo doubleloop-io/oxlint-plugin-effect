@@ -5,7 +5,7 @@ import { join } from "node:path"
 
 import { npmPack } from "./npm-pack.ts"
 
-const fixtureDir = new URL("../consumer-fixture/", import.meta.url)
+const fixtureDir = new URL("./consumer-fixture/", import.meta.url)
 
 // Stored under names oxlint does not discover, so the repo's own lint skips them; each one is
 // copied to the name a consumer would use.
