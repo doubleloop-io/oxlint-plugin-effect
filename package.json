@@ -35,14 +35,16 @@
         "format:check": "oxfmt --check",
         "typecheck": "tsc --noEmit",
         "lint": "oxlint --deny-warnings",
-        "test": "node --test src/rule-files.test.ts src/rules/*.test.ts src/shared/*.test.ts scripts/*.test.ts",
+        "test": "node --test src/rule-files.test.ts src/rules/*.test.ts src/shared/*.test.ts",
         "check": "pnpm format:check && pnpm typecheck && pnpm lint && pnpm test",
         "build": "rm -rf dist && tsc -p tsconfig.build.json && node scripts/preset-all-json.ts",
         "build:w": "node --watch-path=src --watch-path=tsconfig.build.json scripts/build.ts",
         "pack:check": "node --test scripts/preset-all-dist-check.ts && node scripts/pack-check.ts",
         "build-and-pack": "pnpm check && pnpm build && pnpm pack:check && pnpm consumer-test",
         "consumer-test": "node scripts/consumer-test.ts",
-        "release": "node scripts/release.ts",
+        "changeset-version": "changeset version && pnpm format",
+        "changeset-publish": "pnpm build-and-pack && changeset publish",
+        "changeset-status": "changeset status --verbose",
         "consumer:link": "./scripts/link-consumer.sh link",
         "consumer:unlink": "./scripts/link-consumer.sh unlink"
     },
@@ -50,6 +52,8 @@
         "@oxlint/plugins": "^1.82.0"
     },
     "devDependencies": {
+        "@changesets/changelog-github": "^1.0.1",
+        "@changesets/cli": "^3.0.3",
         "@types/node": "^24.13.6",
         "oxfmt": "0.67.0",
         "oxlint": "1.82.0",
