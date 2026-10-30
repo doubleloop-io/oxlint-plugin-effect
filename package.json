@@ -44,6 +44,7 @@
         "consumer-test": "node scripts/consumer-test.ts",
         "release": "node scripts/release.ts",
         "changeset-version": "changeset version && pnpm format",
+        "changeset-publish": "pnpm build-and-pack && changeset publish",
         "changeset-status": "changeset status --verbose",
         "consumer:link": "./scripts/link-consumer.sh link",
         "consumer:unlink": "./scripts/link-consumer.sh unlink"
