@@ -10,7 +10,7 @@ The website (`website/`) is built from `docs/user-guide/` by its content module 
 
 The README is the essential guide: introduction, installation, the happy path and the warnings that matter before adopting the plugin. It links to the website guide with absolute URLs and does not repeat it; anything else goes in `docs/user-guide/`. Maintainer docs go in `CONTRIBUTING.md`, which has no site page.
 
-A change users can notice carries a changeset, whether it arrives by pull request or by a direct commit on `main`: a file in `.changeset/`, written by hand or with `pnpm changeset`. Doc-only, CI and tooling changes do not carry one. The bump: a new rule is minor, because the `all` preset enables it at `warn`; a fix is patch; a breaking change is minor while the plugin is in `0.x`. Before merging the "Version Packages" pull request, check for changes that should have had a changeset and add the missing ones; `pnpm changeset-status` shows the plan of the next release.
+A change users can notice carries a changeset, whether it arrives by pull request or by a direct commit on `main`: a file in `.changeset/`, written by hand or with `pnpm changeset`. Doc-only, CI and tooling changes do not carry one. The bump: a new rule is minor, because the `all` preset enables it at `warn`; a fix is patch; a breaking change is minor while the plugin is in `0.x`. Before merging the "Version Packages" pull request, check for changes that should have had a changeset and add the missing ones; `pnpm changeset-status` shows the plan of the next release. The reminder is changeset-bot, non-blocking; there is no `changeset status` check in CI.
 
 ## Agent skills
 
