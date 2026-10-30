@@ -1,5 +1,16 @@
 # @doubleloop-io/oxlint-plugin-effect
 
+## 0.1.1
+
+### Patch Changes
+
+- [`2c67281`](https://github.com/doubleloop-io/oxlint-plugin-effect/commit/2c672814db1d169752d04295374001b935b785f5) Thanks [@iacoware](https://github.com/iacoware)! - The documentation has a website, now the package homepage: https://doubleloop-io.github.io/oxlint-plugin-effect/
+
+    - The rule catalog moves from `RULES.md`, no longer in the package, to one file per rule in `docs/user-guide/rules/`; the guide ships in the package.
+    - The README becomes the essential guide and links to the website.
+    - New Troubleshooting page.
+    - Improve rules documentation.
+
 ## 0.1.0
 
 First stable release.
