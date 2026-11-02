@@ -19,6 +19,21 @@ new RuleTester().run("no-inline-yield-star", noInlineYieldStarRule, {
     ],
     invalid: [
         {
+            code: "function* g() { expect(yield* readValue()).toBe(1); expect(yield* readValue()).toBe(2) }",
+            output: "function* g() { const value = yield* readValue(); expect(value).toBe(1); const value2 = yield* readValue(); expect(value2).toBe(2) }",
+            errors: [{ messageId: "inlineYieldStar" }, { messageId: "inlineYieldStar" }],
+        },
+        {
+            code: "function* g(rows) { consume(yield* readRows()); consume(yield* readRows()) }",
+            output: "function* g(rows) { const rows2 = yield* readRows(); consume(rows2); const rows3 = yield* readRows(); consume(rows3) }",
+            errors: [{ messageId: "inlineYieldStar" }, { messageId: "inlineYieldStar" }],
+        },
+        {
+            code: "function* g() { return count(yield* reader.rows) }\nfunction* h() { return count(yield* reader.rows) }",
+            output: "function* g() { const rows = yield* reader.rows; return count(rows) }\nfunction* h() { const rows = yield* reader.rows; return count(rows) }",
+            errors: [{ messageId: "inlineYieldStar" }, { messageId: "inlineYieldStar" }],
+        },
+        {
             code: "function* g() { return yield* missingIn(yield* readSheet()) }",
             output: "function* g() { const sheet = yield* readSheet(); return yield* missingIn(sheet) }",
             errors: [{ messageId: "inlineYieldStar" }],

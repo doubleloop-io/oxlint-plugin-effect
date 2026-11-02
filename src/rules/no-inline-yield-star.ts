@@ -160,8 +160,12 @@ const extraction = (
     statement: ESTree.Node,
     hoisted: ReadonlyArray<Yield>,
     sourceCode: SourceCode,
+    namesByOwner: Map<ReturnType<typeof nearestFunction>, Set<string>>,
+    owner: ReturnType<typeof nearestFunction>,
 ) => {
-    const taken = namesInUse(sourceCode.getScope(statement).variableScope)
+    const taken =
+        namesByOwner.get(owner) ?? namesInUse(sourceCode.getScope(statement).variableScope)
+    namesByOwner.set(owner, taken)
     const replacements = hoisted.map((node) => {
         let name = baseName(node)
         for (let suffix = 2; taken.has(name); suffix++) name = `${baseName(node)}${suffix}`
@@ -236,6 +240,7 @@ export const noInlineYieldStarRule = defineRule({
             VariableDeclarator: collect,
             "Program:exit"() {
                 const byStatement = new Map<ESTree.Node, Array<Yield>>()
+                const namesByOwner = new Map<ReturnType<typeof nearestFunction>, Set<string>>()
                 for (const node of inline) {
                     const statement = statementOf(node)
                     byStatement.set(statement, [...(byStatement.get(statement) ?? []), node])
@@ -258,7 +263,7 @@ export const noInlineYieldStarRule = defineRule({
                         hoisted.length > 0 &&
                         !reordersEffects(hoisted, evaluatedInStatement)
                     const replacement = fixable
-                        ? extraction(statement, hoisted, context.sourceCode)
+                        ? extraction(statement, hoisted, context.sourceCode, namesByOwner, owner)
                         : undefined
                     for (const node of yields) {
                         context.report({
