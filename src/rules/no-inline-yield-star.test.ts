@@ -57,7 +57,22 @@ new RuleTester().run("no-inline-yield-star", noInlineYieldStarRule, {
         },
         {
             code: "function* g(rows) { return count(yield* reader.rows, rows) }",
-            output: "function* g(rows) { const rows2 = yield* reader.rows; return count(rows2, rows) }",
+            output: "function* g(rows) { const readerRows = yield* reader.rows; return count(readerRows, rows) }",
+            errors: [{ messageId: "inlineYieldStar" }],
+        },
+        {
+            code: "function* g() { const scope = yield* Scope.fork(yield* Effect.scope) }",
+            output: "function* g() { const effectScope = yield* Effect.scope; const scope = yield* Scope.fork(effectScope) }",
+            errors: [{ messageId: "inlineYieldStar" }],
+        },
+        {
+            code: "function* g(rows, readerRows) { return count(yield* reader.rows, rows, readerRows) }",
+            output: "function* g(rows, readerRows) { const rows2 = yield* reader.rows; return count(rows2, rows, readerRows) }",
+            errors: [{ messageId: "inlineYieldStar" }],
+        },
+        {
+            code: "function* g(sheet) { return count(yield* readSheet(), sheet) }",
+            output: "function* g(sheet) { const sheet2 = yield* readSheet(); return count(sheet2, sheet) }",
             errors: [{ messageId: "inlineYieldStar" }],
         },
         {

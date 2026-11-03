@@ -115,12 +115,32 @@ const trailingName = (node: ESTree.Node): string | undefined => {
     }
 }
 
-// `yield* readSheet()` becomes `sheet`, `yield* reader.rows` becomes `rows`.
-const baseName = (node: Yield) => {
-    const name = node.argument ? trailingName(node.argument)?.replace(verbPrefix, "") : undefined
-    if (name === undefined || name === "") return "value"
-    const variable = name.charAt(0).toLowerCase() + name.slice(1)
-    return reservedWords.has(variable) ? "value" : variable
+const memberOwner = (node: ESTree.Node): ESTree.Node | undefined => {
+    switch (node.type) {
+        case "MemberExpression":
+            return node.computed ? undefined : node.object
+        case "CallExpression":
+        case "NewExpression":
+            return memberOwner(node.callee)
+        default:
+            return undefined
+    }
+}
+
+const lowerFirst = (name: string) => name.charAt(0).toLowerCase() + name.slice(1)
+const upperFirst = (name: string) => name.charAt(0).toUpperCase() + name.slice(1)
+
+// `yield* readSheet()` becomes `sheet`, `yield* reader.rows` becomes `rows`, or `readerRows`
+// when `rows` is taken: the owner tells the reader where the value comes from, a suffix does not.
+const names = (node: Yield): { base: string; qualified?: string } => {
+    const { argument } = node
+    const name = argument ? trailingName(argument)?.replace(verbPrefix, "") : undefined
+    if (!argument || name === undefined || name === "") return { base: "value" }
+    const base = lowerFirst(name)
+    if (reservedWords.has(base)) return { base: "value" }
+    const owner = memberOwner(argument)
+    const ownerName = owner ? trailingName(owner) : undefined
+    return ownerName ? { base, qualified: lowerFirst(ownerName) + upperFirst(base) } : { base }
 }
 
 const namesInUse = (scope: Scope) => {
@@ -163,8 +183,9 @@ const extraction = (
 ) => {
     const taken = namesInUse(sourceCode.getScope(statement).variableScope)
     const replacements = hoisted.map((node) => {
-        let name = baseName(node)
-        for (let suffix = 2; taken.has(name); suffix++) name = `${baseName(node)}${suffix}`
+        const { base, qualified } = names(node)
+        let name = taken.has(base) && qualified !== undefined ? qualified : base
+        for (let suffix = 2; taken.has(name); suffix++) name = `${base}${suffix}`
         taken.add(name)
         return { node, name, range: replacedRange(node, sourceCode) }
     })
