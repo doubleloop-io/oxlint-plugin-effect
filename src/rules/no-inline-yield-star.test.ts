@@ -119,5 +119,11 @@ new RuleTester().run("no-inline-yield-star", noInlineYieldStarRule, {
             "function* g() { return count(ready ? yield* reader.rows : []) }",
             "function* g() { return (cached ?? (yield* reader.rows)).length }",
         ].map((code) => ({ code, output: null, errors: [{ messageId: "inlineYieldStar" }] })),
+        ...[
+            "function* g() { const total = ready ? count(yield* reader.rows) : 0 }",
+            "function* g() { return cached ?? count(yield* reader.rows) }",
+            "function* g() { total ??= count(yield* reader.rows) }",
+            "function* g() { return f(ready ? count(yield* reader.rows) : 0) }",
+        ].map((code) => ({ code, output: null, errors: [{ messageId: "conditionalYieldStar" }] })),
     ],
 })
