@@ -38,6 +38,30 @@ const statementOf = (node: ESTree.Node) => {
 
 const logicalAssignments = new Set(["&&=", "||=", "??="])
 
+const isConditionalBranch = (child: ESTree.Node, parent: ESTree.Node) => {
+    switch (parent.type) {
+        case "ConditionalExpression":
+            return parent.test !== child
+        case "LogicalExpression":
+            return parent.right === child
+        case "AssignmentExpression":
+            return parent.right === child && logicalAssignments.has(parent.operator)
+        default:
+            return false
+    }
+}
+
+// A branch that is the `yield*` itself can be bound whole; a larger branch cannot be bound first
+// without running the effect unconditionally.
+const isNestedInConditionalBranch = (node: Yield, statement: ESTree.Node) => {
+    let child: ESTree.Node = node.parent
+    while (child !== statement && child.parent) {
+        if (isConditionalBranch(child, child.parent)) return true
+        child = child.parent
+    }
+    return false
+}
+
 // The extracted `const` runs before its statement, once and unconditionally: any position that
 // short-circuits, repeats or belongs to a nested statement would change when the effect runs.
 const runsOnceBeforeStatement = (
@@ -224,6 +248,9 @@ const extraction = (
     return [...declarations, guarded].join(startsLine ? `\n${indentation}` : "; ")
 }
 
+const inlineYieldStarMessage =
+    "This `yield*` runs inside a larger expression. Bind its result first (`const rows = yield* reader.rows`), so each statement runs one effect in reading order."
+
 export const noInlineYieldStarRule = defineRule({
     meta: {
         type: "suggestion",
@@ -233,8 +260,8 @@ export const noInlineYieldStarRule = defineRule({
                 "Bind the result of a `yield*` to a `const` instead of using it inside a larger expression.",
         },
         messages: {
-            inlineYieldStar:
-                "This `yield*` runs inside a larger expression. Bind its result first (`const rows = yield* reader.rows`), so each statement runs one effect in reading order.",
+            inlineYieldStar: inlineYieldStarMessage,
+            conditionalYieldStar: `${inlineYieldStarMessage} When inside a conditional branch, binding it first would run it unconditionally. Instead, extract the effect into a named function and transform its result inside it (\`Effect.map\`), so the branch is a single \`yield*\`.`,
         },
     },
     createOnce(context) {
@@ -289,7 +316,9 @@ export const noInlineYieldStarRule = defineRule({
                     for (const node of yields) {
                         context.report({
                             node,
-                            messageId: "inlineYieldStar",
+                            messageId: isNestedInConditionalBranch(node, statement)
+                                ? "conditionalYieldStar"
+                                : "inlineYieldStar",
                             ...(replacement !== undefined && hoisted.includes(node)
                                 ? { fix: (fixer) => fixer.replaceText(statement, replacement) }
                                 : {}),
