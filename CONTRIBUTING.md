@@ -16,6 +16,10 @@
 
 A new rule must be registered in `src/index.ts`, documented in its rule file, `docs/user-guide/rules/<rule-name>.md` (see [`docs/rules-catalog-style.md`](docs/rules-catalog-style.md)), and linked from its topic in the rules index, `docs/user-guide/rules.md`; `pnpm build` adds it to the preset.
 
+## The latest oxlint
+
+The plugin runs inside the user's oxlint, and `peerDependencies` accepts any `1.x` from `1.82.0`, while the pinned devDependency stays on one version. Every Monday, and on demand, the Latest oxlint workflow installs the latest `oxlint` and `@oxlint/plugins` and runs `test`, `build` and `consumer-test`. It skips lint: the question is whether the plugin works with that version, not whether new oxlint rules flag this repo. A failure opens and pins the issue "The latest oxlint breaks the plugin"; while it is open, each later failure rewrites its description with the last failing version and run, without commenting.
+
 ## Releasing
 
 Merging the "Version Packages" pull request is the release: GitHub Actions publishes to npm with OIDC, so it needs neither a local machine nor an npm token.

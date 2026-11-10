@@ -1,0 +1,71 @@
+name: Latest oxlint
+
+on:
+    workflow_dispatch:
+    schedule:
+        - cron: "0 6 * * 1"
+
+concurrency:
+    group: ${{ github.workflow }}
+
+permissions:
+    contents: read
+
+jobs:
+    check:
+        if: github.repository_owner == 'doubleloop-io'
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        outputs:
+            version: ${{ steps.latest.outputs.version }}
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v7
+
+            - name: Install dependencies
+              uses: ./.github/actions/setup
+
+            - name: Install the latest oxlint
+              id: latest
+              run: |
+                  version=$(npm view oxlint version)
+                  echo "version=$version" >> "$GITHUB_OUTPUT"
+                  pnpm add --save-exact --save-dev "oxlint@$version"
+                  pnpm add --save-exact "@oxlint/plugins@$version"
+
+            - name: Test
+              run: pnpm test
+
+            - name: Build
+              run: pnpm build
+
+            - name: Consumer test tarball
+              run: pnpm consumer-test
+
+    report:
+        needs: check
+        if: failure()
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            issues: write
+        steps:
+            # A new issue is pinned; an open one gets its description rewritten, not a comment, so a
+            # failure that lasts for weeks sends no notification after the first.
+            - name: Open or update the issue
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  GH_REPO: ${{ github.repository }}
+                  VERSION: ${{ needs.check.outputs.version || 'latest' }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              run: |
+                  title="The latest oxlint breaks the plugin"
+                  body="The Latest oxlint workflow fails. Last failing: oxlint \`$VERSION\`, $(date -u +%F), $RUN_URL"
+                  number=$(gh issue list --state open --search "in:title \"$title\"" --json number,title \
+                      --jq "map(select(.title == \"$title\")) | .[0].number // empty")
+                  if [ -z "$number" ]; then
+                      url=$(gh issue create --title "$title" --body "$body")
+                      gh issue pin "$url" || echo "::warning::could not pin $url"
+                  else
+                      gh issue edit "$number" --body "$body"
+                  fi
