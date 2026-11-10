@@ -17,10 +17,14 @@ const { base, repositoryUrl } = publishedSite
 const websiteUrl = `${siteOrigin}${base}/`
 const repositoryFileUrl = `${repositoryUrl}/blob/main/`
 
-test("every link of the real README is an absolute URL to the website or to a repository file", () => {
-    const otherHrefs = readmeHrefs.filter(
-        (href) => !href.startsWith(websiteUrl) && !href.startsWith(repositoryFileUrl),
-    )
+// A relative link, or one to the site or repository origin; any other absolute URL is another site
+const pointsToTheWebsite = (href: string) =>
+    !/^https?:\/\//u.test(href) || href.startsWith(siteOrigin) || href.startsWith(repositoryUrl)
+
+test("every link of the real README which points to the website is an absolute URL to the website or to a repository file", () => {
+    const otherHrefs = readmeHrefs
+        .filter(pointsToTheWebsite)
+        .filter((href) => !href.startsWith(websiteUrl) && !href.startsWith(repositoryFileUrl))
 
     assert.ok(readmeHrefs.length > 0)
     assert.deepEqual(otherHrefs, [])

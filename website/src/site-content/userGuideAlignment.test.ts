@@ -87,7 +87,10 @@ test("the real guide index is the landing page, with the package scope above its
     assert.ok(landing?.kind === "landing")
     assert.equal(landing.scope, "@doubleloop-io/")
     assert.equal(landing.name, "oxlint-plugin-effect")
-    assert.equal(landing.tagline, "An oxlint plugin that enforces a catalog of patterns for Effect 4 code.")
+    assert.equal(
+        landing.tagline,
+        "An [oxlint](https://github.com/oxc-project/oxc) plugin that enforces a catalog of patterns for [Effect](https://github.com/Effect-TS/effect/) 4 code.",
+    )
     assert.deepEqual(
         landing.actions.map(({ text }) => text),
         ["Installation", "Rules overview"],
