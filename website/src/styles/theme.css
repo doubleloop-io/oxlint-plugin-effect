@@ -151,3 +151,15 @@ h4,
 .hero .tagline {
     color: var(--sl-color-gray-2);
 }
+
+/* Starlight caps the hero copy at 50ch and, from 50rem, keeps a column for an image on the right;
+   the landing has no image, so the copy takes the whole width. */
+.hero .copy > * {
+    max-width: none;
+}
+
+@media (min-width: 50rem) {
+    .hero {
+        grid-template-columns: 100%;
+    }
+}
