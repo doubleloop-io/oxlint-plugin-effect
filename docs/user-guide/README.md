@@ -2,7 +2,7 @@
 title: "@doubleloop-io/oxlint-plugin-effect"
 ---
 
-An [oxlint](https://github.com/oxc-project/oxc) plugin that enforces a catalog of patterns for [Effect](https://github.com/Effect-TS/effect/) 4 code.
+An [Oxlint](https://github.com/oxc-project/oxc) plugin that enforces a catalog of patterns for [Effect](https://github.com/Effect-TS/effect/) 4 code.
 
 The rules are written and tested against Effect 4. Where an Effect 3 API has the same intent, the rules recognize its v3 name too: each rule's Trigger names them.
 
@@ -10,12 +10,12 @@ It complements the type-aware rules of [`@effect/tsgo`](alongside-effect-tsgo.md
 
 ## Guide
 
-- [Installation](installation.md): the package and the Node and oxlint versions it requires.
+- [Installation](installation.md): the package and the Node and Oxlint versions it requires.
 - [Configuration](configuration.md): the `all` preset and picking rules.
 - [Shared settings](shared-settings.md): the settings that describe your project, their defaults and the rules that use them.
 - [Alongside `@effect/tsgo`](alongside-effect-tsgo.md): combining its presets with this one.
 - [Default configuration](default-configuration.md): `all` with every setting and option spelled out.
-- [Versioning](versioning.md): what a release may change and which oxlint versions are supported.
+- [Versioning](versioning.md): what a release may change and which Oxlint versions are supported.
 - [Troubleshooting](troubleshooting.md): the problems most often hit when adopting the plugin.
 
 ## Rules

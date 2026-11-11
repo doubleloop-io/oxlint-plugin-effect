@@ -3,7 +3,7 @@ title: Shared settings
 order: 3
 ---
 
-Three settings describe your project, not a rule, so they are declared once under `settings["dl-effect"]` in the oxlint config and every rule that uses them reads them from there. Their defaults fit a Node CLI; on another layout (Next.js, a monorepo) set them before reading the warnings.
+Three settings describe your project, not a rule, so they are declared once under `settings["dl-effect"]` in the Oxlint config and every rule that uses them reads them from there. Their defaults fit a Node CLI; on another layout (Next.js, a monorepo) set them before reading the warnings.
 
 ## The settings
 
@@ -19,7 +19,7 @@ Most rules skip `testFiles` entirely. Three use them differently: [`no-throw-or-
 
 Add to `discriminants` the fields your unions discriminate on, such as `type` or `kind`.
 
-File globs are matched against the path relative to oxlint's working directory, with `/` on every platform.
+File globs are matched against the path relative to Oxlint's working directory, with `/` on every platform.
 
 ## Setting a value
 
@@ -62,4 +62,4 @@ export default defineConfig({
 
 ## Where settings go
 
-Settings belong to the config that lints: oxlint does not inherit them from a preset in `extends`, and rejects them in `overrides`. For a value that differs by group of files, use `overrides` on the rules instead.
+Settings belong to the config that lints: Oxlint does not inherit them from a preset in `extends`, and rejects them in `overrides`. For a value that differs by group of files, use `overrides` on the rules instead.

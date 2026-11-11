@@ -7,14 +7,14 @@ The problems most often hit when adopting the plugin: each states the symptom, t
 
 ## The lint stops with a settings error
 
-- **Symptom**: oxlint exits with an error naming a `dl-effect` setting before reporting anything.
+- **Symptom**: Oxlint exits with an error naming a `dl-effect` setting before reporting anything.
 - **Cause**: a key under `settings["dl-effect"]` is not one of the shared settings, or its value is not an array of strings.
 - **Fix**: correct the key or the value as described in [Shared settings](shared-settings.md#setting-a-value).
 
 ## Settings are ignored or rejected
 
-- **Symptom**: settings put in a preset in `extends` have no effect, or oxlint rejects settings put in `overrides`.
-- **Cause**: oxlint reads settings only from the config that lints.
+- **Symptom**: settings put in a preset in `extends` have no effect, or Oxlint rejects settings put in `overrides`.
+- **Cause**: Oxlint reads settings only from the config that lints.
 - **Fix**: move them to that config, as described in [Where settings go](shared-settings.md#where-settings-go).
 
 ## Many warnings on correct code

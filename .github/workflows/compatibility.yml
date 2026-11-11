@@ -59,8 +59,8 @@ jobs:
                   VERSION: ${{ needs.check.outputs.version || 'latest' }}
                   RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
               run: |
-                  title="The latest oxlint breaks the plugin"
-                  body="The Compatibility workflow fails. Last failing: oxlint \`$VERSION\`, $(date -u +%F), $RUN_URL"
+                  title="The latest Oxlint breaks the plugin"
+                  body="The Compatibility workflow fails. Last failing: Oxlint \`$VERSION\`, $(date -u +%F), $RUN_URL"
                   number=$(gh issue list --state open --search "in:title \"$title\"" --json number,title \
                       --jq "map(select(.title == \"$title\")) | .[0].number // empty")
                   if [ -z "$number" ]; then

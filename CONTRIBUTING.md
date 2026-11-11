@@ -6,7 +6,7 @@
 - `pnpm check`: format check, typecheck, lint and tests, writing nothing. The tests are the `RuleTester`s from `oxlint/plugins-dev` with `node --test`, plus a check that the rule catalog, `docs/user-guide/rules/`, has exactly one file per rule of the plugin.
 - `pnpm build`: compiles to `dist/` and generates `dist/presets/all.json` from `src/presets/all.ts` (the rule list comes from the plugin).
 - `pnpm pack:check`: checks the built preset, then the tarball `npm pack` would publish: only the files in `files`, no local absolute paths, `publint --strict`.
-- `pnpm consumer-test`: installs the tarball in `scripts/consumer-fixture/` with pnpm and checks the diagnostics of oxlint with each config form: `oxlint.config.ts` and `.oxlintrc.json` with the preset, `.oxlintrc.json` with the plugin by package name.
+- `pnpm consumer-test`: installs the tarball in `scripts/consumer-fixture/` with pnpm and checks the diagnostics of Oxlint with each config form: `oxlint.config.ts` and `.oxlintrc.json` with the preset, `.oxlintrc.json` with the plugin by package name.
 - `pnpm build-and-pack`: `check`, `build`, `pack:check` and `consumer-test`; run it after every change.
 - `pnpm changeset-version`: `changeset version`, then `pnpm format` so the generated changelog passes `format:check`; the release workflow runs it for the version pull request.
 - `pnpm changeset-publish`: `build-and-pack`, then `changeset publish`; the release workflow runs it, and it is not a supported path from a local machine.
@@ -16,9 +16,9 @@
 
 A new rule must be registered in `src/index.ts`, documented in its rule file, `docs/user-guide/rules/<rule-name>.md` (see [`docs/rules-catalog-style.md`](docs/rules-catalog-style.md)), and linked from its topic in the rules index, `docs/user-guide/rules.md`; `pnpm build` adds it to the preset.
 
-## The latest oxlint
+## The latest Oxlint
 
-The plugin runs inside the user's oxlint, and `peerDependencies` accepts any `1.x` from `1.82.0`, while the pinned devDependency stays on one version. Every Monday, and on demand, the Compatibility workflow, `.github/workflows/compatibility.yml`, installs the latest `oxlint` and `@oxlint/plugins` and runs `test`, `build` and `consumer-test`. It skips lint: the question is whether the plugin works with that version, not whether new oxlint rules flag this repo. A failure opens and pins the issue "The latest oxlint breaks the plugin"; while it is open, each later failure rewrites its description with the last failing version and run, without commenting.
+The plugin runs inside the user's Oxlint, and `peerDependencies` accepts any `1.x` from `1.82.0`, while the pinned devDependency stays on one version. Every Monday, and on demand, the Compatibility workflow, `.github/workflows/compatibility.yml`, installs the latest `oxlint` and `@oxlint/plugins` and runs `test`, `build` and `consumer-test`. It skips lint: the question is whether the plugin works with that version, not whether new Oxlint rules flag this repo. A failure opens and pins the issue "The latest Oxlint breaks the plugin"; while it is open, each later failure rewrites its description with the last failing version and run, without commenting.
 
 ## Releasing
 
