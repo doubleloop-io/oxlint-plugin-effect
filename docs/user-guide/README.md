@@ -25,4 +25,4 @@ It complements the type-aware rules of [`@effect/tsgo`](alongside-effect-tsgo.md
 
 ## More from doubleloop
 
-[effect-mongodb](https://doubleloop-io.github.io/effect-mongodb/): a MongoDB toolkit for Effect, by the same authors.
+[effect-mongodb](https://doubleloop-io.github.io/effect-mongodb/): a [MongoDB](https://github.com/mongodb/node-mongodb-native) toolkit for Effect, by the same authors.

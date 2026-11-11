@@ -53,4 +53,4 @@ Coding agents: the same pages ship in the package under `docs/user-guide/`, star
 
 ## More from doubleloop
 
-[effect-mongodb](https://doubleloop-io.github.io/effect-mongodb/): a MongoDB toolkit for Effect, by the same authors.
+[effect-mongodb](https://doubleloop-io.github.io/effect-mongodb/): a [MongoDB](https://github.com/mongodb/node-mongodb-native) toolkit for Effect, by the same authors.
