@@ -1,6 +1,6 @@
 # @doubleloop-io/oxlint-plugin-effect
 
-An [Oxlint](https://github.com/oxc-project/oxc) plugin that enforces a catalog of patterns for [Effect](https://github.com/Effect-TS/effect/) 4 code.
+A set of [Oxlint](https://github.com/oxc-project/oxc) rules for [Effect](https://github.com/Effect-TS/effect/).
 
 The rules are written and tested against Effect 4. Where an Effect 3 API has the same intent, the rules recognize its v3 name too: each rule's Trigger names them. The [Rules overview](https://doubleloop-io.github.io/oxlint-plugin-effect/rules-overview/) lists every rule.
 
