@@ -22,3 +22,7 @@ It complements the type-aware rules of [`@effect/tsgo`](alongside-effect-tsgo.md
 
 - [Rules overview](rules.md): every rule, grouped by topic.
 - [Common limits](common-limits.md): the limits every rule shares.
+
+## More from doubleloop
+
+[effect-mongodb](https://github.com/doubleloop-io/effect-mongodb): a MongoDB toolkit for Effect, by the same authors.

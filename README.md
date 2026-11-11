@@ -50,3 +50,7 @@ The guide is on the [website](https://doubleloop-io.github.io/oxlint-plugin-effe
 - [Troubleshooting](https://doubleloop-io.github.io/oxlint-plugin-effect/troubleshooting/): the problems most often hit when adopting the plugin.
 
 Coding agents: the same pages ship in the package under `docs/user-guide/`, starting from `docs/user-guide/README.md`.
+
+## More from doubleloop
+
+[effect-mongodb](https://github.com/doubleloop-io/effect-mongodb): a MongoDB toolkit for Effect, by the same authors.
