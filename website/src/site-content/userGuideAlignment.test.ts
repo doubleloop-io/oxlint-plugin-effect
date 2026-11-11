@@ -89,7 +89,7 @@ test("the real guide index is the landing page, with the package scope above its
     assert.equal(landing.name, "oxlint-plugin-effect")
     assert.equal(
         landing.tagline,
-        "An [Oxlint](https://github.com/oxc-project/oxc) plugin that enforces a catalog of patterns for [Effect](https://github.com/Effect-TS/effect/) 4 code.",
+        "A set of [Oxlint](https://github.com/oxc-project/oxc) rules for [Effect](https://github.com/Effect-TS/effect/).",
     )
     assert.deepEqual(
         landing.actions.map(({ text }) => text),
