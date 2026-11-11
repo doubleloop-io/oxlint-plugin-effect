@@ -17,9 +17,12 @@ const { base, repositoryUrl } = publishedSite
 const websiteUrl = `${siteOrigin}${base}/`
 const repositoryFileUrl = `${repositoryUrl}/blob/main/`
 
-// A relative link, or one to the site or repository origin; any other absolute URL is another site
+// A relative link, or one under the site base or to the repository; any other absolute URL is another
+// site, such as another project's site on the same origin
 const pointsToTheWebsite = (href: string) =>
-    !/^https?:\/\//u.test(href) || href.startsWith(siteOrigin) || href.startsWith(repositoryUrl)
+    !/^https?:\/\//u.test(href) ||
+    href.startsWith(`${siteOrigin}${base}`) ||
+    href.startsWith(repositoryUrl)
 
 test("every link of the real README which points to the website is an absolute URL to the website or to a repository file", () => {
     const otherHrefs = readmeHrefs
