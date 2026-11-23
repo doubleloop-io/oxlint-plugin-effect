@@ -3,6 +3,7 @@ import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
 
 import { runChecks } from "./checks.ts"
+import { costOf, field, isolatedClaude, jsonLines } from "./claude.ts"
 import { runContainer } from "./docker.ts"
 import { copyCaseProject } from "./fixture.ts"
 
@@ -24,61 +25,33 @@ export type Agent =
 const agentCommand = (agent: Agent) =>
     agent.kind === "fake"
         ? ["sh", "-c", agent.command]
-        : [
-              "claude",
-              "-p",
-              agentPrompt,
-              "--bare",
-              "--model",
-              agent.model,
-              "--dangerously-skip-permissions",
-              "--strict-mcp-config",
-              // Without it, the skills bundled with Claude Code stay available to the agent.
-              "--disable-slash-commands",
-              "--no-session-persistence",
-              "--output-format",
-              "stream-json",
-              "--verbose",
-              "--max-budget-usd",
-              String(agent.maxBudgetUsd),
-          ]
+        : isolatedClaude({
+              prompt: agentPrompt,
+              model: agent.model,
+              maxBudgetUsd: agent.maxBudgetUsd,
+              extra: [
+                  "--dangerously-skip-permissions",
+                  "--output-format",
+                  "stream-json",
+                  "--verbose",
+              ],
+          })
 
 export type AgentSummary = {
     readonly costUsd: number | undefined
     readonly turns: number | undefined
     readonly isError: boolean | undefined
-    // The `init` event: tools, MCP servers, skills and plugins the agent started with.
-    readonly init: unknown
 }
 
-const events = (stdout: string) =>
-    stdout.split("\n").flatMap((line): unknown[] => {
-        try {
-            return [JSON.parse(line)]
-        } catch {
-            return []
-        }
-    })
-
-const field = (event: unknown, name: string): unknown =>
-    typeof event === "object" && event !== null && name in event
-        ? Object.entries(event).find(([key]) => key === name)?.[1]
-        : undefined
-
 export const summarizeAgent = (stdout: string): AgentSummary => {
-    const all = events(stdout)
+    const all = jsonLines(stdout)
     const result = all.findLast((event) => field(event, "type") === "result")
-    const init = all.find(
-        (event) => field(event, "type") === "system" && field(event, "subtype") === "init",
-    )
-    const costUsd = field(result, "total_cost_usd")
     const turns = field(result, "num_turns")
     const isError = field(result, "is_error")
     return {
-        costUsd: typeof costUsd === "number" ? costUsd : undefined,
+        costUsd: costOf(result),
         turns: typeof turns === "number" ? turns : undefined,
         isError: typeof isError === "boolean" ? isError : undefined,
-        init,
     }
 }
 
@@ -132,8 +105,7 @@ export const executeRun = async (options: {
     await copyCaseProject(pristineDir, join(runDir, "pristine"))
 
     const container = await runContainer({
-        workDir,
-        nodeModulesDir,
+        mount: { workDir, nodeModulesDir },
         command: agentCommand(agent),
         network: agent.kind === "claude",
         ...(agent.kind === "claude" ? { envFile: agent.envFile } : {}),

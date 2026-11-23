@@ -14,7 +14,7 @@ const timeoutMs = 5 * 60 * 1000
 // node_modules.
 export const runChecks = async (workDir: string, nodeModulesDir: string): Promise<Checks> => {
     const inContainer = (command: readonly string[]) =>
-        runContainer({ workDir, nodeModulesDir, command, network: false, timeoutMs })
+        runContainer({ mount: { workDir, nodeModulesDir }, command, network: false, timeoutMs })
     const tsc = await inContainer(["node_modules/.bin/tsc", "--noEmit", "-p", "."])
     const oxlint = await inContainer(["node_modules/.bin/oxlint", "--format", "json", "src"])
     if (oxlint.stdout.trim() === "") {

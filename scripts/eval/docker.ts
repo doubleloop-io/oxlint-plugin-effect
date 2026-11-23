@@ -24,11 +24,16 @@ export const ensureImage = (contextDir: string) => {
     )
 }
 
-export type ContainerRun = {
+export type CaseMount = {
     // Mounted read-write at /work.
     readonly workDir: string
     // Mounted read-only at /work/node_modules, shared by the runs of a variant.
     readonly nodeModulesDir: string
+}
+
+export type ContainerRun = {
+    // A container without it starts in an empty /work.
+    readonly mount?: CaseMount
     readonly command: readonly string[]
     readonly network: boolean
     readonly envFile?: string
@@ -63,10 +68,14 @@ export const runContainer = (run: ContainerRun) =>
             owner(),
             "--env",
             "HOME=/tmp/home",
-            "--volume",
-            `${run.workDir}:/work`,
-            "--volume",
-            `${run.nodeModulesDir}:/work/node_modules:ro`,
+            ...(run.mount === undefined
+                ? []
+                : [
+                      "--volume",
+                      `${run.mount.workDir}:/work`,
+                      "--volume",
+                      `${run.mount.nodeModulesDir}:/work/node_modules:ro`,
+                  ]),
             "--workdir",
             "/work",
             ...(run.network ? [] : ["--network", "none"]),

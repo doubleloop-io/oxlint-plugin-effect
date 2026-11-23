@@ -1,19 +1,18 @@
-import { access, mkdir, readFile, rm, writeFile } from "node:fs/promises"
+import { access, mkdir, readFile, writeFile } from "node:fs/promises"
 import { homedir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { parseArgs } from "node:util"
 
-import type { Diagnostic } from "../oxlint-diagnostics.ts"
 import { loadRuleCases, selectCase } from "./cases.ts"
-import { gateProblems, runChecks } from "./checks.ts"
-import { claudeVersion, ensureImage } from "./docker.ts"
-import { caseSource, installVariant, writeCaseProject } from "./fixture.ts"
-import { type Packed, packRef, packWorkingTree } from "./pack.ts"
-import { type VariantReport, renderReport } from "./report.ts"
-import { type Agent, type RunOutcome, executeRun } from "./run.ts"
+import { ensureImage } from "./docker.ts"
+import { evaluate } from "./evaluate.ts"
+import { type Judge, judgeResults } from "./judge.ts"
+import { type Results, renderReport } from "./report.ts"
+import type { Agent } from "./run.ts"
 
 const usage = `Usage: pnpm eval <rule> [case] [options]
+       pnpm eval --rejudge <results-dir> [judge options]
 
 Runs agents on the cases of evals/<rule>.md and reports how they fixed them.
 
@@ -21,7 +20,7 @@ Options:
   --baseline-only         run only the baseline, not the working tree
   --base <ref>            the baseline commit (default: origin/main)
   --runs <n>              agents per case and variant (default: 5)
-  --concurrency <n>       agents at the same time (default: 5)
+  --concurrency <n>       agents or judgments at the same time (default: 5)
   --model <model>         the agents' model (default: sonnet)
   --max-budget-usd <n>    the spending cap of each agent (default: 2)
   --timeout-minutes <n>   the time limit of each agent (default: 20)
@@ -29,6 +28,16 @@ Options:
                           (default: ~/.config/oxlint-plugin-effect/eval.env)
   --fake-agent <command>  run this shell command in the fixture instead of Claude:
                           tries the pipeline without an API key
+
+Judge options:
+  --judge <human|llm>     who classifies the valid runs (default: human)
+  --judge-model <model>   the judge's model (default: opus)
+  --rejudge <dir>         judge the runs of an earlier results directory again,
+                          without running agents; implies --judge llm
+  --fake-judge <command>  print a verdict with this shell command instead of asking
+                          Claude, such as echo '{"category":"good","reason":"x"}';
+                          implies --judge llm
+
   --help                  show this help`
 
 const { values, positionals } = parseArgs({
@@ -46,6 +55,10 @@ const { values, positionals } = parseArgs({
             default: join(homedir(), ".config/oxlint-plugin-effect/eval.env"),
         },
         "fake-agent": { type: "string" },
+        judge: { type: "string", default: "human" },
+        "judge-model": { type: "string", default: "opus" },
+        rejudge: { type: "string" },
+        "fake-judge": { type: "string" },
         help: { type: "boolean", default: false },
     },
 })
@@ -56,20 +69,43 @@ const positiveNumber = (name: string, value: string) => {
     return number
 }
 
-const [rule, caseName, ...extra] = positionals
-if (values.help || rule === undefined || extra.length > 0) {
-    console.log(usage)
-    process.exit(values.help ? 0 : 1)
+// Only checks that it exists: Docker reads it, this script never does.
+const checkKeyFile = async (path: string) => {
+    try {
+        await access(path)
+    } catch {
+        throw new Error(`no key file at ${path}: see CONTRIBUTING.md, "Agent evals"`)
+    }
 }
-if (rule.startsWith("anti-slop-")) {
-    throw new Error("anti-slop-* rules are out of scope: their messages come from upstream")
+
+const writeResults = async (resultsDir: string, results: Results) => {
+    await writeFile(join(resultsDir, "results.json"), `${JSON.stringify(results, null, 4)}\n`)
+    const reportFile = join(resultsDir, "report.md")
+    await writeFile(reportFile, renderReport(results))
+    console.log(`report: ${reportFile}`)
 }
 
 const repoDir = fileURLToPath(new URL("../../", import.meta.url))
 const evalsDir = join(repoDir, "evals")
-const runs = positiveNumber("runs", values.runs)
 const concurrency = positiveNumber("concurrency", values.concurrency)
-const timeoutMs = positiveNumber("timeout-minutes", values["timeout-minutes"]) * 60 * 1000
+const keyFile = values["key-file"]
+
+if (values.judge !== "human" && values.judge !== "llm") {
+    throw new Error(`--judge must be human or llm, not ${values.judge}`)
+}
+const usesLlmJudge =
+    values.judge === "llm" || values.rejudge !== undefined || values["fake-judge"] !== undefined
+const judge: Judge | undefined = !usesLlmJudge
+    ? undefined
+    : values["fake-judge"] === undefined
+      ? { kind: "claude", model: values["judge-model"], maxBudgetUsd: 1, envFile: keyFile }
+      : { kind: "fake", command: values["fake-judge"] }
+
+const [rule, caseName, ...extra] = positionals
+if (values.help || (values.rejudge === undefined && rule === undefined) || extra.length > 0) {
+    console.log(usage)
+    process.exit(values.help ? 0 : 1)
+}
 
 const agent: Agent =
     values["fake-agent"] === undefined
@@ -77,130 +113,57 @@ const agent: Agent =
               kind: "claude",
               model: values.model,
               maxBudgetUsd: positiveNumber("max-budget-usd", values["max-budget-usd"]),
-              envFile: values["key-file"],
+              envFile: keyFile,
           }
         : { kind: "fake", command: values["fake-agent"] }
 
-// Only checks that it exists: Docker reads it, this script never does.
-if (agent.kind === "claude") {
-    try {
-        await access(agent.envFile)
-    } catch {
-        throw new Error(`no key file at ${agent.envFile}: see CONTRIBUTING.md, "Agent evals"`)
-    }
+const runsAgents = values.rejudge === undefined
+if ((runsAgents && agent.kind === "claude") || judge?.kind === "claude") {
+    await checkKeyFile(keyFile)
 }
 
-const ruleCases = selectCase(await loadRuleCases(evalsDir, rule), caseName)
-const globalPreamble = await readFile(join(evalsDir, "preamble.ts"), "utf8")
-const startedAt = new Date().toISOString()
-const resultsDir = join(evalsDir, ".results", rule, startedAt.replaceAll(":", "-"))
-await mkdir(resultsDir, { recursive: true })
-console.log(`results: ${resultsDir}`)
-
-ensureImage(join(evalsDir, "image"))
-
-type Variant = { readonly name: string; readonly packed: Packed; readonly dir: string }
-
-const variantDir = (name: string) => join(resultsDir, name)
-const variants: Variant[] = []
-if (!values["baseline-only"]) {
-    const dir = variantDir("working-tree")
-    await mkdir(dir, { recursive: true })
-    variants.push({ name: "working-tree", packed: packWorkingTree(repoDir, dir), dir })
-}
-{
-    const dir = variantDir("baseline")
-    variants.unshift({ name: "baseline", packed: await packRef(repoDir, values.base, dir), dir })
-}
-
-const installDir = (variant: Variant) => join(variant.dir, "install")
-const nodeModulesDir = (variant: Variant) => join(installDir(variant), "node_modules")
-const pristineDir = (variant: Variant, name: string) => join(variant.dir, name, "pristine")
-
-// Gate: every case of every variant compiles and reports the rule, before any agent runs.
-const gates = new Map<string, Map<string, readonly Diagnostic[]>>()
-const problems: string[] = []
-for (const variant of variants) {
-    await installVariant({
-        templateDir: join(evalsDir, "template"),
-        tarball: variant.packed.tarball,
-        rule,
-        installDir: installDir(variant),
-    })
-    const gate = new Map<string, readonly Diagnostic[]>()
-    for (const evalCase of ruleCases.cases) {
-        const source = caseSource(globalPreamble, ruleCases, evalCase)
-        await writeCaseProject(installDir(variant), pristineDir(variant, evalCase.name), source)
-        const checks = await runChecks(pristineDir(variant, evalCase.name), nodeModulesDir(variant))
-        gate.set(evalCase.name, checks.diagnostics)
-        for (const problem of gateProblems(rule, checks)) {
-            problems.push(`${variant.name} / ${evalCase.name}: ${problem}`)
+try {
+    if (values.rejudge !== undefined) {
+        if (judge === undefined) throw new Error("--rejudge needs an LLM judge")
+        const resultsDir = resolve(values.rejudge)
+        const results: Results = JSON.parse(
+            await readFile(join(resultsDir, "results.json"), "utf8"),
+        )
+        ensureImage(join(evalsDir, "image"))
+        await writeResults(resultsDir, await judgeResults(results, judge, concurrency))
+    } else if (rule !== undefined) {
+        if (rule.startsWith("anti-slop-")) {
+            throw new Error("anti-slop-* rules are out of scope: their messages come from upstream")
+        }
+        const ruleCases = selectCase(await loadRuleCases(evalsDir, rule), caseName)
+        const resultsDir = join(
+            evalsDir,
+            ".results",
+            rule,
+            new Date().toISOString().replaceAll(":", "-"),
+        )
+        await mkdir(resultsDir, { recursive: true })
+        console.log(`results: ${resultsDir}`)
+        ensureImage(join(evalsDir, "image"))
+        const results = await evaluate({
+            repoDir,
+            evalsDir,
+            resultsDir,
+            ruleCases,
+            baseRef: values.base,
+            baselineOnly: values["baseline-only"],
+            runs: positiveNumber("runs", values.runs),
+            concurrency,
+            timeoutMs: positiveNumber("timeout-minutes", values["timeout-minutes"]) * 60 * 1000,
+            agent,
+        })
+        // Saved before judging, so a failed judgment does not lose the runs.
+        await writeResults(resultsDir, results)
+        if (judge !== undefined) {
+            await writeResults(resultsDir, await judgeResults(results, judge, concurrency))
         }
     }
-    gates.set(variant.name, gate)
+} catch (error) {
+    console.error(error instanceof Error ? error.message : error)
+    process.exitCode = 1
 }
-if (problems.length > 0) {
-    console.error(`gate failed, no agent ran:\n${problems.map((p) => `- ${p}`).join("\n")}`)
-    process.exit(1)
-}
-
-type Task = { readonly variant: Variant; readonly caseName: string; readonly index: number }
-
-const tasks: Task[] = variants.flatMap((variant) =>
-    ruleCases.cases.flatMap(({ name }) =>
-        Array.from({ length: runs }, (_, index) => ({ variant, caseName: name, index })),
-    ),
-)
-
-const outcomes = new Map<Task, RunOutcome>()
-let next = 0
-const worker = async () => {
-    for (let task = tasks[next++]; task !== undefined; task = tasks[next++]) {
-        const label = `${task.variant.name} / ${task.caseName} / run ${task.index + 1}`
-        console.log(`${label}: started`)
-        const outcome = await executeRun({
-            agent,
-            pristineDir: pristineDir(task.variant, task.caseName),
-            nodeModulesDir: nodeModulesDir(task.variant),
-            runDir: join(task.variant.dir, task.caseName, `run-${task.index + 1}`),
-            timeoutMs,
-        })
-        outcomes.set(task, outcome)
-        console.log(`${label}: ${outcome.valid ? "valid" : outcome.reasons.join("; ")}`)
-    }
-}
-await Promise.all(Array.from({ length: Math.min(concurrency, tasks.length) }, worker))
-
-const reports: VariantReport[] = variants.map((variant) => ({
-    name: variant.name,
-    label: variant.packed.label,
-    gate: gates.get(variant.name) ?? new Map(),
-    runs: new Map(
-        ruleCases.cases.map(({ name }) => [
-            name,
-            tasks
-                .filter((task) => task.variant === variant && task.caseName === name)
-                .flatMap((task) => outcomes.get(task) ?? []),
-        ]),
-    ),
-}))
-const reportFile = join(resultsDir, "report.md")
-await writeFile(
-    reportFile,
-    renderReport({
-        rule,
-        startedAt,
-        agent:
-            agent.kind === "claude"
-                ? `Claude Code ${claudeVersion}, model ${agent.model}`
-                : `fake, \`${agent.command.split("\n")[0]}\`${agent.command.includes("\n") ? " …" : ""}`,
-        cases: ruleCases.cases,
-        variants: reports,
-    }),
-)
-
-// The installs are only for the containers; the projects and diffs stay.
-for (const variant of variants) {
-    await rm(nodeModulesDir(variant), { recursive: true, force: true })
-}
-console.log(`report: ${reportFile}`)
