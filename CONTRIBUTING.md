@@ -29,6 +29,8 @@ Rule tests check what a rule reports; agent evals measure what agents do with th
 - **API key**: an env file with `ANTHROPIC_API_KEY=...`, by default `~/.config/oxlint-plugin-effect/eval.env`, readable only by you (`chmod 600`). Docker reads it; the script only checks that it exists. Keep it out of the repository and of your shell profile, so coding agents do not see it.
 - **Without spending**: `--fake-agent <command>` runs a shell command in the case project instead of Claude, and `--fake-judge <command>` prints a verdict instead of asking Claude, to try the pipeline.
 
+The project skill `rule-eval`, `.claude/skills/rule-eval/SKILL.md`, walks a coding agent through it: write the case, check it for free, run the eval and summarize the report.
+
 It needs Docker, Node and pnpm, and network for the agents and the installs; the first run builds the image.
 
 ## The latest Oxlint
