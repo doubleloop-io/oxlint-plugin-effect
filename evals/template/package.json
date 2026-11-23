@@ -1,0 +1,8 @@
+{
+    "name": "eval-fixture",
+    "private": true,
+    "type": "module",
+    "devDependencies": {
+        "effect": "4.1.5"
+    }
+}

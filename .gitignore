@@ -4,3 +4,4 @@ node_modules/
 .claude/.cc-writes/
 .claude/worktrees/
 dist/
+evals/.results/

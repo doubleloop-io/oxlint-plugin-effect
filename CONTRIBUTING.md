@@ -16,6 +16,20 @@
 
 A new rule must be registered in `src/index.ts`, documented in its rule file, `docs/user-guide/rules/<rule-name>.md` (see [`docs/rules-catalog-style.md`](docs/rules-catalog-style.md)), and linked from its topic in the rules index, `docs/user-guide/rules.md`; `pnpm build` adds it to the preset.
 
+## Agent evals
+
+Rule tests check what a rule reports; agent evals measure what agents do with the report. `pnpm eval <rule> [case]` runs Claude agents on the cases of `evals/<rule>.md` with the message of a baseline commit and with the working tree's, and writes a report of how they fixed each case. It spends API credit, so it runs on demand only, never in CI.
+
+- **Cases**: `evals/<rule>.md` holds an optional `## preamble` section, a `ts` block of declarations shared by its cases, and one `## <case-name>` section per case: one `ts` block, a `Good:` line and a `Bad:` line. Each case is compiled after `evals/preamble.ts` and the rule's preamble. A preamble must not hint at the fix, and a case must not leave a trivial way around the pattern, such as an early return. `anti-slop-*` rules are out of scope.
+- **Gate**: in each variant, every case must compile and Oxlint must report the rule under test on it and nothing else, before any agent runs.
+- **Runs**: each agent runs in its own container, built from `evals/image/`, which sees only the case project at `/work` and its `node_modules`, read-only. Claude Code runs with `--bare` and a home that disappears with the container, so none of the maintainer's configuration reaches it, and gets a neutral prompt: run Oxlint, fix every problem in `src/` without `--fix`, keep `tsc` passing. A run counts only if `tsc` passes, the lint is clean and the diff changes only `src/` without silencing comments.
+- **Report**: `evals/.results/<rule>/<timestamp>/report.md`, gitignored: valid and invalid runs per variant, the message the agents saw, and each diff, for a human to classify as good, bad, other (a shape outside the rubric) or escape (the agent restructured around the pattern, so the case needs fixing).
+- **Variants**: the baseline is `origin/main` unless `--base <ref>` says otherwise; `--baseline-only` runs only the baseline, to see what agents do with today's message before changing it. `pnpm eval --help` lists the other options.
+- **API key**: an env file with `ANTHROPIC_API_KEY=...`, by default `~/.config/oxlint-plugin-effect/eval.env`, readable only by you (`chmod 600`). Docker reads it; the script only checks that it exists. Keep it out of the repository and of your shell profile, so coding agents do not see it.
+- **Without spending**: `--fake-agent <command>` runs a shell command in the case project instead of Claude, to try the pipeline.
+
+It needs Docker, Node and pnpm, and network for the agents and the installs; the first run builds the image.
+
 ## The latest Oxlint
 
 The plugin runs inside the user's Oxlint, and `peerDependencies` accepts any `1.x` from `1.82.0`, while the pinned devDependency stays on one version. Every Monday, and on demand, the Compatibility workflow, `.github/workflows/compatibility.yml`, installs the latest `oxlint` and `@oxlint/plugins` and runs `test`, `build` and `consumer-test`. It skips lint: the question is whether the plugin works with that version, not whether new Oxlint rules flag this repo. A failure opens and pins the issue "The latest Oxlint breaks the plugin"; while it is open, each later failure rewrites its description with the last failing version and run, without commenting.

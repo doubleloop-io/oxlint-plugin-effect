@@ -1,9 +1,11 @@
 import { execFileSync } from "node:child_process"
-import { cp, mkdtemp, readFile, rm } from "node:fs/promises"
+import { cp, mkdtemp, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
+import { devDependencyVersion } from "./dev-dependency.ts"
 import { npmPack } from "./npm-pack.ts"
+import { parseDiagnostics } from "./oxlint-diagnostics.ts"
 
 const fixtureDir = new URL("./consumer-fixture/", import.meta.url)
 
@@ -20,48 +22,8 @@ const expected = [
     "dl-effect(try-object-form) src/violations.ts:5",
 ]
 
-type Diagnostic = { code: string; filename: string; labels: { span: { line: number } }[] }
-
-const isDiagnostic = (value: unknown): value is Diagnostic =>
-    typeof value === "object" &&
-    value !== null &&
-    "code" in value &&
-    typeof value.code === "string" &&
-    "filename" in value &&
-    typeof value.filename === "string" &&
-    "labels" in value &&
-    Array.isArray(value.labels)
-
-const diagnosticsOf = (output: string) => {
-    const parsed: unknown = JSON.parse(output)
-    const diagnostics =
-        typeof parsed === "object" && parsed !== null && "diagnostics" in parsed
-            ? parsed.diagnostics
-            : undefined
-    if (!Array.isArray(diagnostics) || !diagnostics.every(isDiagnostic)) {
-        throw new Error(`unexpected \`oxlint --format json\` output: ${output}`)
-    }
-    return diagnostics.map(
-        ({ code, filename, labels }) => `${code} ${filename}:${labels[0]?.span.line}`,
-    )
-}
-
-const oxlintVersion = async () => {
-    const manifest: unknown = JSON.parse(
-        await readFile(new URL("../package.json", import.meta.url), "utf8"),
-    )
-    const version =
-        typeof manifest === "object" &&
-        manifest !== null &&
-        "devDependencies" in manifest &&
-        typeof manifest.devDependencies === "object" &&
-        manifest.devDependencies !== null &&
-        "oxlint" in manifest.devDependencies
-            ? manifest.devDependencies.oxlint
-            : undefined
-    if (typeof version !== "string") throw new Error("package.json has no oxlint devDependency")
-    return version
-}
+const diagnosticsOf = (output: string) =>
+    parseDiagnostics(output).map(({ code, filename, line }) => `${code} ${filename}:${line}`)
 
 const workDir = await mkdtemp(join(tmpdir(), "consumer-test-"))
 const projectDir = join(workDir, "project")
@@ -71,7 +33,7 @@ try {
     const { tarball } = npmPack(workDir)
     await cp(fixtureDir, projectDir, { recursive: true })
     // pnpm's isolated node_modules fails on a runtime import missing from `dependencies`.
-    execFileSync("pnpm", ["add", "-D", tarball, `oxlint@${await oxlintVersion()}`], {
+    execFileSync("pnpm", ["add", "-D", tarball, `oxlint@${await devDependencyVersion("oxlint")}`], {
         cwd: projectDir,
         stdio: "inherit",
     })
