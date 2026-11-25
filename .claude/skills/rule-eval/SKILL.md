@@ -13,6 +13,7 @@ description: Measure how agents fix the report of a dl-effect rule. Adds a case 
 - **Section**: add `## <case-name>` (kebab-case) to `evals/<rule>.md`, creating the file if needed, with exactly one `ts` block, then a `Good:` line and a `Bad:` line.
 - **Case name**: the situation that sets this case apart from the rule's other cases, such as `conditional-branch` for a `yield*` inside a branch. Not the rule restated nor the fix: every case of `no-effect-promise` lifts a rejecting promise.
 - **Good and Bad** come from whoever asks for the case: what a right fix and a wrong fix look like. When they are not given, ask; do not invent them from the rule's doc.
+- **Write Good and Bad as properties, not code**: Good says what makes a fix right; Bad lists the wrong shapes, each with its reason in a few words. Name the case's identifiers only where a shape cannot be told otherwise, and add no preferences ("preferably X; also accepted Y"): the judge puts every right fix in `good`, so a preference never shows in the counts.
 - **The code must face the pattern**: no trivial way around it, such as an early return, a value that can be inlined or a branch that can be deleted. Otherwise agents escape and the round measures nothing.
 - **Incidental declarations**: `evals/preamble.ts` already imports the common `effect` modules. Types shared by the rule's cases go in its `## preamble` section; anything only one case needs is a `declare const` in the case. Neither may hint at the fix, such as a ready-made helper when the case measures whether the agent extracts one.
 

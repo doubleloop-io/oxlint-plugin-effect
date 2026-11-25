@@ -52,14 +52,24 @@ const isConditionalBranch = (child: ESTree.Node, parent: ESTree.Node) => {
 }
 
 // A branch that is the `yield*` itself can be bound whole; a larger branch cannot be bound first
-// without running the effect unconditionally.
-const isNestedInConditionalBranch = (node: Yield, statement: ESTree.Node) => {
+// without running the effect unconditionally. The innermost such branch, if any: a ternary's, or
+// the right side of a short-circuit operator (`??=` and the like as their operator).
+const conditionalBranchOf = (node: Yield, statement: ESTree.Node) => {
     let child: ESTree.Node = node.parent
     while (child !== statement && child.parent) {
-        if (isConditionalBranch(child, child.parent)) return true
-        child = child.parent
+        const { parent } = child
+        if (isConditionalBranch(child, parent)) {
+            if (parent.type === "ConditionalExpression") return { kind: "ternary" } as const
+            if (parent.type === "LogicalExpression") {
+                return { kind: "shortCircuit", operator: parent.operator } as const
+            }
+            if (parent.type === "AssignmentExpression") {
+                return { kind: "shortCircuit", operator: parent.operator.slice(0, -1) } as const
+            }
+        }
+        child = parent
     }
-    return false
+    return undefined
 }
 
 // The extracted `const` runs before its statement, once and unconditionally: any position that
@@ -262,6 +272,7 @@ export const noInlineYieldStarRule = defineRule({
         messages: {
             inlineYieldStar: inlineYieldStarMessage,
             conditionalYieldStar: `${inlineYieldStarMessage} When inside a conditional branch, binding it first would run it unconditionally. Instead, extract the effect into a named function and transform its result inside it (\`Effect.map\`), so the branch is a single \`yield*\`.`,
+            shortCircuitYieldStar: `${inlineYieldStarMessage} When inside a conditional branch, binding it first would run it unconditionally. Instead, keep the \`yield*\` where it is: move the surrounding expression into a named effect that transforms the result with \`Effect.map\`, so the branch is just that \`yield*\`, as in \`cond {{operator}} (yield* fn(x))\`. Keep the \`{{operator}}\` in this expression rather than moving it into an effect combinator such as \`Effect.flatMap\`.`,
         },
     },
     createOnce(context) {
@@ -314,11 +325,17 @@ export const noInlineYieldStarRule = defineRule({
                         ? extraction(statement, hoisted, context.sourceCode, namesByOwner, owner)
                         : undefined
                     for (const node of yields) {
+                        const branch = conditionalBranchOf(node, statement)
                         context.report({
                             node,
-                            messageId: isNestedInConditionalBranch(node, statement)
-                                ? "conditionalYieldStar"
-                                : "inlineYieldStar",
+                            ...(branch === undefined
+                                ? { messageId: "inlineYieldStar" }
+                                : branch.kind === "ternary"
+                                  ? { messageId: "conditionalYieldStar" }
+                                  : {
+                                        messageId: "shortCircuitYieldStar",
+                                        data: { operator: branch.operator },
+                                    }),
                             ...(replacement !== undefined && hoisted.includes(node)
                                 ? { fix: (fixer) => fixer.replaceText(statement, replacement) }
                                 : {}),
