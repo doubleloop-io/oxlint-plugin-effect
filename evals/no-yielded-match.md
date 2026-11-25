@@ -42,5 +42,5 @@ export const renewPolicy = Effect.fn("renewPolicy")(function* (id: string) {
 })
 ```
 
-Good: an early return on the missing policy (`if (Option.isNone(found)) return yield* Effect.fail(…)`), then the renewal as the main path, kept as the effect it was.
+Good: an early return on the missing policy (`if (Option.isNone(found)) return yield* Effect.fail(…)`), then the renewal as the main path.
 Bad: the early return on the found policy (`Option.isSome`), which puts the main path inside the `if` and the failure at the end; a ternary choosing the effect to yield, which keeps two equal branches; the match kept out of the rule's sight: assigned to a `const`, moved into `Effect.flatMap` or wrapped in a helper function.
