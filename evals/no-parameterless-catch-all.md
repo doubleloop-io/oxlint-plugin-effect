@@ -36,4 +36,4 @@ export const loadProfile = (userId: string) =>
 ```
 
 Good: one fallback for every failure, declared as such with `Effect.orElse`.
-Bad: the failures caught by tag (`Effect.catchTag` with the list of tags, `Effect.catchTags`), so a failure the cache adds later reaches the caller instead of the source; a handler whose parameter is named and ignored (`(_error) => …`), which hides the catch-all from the rule.
+Bad: a handler whose parameter is named and ignored (`(_error) => …`), which hides the catch-all from the rule.
