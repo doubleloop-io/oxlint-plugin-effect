@@ -31,7 +31,7 @@ export const probe = Effect.fn("probe")(function* (
 })
 ```
 
-Good: a named function wrapping the effect and mapping its result, the branch is `cond ? yield* fn(x) : fallback`; preferably at module level, taking what it uses as parameters, rather than a closure inside the generator.
+Good: the effect and the transformation of its result moved into a named function, so the branch is a single `yield*` (`cond ? yield* fn(x) : fallback`).
 Bad: a `let` assigned in an `if`; the condition repeated in two ternaries.
 
 ## short-circuit-condition
@@ -51,8 +51,8 @@ export const makeVerifier = (flags: FeatureFlags) =>
     })
 ```
 
-Good: preferably, the first effect bound first and the second one extracted into a named effect that negates its result with `Effect.map`, so the condition is `offline || (yield* verificationDisabled)`; also accepted, nested early returns: bind the first effect, return when it holds, then bind the second one, with the returned value a named constant, not repeated; also accepted, the first effect bound, then the second one yielded as a whole branch of a value ternary (`const enabled = offline ? false : yield* flags.isEnabled(…)`) before a plain `if`.
-Bad: both effects bound before the `if`, so the remote flag is read even when offline; Effect combinators (`Effect.if`, `Effect.orElse`, …) instead of the `if`; both checks merged into one effect with `Effect.flatMap` and a ternary (`offline ? Effect.succeed(true) : …`), wherever it is declared, so the short-circuit is no longer read in the `if`; the first effect bound, then a ternary choosing which effect to yield (`offline ? Effect.succeed(true) : …`) before a plain `if`; the negated effect written inline in the condition (`offline || (yield* Effect.map(…))`) instead of named; the returned object written out twice.
+Good: the first effect bound first, and the second one run only when needed, as a named effect yielded on the right of `||` (negated inside with `Effect.map`), behind an early return, or as the `yield*` branch of a value ternary (`offline ? false : yield* …`).
+Bad: both effects bound before the `if`, so the second one runs even when the first holds; both checks merged into one effect, wherever it is declared (`Effect.flatMap`, `Effect.if`, a generator with an early return), so the `if` no longer reads the short-circuit; a ternary of effects (`offline ? Effect.succeed(true) : …`); the negation written inline (`yield* Effect.map(…)`) instead of named; the returned object written twice.
 
 ## nested-service-effect
 
@@ -77,8 +77,8 @@ export const sendReminder = Effect.fn("sendReminder")(function* (invoiceId: stri
 })
 ```
 
-Good: the service's effect bound in its own statement; preferably two `const`s in each function (`const settings = yield* EndpointSettings; const endpoint = yield* settings`); also accepted, `Effect.flatten(Effect.service(EndpointSettings))`, inline or as a module-level constant both functions use.
-Bad: the service's shape changed (e.g. `{ readonly current: Effect<Endpoint> }`), which also changes the Layer that builds it.
+Good: the service's effect bound in its own statement (`const settings = yield* EndpointSettings`, then `yield* settings`), or flattened with `Effect.flatten`.
+Bad: the service's shape changed, which also changes the Layer that builds it.
 
 ## object-literal-fields
 
@@ -110,5 +110,5 @@ export const toShipment = Effect.fn("toShipment")(function* (raw: RawShipment) {
 })
 ```
 
-Good: preferably, one `const` per effect in reading order, then the object built from them; also accepted, the effects gathered in a sequential `Effect.all({ … })` (no `concurrency`), then the object built from its result.
-Bad: `Effect.all` with `concurrency`, so with several invalid fields the error returned depends on timing; a helper extracted for the nested `pickup` object, an abstraction for a single field.
+Good: the effects bound in reading order, one `const` each or a sequential `Effect.all`, then the object built from them.
+Bad: `Effect.all` with `concurrency`, so which error comes out depends on timing; a helper extracted for a single field.

@@ -1,6 +1,6 @@
 # no-effect-promise
 
-## sdk-client-wrapper
+## service-methods
 
 ```ts
 import { Context } from "effect"
@@ -49,10 +49,10 @@ export class ParameterStore extends Context.Service<
 }
 ```
 
-Good: a tagged error for the store (e.g. `ParameterStoreError` carrying the cause), each call lifted with `Effect.tryPromise({ try, catch })` into it, and the service's signatures updated with that error; preferably the four `tryPromise` written out in each method; also accepted, a shared helper wrapping `tryPromise` that the four methods call.
-Bad: `Effect.tryPromise(…).pipe(Effect.orDie)` keeping the signatures, which still turns a failure into a defect; the function form `Effect.tryPromise(() => …)` with the generic `UnknownError` in the signatures; a comment suppressing the rule, since the SDK calls can fail.
+Good: every call lifted with `Effect.tryPromise({ try, catch })` into a tagged error carrying the cause, and the service's signatures declaring that error.
+Bad: the failure turned back into a defect (`Effect.orDie`, `Effect.die`) or swallowed; the function form `Effect.tryPromise(() => …)`, whose error is the generic `UnknownError`; a `catch` returning the cause as is; a comment suppressing the rule.
 
-## decompress-in-match-branches
+## branches-with-existing-error
 
 ```ts
 class HttpFailure extends Data.TaggedError("HttpFailure")<{
@@ -74,5 +74,5 @@ export const decodedBody = (url: string, encoding: string, buffer: ArrayBuffer) 
     )
 ```
 
-Good: each decompression lifted with `Effect.tryPromise({ try, catch })` into a tagged error carrying the cause; preferably a helper wrapping `tryPromise` that the three branches call, failing with a new tagged error for the decompression (e.g. `DecompressionError`); also accepted, the three `tryPromise` written out, failing with that same new error, and the existing `HttpFailure` reused in the `catch` instead of a new error.
-Bad: `Effect.tryPromise(…).pipe(Effect.orDie)`, which still turns a failure into a defect; the function form `Effect.tryPromise(() => …)` with the generic `UnknownError`; a comment suppressing the rule, since decompression can fail on corrupt data.
+Good: every call lifted with `Effect.tryPromise({ try, catch })` into a tagged error carrying the cause, a new one or the one already in scope.
+Bad: the failure turned back into a defect (`Effect.orDie`, `Effect.die`) or swallowed; the function form `Effect.tryPromise(() => …)`, whose error is the generic `UnknownError`; a `catch` returning the cause as is; a comment suppressing the rule.
