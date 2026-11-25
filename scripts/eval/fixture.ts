@@ -51,10 +51,21 @@ export const installVariant = async (options: {
         `${JSON.stringify({ ...manifest, devDependencies }, null, 4)}\n`,
     )
     await writeFile(join(installDir, ".oxlintrc.json"), oxlintrc(rule))
-    execFileSync("npm", ["install", "--no-audit", "--no-fund", "--loglevel=error"], {
-        cwd: installDir,
-        stdio: "inherit",
-    })
+    // The native binaries (oxlint, typescript) must be the container's, not the host's: the image is
+    // node:22-bookworm-slim (Linux, glibc) on the host's architecture. Change these with the image.
+    execFileSync(
+        "npm",
+        [
+            "install",
+            "--os=linux",
+            `--cpu=${process.arch}`,
+            "--libc=glibc",
+            "--no-audit",
+            "--no-fund",
+            "--loglevel=error",
+        ],
+        { cwd: installDir, stdio: "inherit" },
+    )
 }
 
 export const caseSource = (globalPreamble: string, ruleCases: RuleCases, evalCase: EvalCase) =>
