@@ -272,7 +272,7 @@ export const noInlineYieldStarRule = defineRule({
         messages: {
             inlineYieldStar: inlineYieldStarMessage,
             conditionalYieldStar: `${inlineYieldStarMessage} When inside a conditional branch, binding it first would run it unconditionally. Instead, extract the effect into a named function and transform its result inside it (\`Effect.map\`), so the branch is a single \`yield*\`.`,
-            shortCircuitYieldStar: `${inlineYieldStarMessage} When inside a conditional branch, binding it first would run it unconditionally. Instead, keep the \`yield*\` where it is: move the surrounding expression into a named effect that transforms the result with \`Effect.map\`, so the branch is just that \`yield*\`, as in \`cond {{operator}} (yield* fn(x))\`.`,
+            shortCircuitYieldStar: `${inlineYieldStarMessage} When inside a conditional branch, binding it first would run it unconditionally. Instead, keep the \`yield*\` where it is: move the surrounding expression into a named effect that transforms the result with \`Effect.map\`, so the branch is just that \`yield*\`, as in \`cond {{operator}} (yield* fn(x))\`. Keep the \`{{operator}}\` in this expression rather than moving it into an effect combinator such as \`Effect.flatMap\`.`,
         },
     },
     createOnce(context) {
