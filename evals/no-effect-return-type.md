@@ -31,5 +31,5 @@ export const toTransferItems = (
 ): Effect.Effect<ReadonlyArray<TransferItem>, InvalidItem> => Effect.forEach(raws, toTransferItem)
 ```
 
-Good: the annotation removed and the returned object checked with `satisfies TransferItem`, so `type` stays the literal and every field is still checked.
-Bad: `TransferItem.make({ … })`, which throws inside the Effect when the data is invalid; `type: "TRANSFER" as const` alone, which no longer checks the other fields; `toTransferItem` exported to fall under the exemption, widening the module's interface only to silence the rule; a comment suppressing the rule.
+Good: the annotation removed and the returned object checked with `satisfies` against the named type.
+Bad: the literal kept with `as const` alone, which moves the check to the exported caller and no longer catches extra fields; a runtime constructor (`TransferItem.make`), which throws inside the Effect on invalid data; the function exported to fall under the exemption; a comment suppressing the rule.

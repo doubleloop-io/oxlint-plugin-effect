@@ -84,7 +84,7 @@ export const noEffectReturnTypeRule = defineRule({
         hasSuggestions: true,
         messages: {
             effectReturnType:
-                "Remove the return type annotation: error and requirement channels follow the callees, so inference keeps them up to date.",
+                "Remove the return type annotation: error and requirement channels follow the callees, so inference keeps them up to date. To keep checking the returned value against a named type, use `satisfies` on it.",
             removeReturnType: "Remove the return type annotation.",
         },
         schema: [
