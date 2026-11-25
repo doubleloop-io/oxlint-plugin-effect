@@ -8,6 +8,30 @@ export const remedyFor = (discriminant: string) =>
         ? "the Schema's tagged `.make`, the tagged class or error constructor, or the `Data.taggedEnum` variant constructor"
         : "the Schema's `.make` or the class constructor"
 
+// A `_tag` of Effect's own two-variant types: the literal copies the type, so the remedy is the
+// type's own constructors, not a union of one's own.
+const result = {
+    owner: "`Result`",
+    constructors:
+        "`Result.succeed`/`Result.fail` and the `Result.Result` type (`Exit` is the outcome of running an effect, not a value to build)",
+}
+const either = {
+    owner: "`Either`",
+    constructors: "`Either.left`/`Either.right` and the `Either.Either` type",
+}
+const option = {
+    owner: "`Option`",
+    constructors: "`Option.some`/`Option.none` and the `Option.Option` type",
+}
+const effectVariants: Readonly<
+    Record<string, { readonly owner: string; readonly constructors: string }>
+> = { Success: result, Failure: result, Left: either, Right: either, Some: option, None: option }
+
+export const effectVariantOf = (tag: string) =>
+    Object.hasOwn(effectVariants, tag)
+        ? { tag, ...effectVariants[tag], remedy: remedyFor("_tag") }
+        : undefined
+
 const isMatchPatternCall = (call: ESTree.CallExpression) => {
     const method = calleeOf(call, "Match")
     return method === "when" || method === "not"
@@ -121,6 +145,8 @@ export const noManualDiscriminantConstructionRule = defineRule({
         messages: {
             manualConstruction:
                 "An object literal with a literal `{{discriminant}}` skips the variant's constructor: use {{remedy}}.",
+            effectVariantConstruction:
+                'An object literal with `_tag: "{{tag}}"` copies a variant of Effect\'s {{owner}}: use {{constructors}}. Only for a union of your own with that tag, use {{remedy}}.',
         },
         schema: [],
     },
@@ -137,6 +163,16 @@ export const noManualDiscriminantConstructionRule = defineRule({
                     const discriminant = propertyName(property)
                     if (discriminant === undefined || !discriminants.has(discriminant)) continue
                     if (isPatternExpectationOrRawInput(node, context.sourceCode)) return
+                    const variant =
+                        discriminant === "_tag" ? effectVariantOf(property.value.value) : undefined
+                    if (variant !== undefined) {
+                        context.report({
+                            node: property,
+                            messageId: "effectVariantConstruction",
+                            data: variant,
+                        })
+                        return
+                    }
                     context.report({
                         node: property,
                         messageId: "manualConstruction",

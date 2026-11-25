@@ -1,11 +1,18 @@
 import { RuleTester } from "oxlint/plugins-dev"
 
 import {
+    effectVariantOf,
     noManualDiscriminantConstructionRule,
     remedyFor,
 } from "./no-manual-discriminant-construction.ts"
 
 const eventDiscriminants = { "dl-effect": { discriminants: ["_tag", "type", "eventType"] } }
+
+const effectVariant = (tag: string) => {
+    const data = effectVariantOf(tag)
+    if (data === undefined) throw new Error(`${tag} is not a variant of Effect's own types`)
+    return { messageId: "effectVariantConstruction" as const, data }
+}
 
 const constructionOf = (discriminant: string) => ({
     messageId: "manualConstruction" as const,
@@ -56,6 +63,26 @@ new RuleTester({ languageOptions: { parserOptions: { lang: "ts" } } }).run(
             'function answering(status: number, body: unknown = null) { return respond(status, body) }; answering(503, [{ _tag: "NotReady" }])',
         ],
         invalid: [
+            // Effect's own variants: their constructors and type.
+            {
+                code: 'const found = { _tag: "Some", value: rate }',
+                errors: [effectVariant("Some")],
+            },
+            { code: 'const missing = { _tag: "None" }', errors: [effectVariant("None")] },
+            {
+                code: 'const parsed = { _tag: "Failure", failure: error }',
+                errors: [effectVariant("Failure")],
+            },
+            {
+                code: 'const right = { _tag: "Right", right: value }',
+                errors: [effectVariant("Right")],
+            },
+            // Only `_tag` names Effect's variants.
+            {
+                code: 'const event = { eventType: "Success", id }',
+                settings: eventDiscriminants,
+                errors: [constructionOf("eventType")],
+            },
             // Ported from `anti-slop-no-manual-tagged-construction`, which this rule replaces.
             {
                 code: 'const value = { _tag: "Ready", payload };',
