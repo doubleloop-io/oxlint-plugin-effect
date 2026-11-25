@@ -35,5 +35,5 @@ export const toTransferItems = (
 ): Effect.Effect<ReadonlyArray<TransferItem>, InvalidItem> => Effect.forEach(raws, toTransferItem)
 ```
 
-Good: the annotation removed and the returned object checked with `satisfies` against the named type.
+Good: the annotation removed and the returned object checked against the named type where it is built: with `satisfies`, or with a return type on the callback that builds it.
 Bad: the literal kept with `as const` alone, which moves the check to the exported caller and no longer catches extra fields; a runtime constructor (`TransferItem.make`), which throws inside the Effect on invalid data; the function exported to fall under the exemption; a comment suppressing the rule.
