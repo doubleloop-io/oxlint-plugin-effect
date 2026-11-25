@@ -30,6 +30,9 @@ export type Results = {
     readonly startedAt: string
     readonly agent: string
     readonly judge?: string
+    // The rules enabled in the case projects; results from before it existed had only the rule
+    // under test.
+    readonly lint?: string
     readonly cases: readonly EvalCase[]
     readonly variants: readonly VariantResults[]
 }
@@ -136,6 +139,7 @@ export const renderReport = (results: Results) =>
         `- Started: ${results.startedAt}`,
         `- Agent: ${results.agent}`,
         `- Judge: ${results.judge ?? "human"}`,
+        `- Lint: ${results.lint ?? "only the rule under test"}`,
         ...results.variants.map((variant) => `- ${variant.name}: ${variant.label}`),
         "",
         ...summaryTable(results),

@@ -10,15 +10,17 @@ const pluginName = "@doubleloop-io/oxlint-plugin-effect"
 // The project files every copy of a fixture shares; `src/` holds the case.
 const projectFiles = ["package.json", "tsconfig.json", ".oxlintrc.json"]
 
-// Only the rule under test, at the severity of the `all` preset: Oxlint's own rules are off, so
-// the agent faces one report.
-const oxlintrc = (rule: string) =>
+// The `all` preset of the variant, as users enable it, so a fix that trips another rule leaves
+// the lint unclean; Oxlint's own rules are off. The gate still lets a case report only the rule
+// under test.
+export const lintSetup = "the `all` preset"
+
+const oxlintrc = () =>
     `${JSON.stringify(
         {
             plugins: [],
             categories: { correctness: "off" },
-            jsPlugins: [pluginName],
-            rules: { [`dl-effect/${rule}`]: "warn" },
+            extends: [`./node_modules/${pluginName}/dist/presets/all.json`],
         },
         null,
         4,
@@ -29,10 +31,9 @@ const oxlintrc = (rule: string) =>
 export const installVariant = async (options: {
     readonly templateDir: string
     readonly tarball: string
-    readonly rule: string
     readonly installDir: string
 }) => {
-    const { templateDir, tarball, rule, installDir } = options
+    const { templateDir, tarball, installDir } = options
     await mkdir(installDir, { recursive: true })
     await cp(templateDir, installDir, { recursive: true })
     await copyFile(tarball, join(installDir, "plugin.tgz"))
@@ -50,7 +51,7 @@ export const installVariant = async (options: {
         join(installDir, "package.json"),
         `${JSON.stringify({ ...manifest, devDependencies }, null, 4)}\n`,
     )
-    await writeFile(join(installDir, ".oxlintrc.json"), oxlintrc(rule))
+    await writeFile(join(installDir, ".oxlintrc.json"), oxlintrc())
     // The native binaries (oxlint, typescript) must be the container's, not the host's: the image is
     // node:22-bookworm-slim (Linux, glibc) on the host's architecture. Change these with the image.
     execFileSync(

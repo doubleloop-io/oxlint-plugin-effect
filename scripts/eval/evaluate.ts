@@ -4,7 +4,7 @@ import { join, relative } from "node:path"
 import { type RuleCases } from "./cases.ts"
 import { gateProblems, runChecks } from "./checks.ts"
 import { claudeVersion } from "./docker.ts"
-import { caseFile, caseSource, installVariant, writeCaseProject } from "./fixture.ts"
+import { caseFile, caseSource, installVariant, lintSetup, writeCaseProject } from "./fixture.ts"
 import { firstLine } from "./judge.ts"
 import { type Packed, packRef, packWorkingTree } from "./pack.ts"
 import { runPool } from "./pool.ts"
@@ -57,7 +57,6 @@ const gate = async (evaluation: Evaluation, variants: readonly Variant[]) => {
         await installVariant({
             templateDir: join(evalsDir, "template"),
             tarball: variant.packed.tarball,
-            rule: ruleCases.rule,
             installDir: installDir(variant),
         })
         const cases: CaseResults[] = []
@@ -137,6 +136,7 @@ export const evaluate = async (evaluation: Evaluation): Promise<Results> => {
             agent.kind === "claude"
                 ? `Claude Code ${claudeVersion}, model ${agent.model}`
                 : `fake, \`${firstLine(agent.command)}\``,
+        lint: lintSetup,
         cases: ruleCases.cases,
         variants: variantResults,
     }
