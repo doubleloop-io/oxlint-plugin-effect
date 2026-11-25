@@ -12,7 +12,7 @@ export const noParameterlessCatchAllRule = defineRule({
         },
         messages: {
             swallowed:
-                "`Effect.{{name}}` ignores what it catches, so it also swallows failures added later: use `Effect.catchTag`, or `Effect.orElseSucceed`/`Effect.orElse` when every failure truly means the same fallback.",
+                "`Effect.{{name}}` ignores what it catches, so it also swallows failures added later. Decide per failure of the error type: catch by tag (`Effect.catchTag`) only the failures the fallback is meant for, and let the others reach the caller. If the fallback is meant for any failure, including future ones (such as an optional source), say so with `Effect.orElse`/`Effect.orElseSucceed`.",
         },
     },
     createOnce(context) {
