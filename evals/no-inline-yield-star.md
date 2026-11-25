@@ -42,13 +42,12 @@ type FeatureFlags = { readonly isEnabled: (flag: string) => Effect.Effect<boolea
 declare const isOffline: Effect.Effect<boolean>
 declare const remoteVerifier: Verifier
 
-export const makeVerifier = (flags: FeatureFlags) =>
-    Effect.gen(function* () {
-        if ((yield* isOffline) || !(yield* flags.isEnabled("token-verification"))) {
-            return { verify: (token: string) => Effect.succeed(token) } satisfies Verifier
-        }
-        return remoteVerifier
-    })
+export const makeVerifier = Effect.fn("makeVerifier")(function* (flags: FeatureFlags) {
+    if ((yield* isOffline) || !(yield* flags.isEnabled("token-verification"))) {
+        return { verify: (token: string) => Effect.succeed(token) } satisfies Verifier
+    }
+    return remoteVerifier
+})
 ```
 
 Good: the first effect bound first, and the second one run only when needed, as a named effect yielded on the right of `||` (negated inside with `Effect.map`), behind an early return, or as the `yield*` branch of a value ternary (`offline ? false : yield* …`).

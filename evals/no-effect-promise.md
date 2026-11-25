@@ -26,27 +26,26 @@ export class ParameterStore extends Context.Service<
         readonly overwrite: (name: string, value: string) => Effect.Effect<void>
         readonly remove: (name: string) => Effect.Effect<void>
     }
->()("ParameterStore") {
-    static readonly layer = Layer.succeed(
-        ParameterStore,
-        ParameterStore.of({
-            get: (Name) =>
-                Effect.promise(() => sdk.getParameter({ Name })).pipe(
-                    Effect.map((result) => result.Value),
-                ),
-            create: (Name, Value) =>
-                Effect.promise(() => sdk.putParameter({ Name, Value, Overwrite: false })).pipe(
-                    Effect.asVoid,
-                ),
-            overwrite: (Name, Value) =>
-                Effect.promise(() => sdk.putParameter({ Name, Value, Overwrite: true })).pipe(
-                    Effect.asVoid,
-                ),
-            remove: (Name) =>
-                Effect.promise(() => sdk.deleteParameter({ Name })).pipe(Effect.asVoid),
-        }),
-    )
-}
+>()("ParameterStore") {}
+
+export const ParameterStoreLive = Layer.succeed(
+    ParameterStore,
+    ParameterStore.of({
+        get: (Name) =>
+            Effect.promise(() => sdk.getParameter({ Name })).pipe(
+                Effect.map((result) => result.Value),
+            ),
+        create: (Name, Value) =>
+            Effect.promise(() => sdk.putParameter({ Name, Value, Overwrite: false })).pipe(
+                Effect.asVoid,
+            ),
+        overwrite: (Name, Value) =>
+            Effect.promise(() => sdk.putParameter({ Name, Value, Overwrite: true })).pipe(
+                Effect.asVoid,
+            ),
+        remove: (Name) => Effect.promise(() => sdk.deleteParameter({ Name })).pipe(Effect.asVoid),
+    }),
+)
 ```
 
 Good: every call lifted with `Effect.tryPromise({ try, catch })` into a tagged error carrying the cause, and the service's signatures declaring that error.

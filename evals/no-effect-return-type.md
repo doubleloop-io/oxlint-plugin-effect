@@ -10,7 +10,7 @@ export const TransferItem = Schema.Struct({
     itemRef: Schema.String,
     vehicle: Schema.String,
     pickupAt: Schema.String,
-})
+}).annotate({ identifier: "TransferItem" })
 export type TransferItem = typeof TransferItem.Type
 
 type RawTransfer = { readonly ref: string; readonly vehicle: string; readonly pickup?: string }
@@ -21,10 +21,14 @@ declare const requirePresent: <A>(
 ) => Effect.Effect<A, InvalidItem>
 
 const toTransferItem = (raw: RawTransfer): Effect.Effect<TransferItem, InvalidItem> =>
-    Effect.gen(function* () {
-        const pickupAt = yield* requirePresent(raw.ref, "pickup", raw.pickup)
-        return { type: "TRANSFER", itemRef: raw.ref, vehicle: raw.vehicle, pickupAt }
-    })
+    requirePresent(raw.ref, "pickup", raw.pickup).pipe(
+        Effect.map((pickupAt) => ({
+            type: "TRANSFER",
+            itemRef: raw.ref,
+            vehicle: raw.vehicle,
+            pickupAt,
+        })),
+    )
 
 export const toTransferItems = (
     raws: ReadonlyArray<RawTransfer>,
