@@ -129,8 +129,18 @@ try {
         const results: Results = JSON.parse(
             await readFile(join(resultsDir, "results.json"), "utf8"),
         )
+        // The runs keep the code they were made on; Good and Bad come from evals/<rule>.md as it
+        // is now, so a shape added to them after the run is judged with it.
+        const current = await loadRuleCases(evalsDir, results.rule)
+        const cases = results.cases.map((evalCase) => {
+            const now = current.cases.find(({ name }) => name === evalCase.name)
+            return now === undefined ? evalCase : { ...evalCase, good: now.good, bad: now.bad }
+        })
         ensureImage(join(evalsDir, "image"))
-        await writeResults(resultsDir, await judgeResults(results, judge, concurrency))
+        await writeResults(
+            resultsDir,
+            await judgeResults({ ...results, cases }, judge, concurrency),
+        )
     } else if (rule !== undefined) {
         if (rule.startsWith("anti-slop-")) {
             throw new Error("anti-slop-* rules are out of scope: their messages come from upstream")
