@@ -48,5 +48,5 @@ export const priceLabel = (raw: string) =>
     })
 ```
 
-Good: TODO
-Bad: TODO
+Good: the inner choice named in a function declared at module level and passed as the handler by reference (`onSuccess: quotedPrice`), however that function builds its value.
+Bad: the inner choice kept in the handler and hidden from the rule: replaced with combinators (`Option.map` with `Option.getOrElse`) or assigned to a `const` that the handler returns.
