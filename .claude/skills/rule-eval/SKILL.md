@@ -12,7 +12,7 @@ description: Measure how agents fix the report of a dl-effect rule. Adds a case 
 - **Rule**: a file in `src/rules/`. `anti-slop-*` rules are out of scope.
 - **Section**: add `## <case-name>` (kebab-case) to `evals/<rule>.md`, creating the file if needed, with exactly one `ts` block, then a `Good:` line and a `Bad:` line.
 - **Case name**: the situation that sets this case apart from the rule's other cases, such as `conditional-branch` for a `yield*` inside a branch. Not the rule restated nor the fix: every case of `no-effect-promise` lifts a rejecting promise.
-- **Good and Bad** come from whoever asks for the case: what a right fix and a wrong fix look like. When they are not given, ask; do not invent them from the rule's doc.
+- **Good and Bad** come from whoever asks for the case: what a right fix and a wrong fix look like. When they are not given, ask; do not invent them from the rule's doc. To ask, list the shapes agents are likely to produce, each as the complete fixed code of the case, checked with `--fake-agent` when unsure it compiles, with a proposed category and its reason, and let the person decide one shape at a time.
 - **Write Good and Bad as properties, not code**: Good says what makes a fix right; Bad lists the wrong shapes, each with its reason in a few words. Name the case's identifiers only where a shape cannot be told otherwise, and add no preferences ("preferably X; also accepted Y"): the judge puts every right fix in `good`, so a preference never shows in the counts.
 - **The code must face the pattern**: no trivial way around it, such as an early return, a value that can be inlined or a branch that can be deleted. Otherwise agents escape and the round measures nothing.
 - **Incidental declarations**: `evals/preamble.ts` already imports the common `effect` modules. Types shared by the rule's cases go in its `## preamble` section; anything only one case needs is a `declare const` in the case. Neither may hint at the fix, such as a ready-made helper when the case measures whether the agent extracts one.
@@ -42,5 +42,6 @@ The last line of the output gives `evals/.results/<rule>/<timestamp>/report.md`.
   - an `other` shape that is right or wrong for good: add it to `Good:` or `Bad:`, then `pnpm eval --rejudge <results-dir> --judge llm`, which judges again without running agents;
   - an `escape`: rewrite the case so the pattern cannot be avoided;
   - a message that still leads to `bad`: reword the message in `src/rules/<rule>.ts` and run the A/B.
+- **When a message is good enough**: at least 4 `good` out of 5 runs and no `bad`. When the counts sit at the edge, run 10 before deciding.
 
 When a message change comes out of this, its pull request carries the summary table of the report in its body.
