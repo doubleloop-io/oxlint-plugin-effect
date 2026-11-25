@@ -21,11 +21,13 @@ const singlePackResult = (output: unknown) => {
     return result
 }
 
-export const npmPack = (destination: string) => {
+// `packageDir` defaults to the current directory, the repository when run by its scripts.
+export const npmPack = (destination: string, packageDir?: string) => {
     const { filename, files } = singlePackResult(
         JSON.parse(
             execFileSync("npm", ["pack", "--json", "--pack-destination", destination], {
                 encoding: "utf8",
+                ...(packageDir === undefined ? {} : { cwd: packageDir }),
             }),
         ),
     )

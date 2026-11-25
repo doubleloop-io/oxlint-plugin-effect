@@ -43,6 +43,7 @@
         "pack:check": "node --test scripts/preset-all-dist-check.ts && node scripts/pack-check.ts",
         "build-and-pack": "pnpm check && pnpm build && pnpm pack:check && pnpm consumer-test",
         "consumer-test": "node scripts/consumer-test.ts",
+        "eval": "node scripts/eval/main.ts",
         "changeset-version": "changeset version && pnpm format",
         "changeset-publish": "pnpm build-and-pack && changeset publish",
         "changeset-status": "changeset status --verbose",
