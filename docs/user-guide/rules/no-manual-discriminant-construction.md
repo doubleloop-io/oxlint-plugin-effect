@@ -19,7 +19,7 @@ const event = { eventType: "PaymentStarted", id, payment }
 const event = PaymentStartedEvent.make({ id, payment })
 ```
 
-**Trigger**: an object literal with a discriminant property (also `"type"` or `["type"]`) whose value is a string literal. The discriminants are the names in `discriminants`.
+**Trigger**: an object literal with a discriminant property (also `"type"` or `["type"]`) whose value is a string literal. The discriminants are the names in `discriminants`. A `_tag` naming a variant of Effect's own types (`Some`/`None`, `Success`/`Failure`, `Left`/`Right`) is reported with that type's constructors as the remedy, such as `Option.some`, and `Result` rather than `Exit` for `Success`/`Failure`: the literal copies a type Effect already has.
 
 **Exemptions and blind spots**: values that are not literals (`"Ready" as const` included). Literals that are patterns or raw input, also nested: the arguments of `Match.when`, `Match.not`, of `.with(…)` on a ts-pattern `match(…)` chain, the expected value of an `expect(…)` matcher or `expect.*` helper, the input of `Schema.decode*(X)(…)`/`Schema.encode*(X)(…)`, the argument of `JSON.stringify`, and an argument whose parameter is annotated `unknown` in a function declared in the same file (a fake API's raw body). Transport payloads written as literals fire, as does raw data passed to an imported function or through a variable, and a name added to `discriminants` fires on objects outside closed unions: the list is a choice of the codebase. See `schema-struct-with-tag` (effecttsgo) for `Schema.Struct` with a `_tag` field.
 
